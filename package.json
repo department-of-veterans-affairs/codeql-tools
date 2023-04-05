@@ -1,6 +1,6 @@
 {
-  "name": "advanced-security-tooling",
-  "version": "0.0.1-alpha",
+  "name": "codeql-tools",
+  "version": "0.0.1-beta",
   "description": "A collection of tools for managing the enablement of GitHub Advanced Security CodeQL features.",
   "main": "index.js",
   "scripts": {
