@@ -1,7 +1,7 @@
 name: CodeQL
 description: GitHub Advanced Security Code Scanning with CodeQL
 inputs:
-  build-step-name:
+  build_step_name:
     description: Name of the build step to invoke
     required: false
   language:
@@ -10,7 +10,7 @@ inputs:
   token:
     description: GitHub token
     required: true
-  upload-db:
+  upload_db:
     description: Upload the CodeQL database to GitHub
     required: false
     default: false
@@ -25,44 +25,11 @@ runs:
       with:
         languages: ${{ inputs.language }}
 
-    - name: Install js-yaml
-      if: runner.os == 'Linux' || runner.os == 'macOS'
-      shell: bash
-      run: npm install js-yaml
-
-    - name: Install js-yaml
-      if: runner.os == 'Windows'
-      shell: powershell
-      run: npm install js-yaml
-
     - name: Parse Build Steps
       id: build-steps
-      uses: actions/github-script@v6
+      uses: department-of-veterans-affairs/codeql-tools/parse-build-steps@main
       with:
-        result-encoding: string
-        retries: 1
-        script: |
-          const fs = require('fs')
-          const yaml = require('js-yaml')
-          
-          const fileExists = fs.existsSync('.github/codeql-config.yml')
-          if (!fileExists) {
-            console.log('No custom build steps found')  
-            return ''
-          }
-          
-          const language = process.env.build_step_name || process.env.language
-          const yml = fs.readFileSync('.github/codeql-config.yml', 'utf8')
-          const config = yaml.load(yml)
-          if(config.build_steps && config.build_steps[language]) {
-            console.log('Found custom build steps')
-            return config.build_steps[language]
-          }
-          
-          console.log(`No custom build steps found for language ${language}`)
-          return ''
-      env:
-        build_step_name: ${{ inputs.build-step-name }}
+        build_step_name: ${{ inputs.build_step_name }}
         language: ${{ inputs.language }}
         temp: ${{ runner.temp }}
 
@@ -91,6 +58,7 @@ runs:
       uses: github/codeql-action/analyze@v2
 
     - name: Upload CodeQL Database
+      if: inputs.upload_db == 'true'
       uses: department-of-veterans-affairs/codeql-tools/upload-database@main
       with:
         language: ${{ inputs.language }}
