@@ -1,0 +1,23 @@
+name: EMASS Promotion
+description: Promote CodeQL Assets to EMASS Repositories
+author: GitHub Expert Services
+inputs:
+  language:
+    description: The language of the CodeQL database
+    required: true
+  org:
+    description: The slug of the organization
+    required: true
+  path:
+    description: The path to the CodeQL database
+    required: true
+  repo:
+    description: The slug of the repository
+    required: true
+  token:
+    description: The token to use for authentication
+    required: true
+    default: ${{ github.token }}
+runs:
+  using: node16
+  main: dist/index.js

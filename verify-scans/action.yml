@@ -1,0 +1,50 @@
+name: EMASS Promotion
+description: Promote CodeQL Assets to EMASS Repositories
+author: GitHub Expert Services
+inputs:
+  admin_token:
+    description: A personal access token with admin:org permissions
+    required: true
+  days_to_scan:
+    description: The number of days to scan
+    required: true
+    default: 7
+  ghas_emass_promotion_app_id:
+    description: The app ID of the GitHub EMASS Promotion app
+    required: true
+  ghas_emass_promotion_private_key:
+    description: The private key of the GitHub EMASS Promotion app
+    required: true
+  ghas_emass_promotion_installation_id:
+    description: The installation ID of the GitHub EMASS Promotion app
+    required: true
+  gmail_user:
+    description: The username of the Gmail account to use
+    required: true
+  gmail_password:
+    description: The password of the Gmail account to use
+    required: true
+  missing_info_email_template:
+    description: The template for the email to send when a repository is missing information
+    required: true
+  missing_info_issue_template:
+    description: The template for the issue to create when a repository is missing information
+    required: true
+  non_compliant_email_template:
+    description: The template for the email to send when a repository is non-compliant
+    required: true
+  org:
+    description: The slug of the organization
+    required: true
+  ghas_verify_scans_app_id:
+    description: The ID of the GitHub Verify Scans app
+    required: true
+  ghas_verify_scans_private_key:
+    description: The private key of the GitHub Verify Scans app
+    required: true
+  ghas_verify_scans_installation_id:
+    description: The installation ID of the GitHub Verify Scans app
+    required: true
+runs:
+  using: node16
+  main: dist/index.js

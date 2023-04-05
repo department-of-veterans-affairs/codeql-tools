@@ -1,0 +1,429 @@
+// TODO: Add tests
+// TODO: Add licensing and license headers
+// TODO: Add robust error handling
+// TODO: Add function documentation
+// TODO: Add retry logic
+// TODO: Download SARIF file attached to database only
+// TODO: add error arrays for all error types for reporting
+// TODO: Add logic to create any missing EMASS repositories
+// TOD: Allow default branch to be overridden by metadata file
+const fs = require('fs')
+const core = require('@actions/core')
+const axios = require('axios')
+const {gzip} = require('node-gzip')
+const axiosRetry = require('axios-retry')
+
+axiosRetry(axios, {
+    retries: 3
+})
+
+const {createCodeQLGitHubClient, createGitHubAppClient, createGitHubClient} = require('../lib/utils')
+
+const main = async () => {
+    // TODO: Flag failures in upload/download
+    const invalidSystemIDs = []
+    const emassFileNotFound = []
+    const skippedDatabaseNotFound = []
+    const skippedSarifNotFound = []
+    const successfulUploads = []
+
+    core.info('Parsing Actions input')
+    const config = parseInput()
+
+    core.info('Instantiating Admin GitHub client')
+    const adminClient = await createGitHubClient(config.admin_token)
+
+    core.info('Instantiating CodeQL Upload GitHub client')
+    const codeqlClient = await createCodeQLGitHubClient(config.admin_token)
+
+    core.info('Instantiating emass-promotion GitHub App client')
+    const emassPromotionApp = await createGitHubAppClient(config.emass_promotion_app_id, config.emass_promotion_privateKey)
+
+    core.info(`Instantiating emass-promotion GitHub installation client for installation ID ${config.emass_promotion_installation_id}`)
+    const emassPromotionInstallation = await emassPromotionApp.getInstallationOctokit(config.emass_promotion_installation_id)
+
+    core.info('Instantiating emass organization GitHub App client')
+    const emassOrganizationApp = await emassPromotionApp.getInstallationOctokit(config.emass_organization_installation_id)
+
+    core.info(`Retrieving System ID list`)
+    const systemIDs = await getFileArray(adminClient, config.org, '.github-private', '.emass-system-include')
+
+    await emassPromotionApp.eachRepository(async ({octokit, repository}) => {
+        try {
+            if (repository.owner.login !== config.org) {
+                core.info(`Skipping ${repository.name} as it is not in the ${config.org} organization`)
+                return
+            }
+
+            // TODO: Push all processing logic into standalone function to enable testing
+            core.info(`Processing ${repository.name}`)
+            const emassConfig = await getFileJSON(octokit, repository.owner.login, repository.name, '.github/emass.json')
+            if (!emassConfig) {
+                core.info(`Skipping ${repository.name} as it does not contain an emass.json file`)
+                emassFileNotFound.push(repository.name)
+                return
+            }
+
+            if (!systemIDs.includes(emassConfig.systemID)) {
+                core.info(`Skipping ${repository.name} as it contains an invalid System ID`)
+                invalidSystemIDs.push(repository.name)
+                return
+            }
+
+            const emassRepoName = `${emassConfig.systemID}-${repository.name}`
+
+            core.info('Validating EMASS repository exists')
+            const exists = await repoExists(emassOrganizationApp, config.emass_org, emassRepoName)
+            if (!exists) {
+                core.info(`Repository does not exist, creating EMASS repository ${emassRepoName}`)
+                await createRepo(emassOrganizationApp, config.emass_org, emassRepoName)
+            }
+
+            core.info(`Retrieving CodeQL databases for ${repository.name}`)
+            const codeqlDatabases = await listCodeQLDatabases(emassPromotionInstallation, repository.owner.login, repository.name, config.days_to_scan)
+
+            if (codeqlDatabases.length === 0) {
+                core.info(`Skipping ${repository.name} as it does not contain any new CodeQL databases`)
+                skippedDatabaseNotFound.push(repository.name)
+            } else {
+                for (const database of codeqlDatabases) {
+
+                    // TODO: Generate app token for each database download
+                    core.info(`Downloading CodeQL database ${database.name} for ${repository.name}`)
+                    await downloadCodeQLDatabase(config.admin_token, database.url, `${database.language}-database.zip`)
+
+                    core.info(`Uploading CodeQL database ${database.name} for ${repository.name}`)
+                    await uploadCodeQLDatabase(codeqlClient, config.admin_token, config.emass_org, emassRepoName, database.language, `${database.language}-database.zip`, database.name)
+
+                    core.info(`Cleaning up local Database file`)
+                    await deleteLocalFile(`${database.language}-database.zip`)
+                }
+            }
+
+            core.info(`Retrieving recent CodeQL analysis runs for ${repository.name}`)
+            const codeqlAnalysisRuns = await listCodeQLAnalyses(octokit, repository.owner.login, repository.name, repository.default_branch, config.days_to_scan)
+            if (codeqlAnalysisRuns.count === 0) {
+                core.info(`Skipping ${repository.name} as it does not contain any new SARIF analyses`)
+                skippedSarifNotFound.push(repository.name)
+            } else {
+                for (const _analysis of Object.keys(codeqlAnalysisRuns.analyses)) {
+                    const analysis = codeqlAnalysisRuns.analyses[_analysis]
+                    core.info(`Downloading SARIF analysis ${_analysis} for ${repository.name}`)
+                    const sarif = await downloadAndEncodeAnalysis(octokit, repository.owner.login, repository.name, analysis.id)
+
+                    core.info(`Retrieving default branch for ${repository.name}`)
+                    const defaultBranchSHA = await getDefaultBranchSHA(emassOrganizationApp, config.emass_org, emassRepoName)
+
+                    core.info(`Uploading SARIF analysis ${_analysis} for ${repository.name}`)
+                    await uploadAnalysis(emassOrganizationApp, config.emass_org, emassRepoName, defaultBranchSHA, analysis.ref, sarif)
+                }
+            }
+            successfulUploads.push(repository.name)
+        } catch (error) {
+            core.error(`Error processing ${repository.name}: ${error}`)
+        }
+    })
+
+    core.info('Finished processing all repositories, generating summary')
+    // TODO: Create shared utility function to generate markdown summary report
+}
+
+const parseInput = () => {
+    try {
+        const admin_token = core.getInput('admin_token', {
+            required: true,
+            trimWhitespace: true
+        })
+        const days_to_scan = Number(core.getInput('days_to_scan', {
+            required: true,
+            trimWhitespace: true
+        }))
+        const emass_organization_installation_id = core.getInput('ghas_emass_organization_installation_id', {
+            required: true,
+            trimWhitespace: true
+        })
+        const emass_promotion_app_id = Number(core.getInput('ghas_emass_promotion_app_id', {
+            required: true,
+            trimWhitespace: true
+        }))
+        const emass_promotion_privateKey = core.getInput('ghas_emass_promotion_private_key', {
+            required: true,
+            trimWhitespace: true
+        })
+        const emass_promotion_installation_id = Number(core.getInput('ghas_emass_promotion_installation_id', {
+            required: true,
+            trimWhitespace: true
+        }))
+        const emass_org = core.getInput('emass_org', {
+            required: true,
+            trimWhitespace: true
+        })
+        const org = core.getInput('org', {
+            required: true,
+            trimWhitespace: true
+        })
+
+
+        return {
+            admin_token: admin_token,
+            days_to_scan: days_to_scan,
+            emass_organization_installation_id: Number(emass_organization_installation_id),
+            emass_promotion_app_id: emass_promotion_app_id,
+            emass_promotion_privateKey: emass_promotion_privateKey,
+            emass_promotion_installation_id: emass_promotion_installation_id,
+            emass_org: emass_org,
+            org: org
+        }
+    } catch (e) {
+        throw new Error(`Error parsing input: ${e.message}`)
+    }
+}
+
+const getFileJSON = async (octokit, owner, repo, path) => {
+    try {
+        const response = await octokit.repos.getContent({
+            owner: owner,
+            repo: repo,
+            path: path
+        })
+        return JSON.parse(Buffer.from(response.data.content, 'base64').toString())
+    } catch (e) {
+        if (e.status === 404) {
+            return null
+        }
+        throw new Error(`Error retrieving ${path} for ${owner}/${repo}: ${e.message}`)
+    }
+}
+
+const getFileArray = async (octokit, owner, repo, path) => {
+    try {
+        const {data: response} = await octokit.repos.getContent({
+            owner: owner,
+            repo: repo,
+            path: path
+        })
+        const content = Buffer.from(response.content, 'base64').toString().trim()
+        return content.split('\n').map(line => Number(line.trim()))
+    } catch (e) {
+        if (e.status === 404) {
+            return null
+        }
+        throw new Error(`Error retrieving ${path} for ${owner}/${repo}: ${e.message}`)
+    }
+}
+
+const listCodeQLDatabases = async (octokit, owner, repo, range) => {
+    try {
+        const {data: databases} = await octokit.request('GET /repos/{owner}/{repo}/code-scanning/codeql/databases', {
+            owner: owner,
+            repo: repo,
+        })
+
+        return databases.filter(async (database) => {
+            return await validateCodeQLDatabase(octokit, database.created_at, range)
+        })
+    } catch (e) {
+        if (e.status === 404) {
+            return []
+        }
+        throw new Error(`Error retrieving CodeQL databases for ${owner}/${repo}: ${e.message}`)
+    }
+}
+
+const validateCodeQLDatabase = async (octokit, createAt, range) => {
+    const databaseDate = new Date(createAt)
+    const currentDate = new Date()
+    const diffTime = Math.abs(currentDate - databaseDate)
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+
+    return diffDays <= range
+}
+
+const downloadCodeQLDatabase = async (token, url, path) => {
+    try {
+        const response = await axios.get(url, {
+            url: url,
+            responseType: 'arraybuffer',
+            headers: {
+                Authorization: `token ${token}`,
+                Accept: 'application/zip'
+            }
+        })
+
+        fs.writeFileSync(path, response.data)
+    } catch (e) {
+        throw new Error(`Error downloading CodeQL database: ${e.message}`)
+    }
+}
+
+const uploadCodeQLDatabase = async (octokit, token, owner, repo, language, path, name) => {
+    try {
+        const bundledDbSize = fs.statSync(path).size
+        const bundledDbReadStream = fs.createReadStream(path)
+        await octokit.request(`POST https://uploads.github.com/repos/:owner/:repo/code-scanning/codeql/databases/:language?name=:name`, {
+                owner: owner,
+                repo: repo,
+                language: language,
+                name: name,
+                data: bundledDbReadStream,
+                headers: {
+                    "authorization": `token ${token}`,
+                    "Content-Type": "application/zip",
+                    "Content-Length": bundledDbSize,
+                },
+            }
+        )
+    } catch (e) {
+        throw new Error(`Error uploading CodeQL database: ${e.message}`)
+    }
+}
+
+const listCodeQLAnalyses = async (octokit, owner, repo, branch, range) => {
+    try {
+        const analyses = await octokit.paginate('GET /repos/{owner}/{repo}/code-scanning/analyses', {
+            owner: owner,
+            repo: repo,
+            tool_name: 'CodeQL',
+            ref: `refs/heads/${branch}`,
+            direction: 'desc',
+            sort: 'created',
+            per_page: 100
+        }, (response, done) => {
+            const analyses = response.data
+            if (analyses.length === 0) {
+                done()
+                return analyses
+            }
+            // Check if any analysis created_at is older than the range
+            const finished = analyses.some(analysis => {
+                const analysisDate = new Date(analysis.created_at)
+                const currentDate = new Date()
+                const diffTime = Math.abs(currentDate - analysisDate)
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+
+                return diffDays > range
+            })
+
+            if (finished) {
+                done()
+            }
+
+            return analyses
+        })
+
+        // Find the most recent analysis for each language
+        const returnAnalyses = {
+            count: 0,
+            analyses: {}
+        }
+        for (const analysis of analyses) {
+            const environment = JSON.parse(analysis.environment)
+            const language = environment.language
+            if (!returnAnalyses.analyses[language]) {
+                returnAnalyses.count++
+                returnAnalyses.analyses[language] = analysis
+            } else {
+                const existingAnalysisDate = new Date(returnAnalyses.analyses[language].created_at)
+                const newAnalysisDate = new Date(analysis.created_at)
+                if (newAnalysisDate > existingAnalysisDate) {
+                    returnAnalyses.analyses[language] = analysis
+                }
+            }
+        }
+
+        return returnAnalyses
+    } catch (e) {
+        if (e.status === 404) {
+            return []
+        }
+        throw new Error(`Error retrieving CodeQL analyses for ${owner}/${repo}: ${e.message}`)
+    }
+}
+
+const downloadAndEncodeAnalysis = async (octokit, owner, repo, id) => {
+    try {
+        const {data: sarif} = await octokit.request('GET /repos/{owner}/{repo}/code-scanning/analyses/{analysis_id}', {
+            owner: owner,
+            repo: repo,
+            analysis_id: id,
+            headers: {
+                'Accept': 'application/sarif+json'
+            }
+        })
+
+        const compressedSarif = await gzip(JSON.stringify(sarif))
+        return Buffer.from(compressedSarif).toString('base64')
+    } catch (e) {
+        throw new Error(`Error downloading and encoding CodeQL analysis: ${e.message}`)
+    }
+}
+
+const uploadAnalysis = async (octokit, owner, repo, sha, ref, sarif) => {
+    try {
+        await octokit.request('POST /repos/{owner}/{repo}/code-scanning/sarifs', {
+            owner: owner,
+            repo: repo,
+            commit_sha: sha,
+            ref: ref,
+            sarif: sarif
+        })
+    } catch (e) {
+        throw new Error(`Error uploading CodeQL analysis: ${e.message}`)
+    }
+}
+
+const repoExists = async (octokit, owner, repo) => {
+    try {
+        await octokit.request('GET /repos/{owner}/{repo}', {
+            owner: owner,
+            repo: repo
+        })
+        return true
+    } catch (e) {
+        if (e.status === 404) {
+            return false
+        }
+        throw new Error(`Error checking if repo exists: ${e.message}`)
+    }
+}
+
+const getDefaultBranchSHA = async (octokit, owner, repo, branch) => {
+    try {
+        const {data: commits} = await octokit.repos.listCommits({
+            owner: owner,
+            repo: repo,
+            sha: branch,
+            per_page: 1
+        })
+
+        return commits[0].sha
+    } catch (e) {
+        throw new Error(`Error retrieving default branch SHA: ${e.message}`)
+    }
+}
+
+const createRepo = async (octokit, org, repo) => {
+    try {
+        await octokit.repos.createInOrg({
+            org: org,
+            name: repo,
+            visibility: 'private',
+            has_issues: false,
+            has_projects: false,
+            has_wiki: false,
+            auto_init: true
+        })
+    } catch (e) {
+        throw new Error(`Error creating repo: ${e.message}`)
+    }
+}
+
+const deleteLocalFile = async (path) => {
+    try {
+        fs.unlinkSync(path)
+    } catch (e) {
+        throw new Error(`Error deleting local file: ${e.message}`)
+    }
+}
+
+main().catch(e => core.setFailed(e.message))

@@ -1,0 +1,34 @@
+name: Configure CodeQL
+description: Configures CodeQL for a repository
+author: GitHub Expert Services
+inputs:
+  admin_token:
+    description: A personal access token with admin:org permissions
+    required: true
+  ghas_configure_codeql_app_id:
+    description: The ID of the GitHub Configure CodeQL app
+    required: true
+  ghas_configure_codeql_installation_id:
+    description: The installation ID of the GitHub Configure CodeQL app
+    required: true
+  ghas_configure_codeql_private_key:
+    description: The private key of the GitHub Configure CodeQL app
+    required: true
+  ghas_verify_scans_app_id:
+    description: The ID of the GitHub Verify Scans app
+    required: true
+  ghas_verify_scans_installation_id:
+    description: The installation ID of the GitHub Verify Scans app
+    required: true
+  ghas_verify_scans_private_key:
+    description: The private key of the GitHub Verify Scans app
+    required: true
+  pull_request_body:
+    description: The CodeQL enablement pull request body
+    required: true
+  org:
+    description: The organization to which the repository belongs
+    required: true
+runs:
+  using: node16
+  main: dist/index.js
