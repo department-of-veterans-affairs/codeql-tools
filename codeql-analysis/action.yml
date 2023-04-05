@@ -1,0 +1,100 @@
+name: CodeQL
+description: GitHub Advanced Security Code Scanning with CodeQL
+inputs:
+  build-step-name:
+    description: Name of the build step to invoke
+    required: false
+  language:
+    description: Language to analyze
+    required: true
+  token:
+    description: GitHub token
+    required: true
+  upload-db:
+    description: Upload the CodeQL database to GitHub
+    required: false
+    default: false
+runs:
+  using: composite
+  steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    - name: Initialize CodeQL
+      uses: github/codeql-action/init@v2
+      with:
+        languages: ${{ inputs.language }}
+
+    - name: Install js-yaml
+      if: runner.os == 'Linux' || runner.os == 'macOS'
+      shell: bash
+      run: npm install js-yaml
+
+    - name: Install js-yaml
+      if: runner.os == 'Windows'
+      shell: powershell
+      run: npm install js-yaml
+
+    - name: Parse Build Steps
+      id: build-steps
+      uses: actions/github-script@v6
+      with:
+        result-encoding: string
+        retries: 1
+        script: |
+          const fs = require('fs')
+          const yaml = require('js-yaml')
+          
+          const fileExists = fs.existsSync('.github/codeql-config.yml')
+          if (!fileExists) {
+            console.log('No custom build steps found')  
+            return ''
+          }
+          
+          const language = process.env.build_step_name || process.env.language
+          const yml = fs.readFileSync('.github/codeql-config.yml', 'utf8')
+          const config = yaml.load(yml)
+          if(config.build_steps && config.build_steps[language]) {
+            console.log('Found custom build steps')
+            return config.build_steps[language]
+          }
+          
+          console.log(`No custom build steps found for language ${language}`)
+          return ''
+      env:
+        build_step_name: ${{ inputs.build-step-name }}
+        language: ${{ inputs.language }}
+        temp: ${{ runner.temp }}
+
+    - name: Build Source
+      if: steps.build-steps.outputs.result != '' && runner.os != 'Windows'
+      shell: bash
+      run: |
+        eval "$build_steps"
+      env:
+        build_steps: ${{ steps.build-steps.outputs.result }}
+
+    - name: Build Source
+      if: steps.build-steps.outputs.result != '' && runner.os == 'Windows'
+      shell: powershell
+      run: |
+        $BuildSteps = "$Env:build_steps"
+        Invoke-Expression "$BuildSteps"
+      env:
+        build_steps: ${{ steps.build-steps.outputs.result }}
+
+    - name: Auto-Build Source
+      if: steps.build-steps.outputs.result == ''
+      uses: github/codeql-action/autobuild@v2
+
+    - name: Perform CodeQL Analysis
+      uses: github/codeql-action/analyze@v2
+
+    - name: Upload CodeQL Database
+      uses: department-of-veterans-affairs/codeql-tools/upload-database@main
+      with:
+        language: ${{ inputs.language }}
+        org: ${{ github.event.repository.owner.login }}
+        path: ${{ runner.temp }}/codeql_databases/${{ inputs.language }}
+        repo: ${{ github.event.repository.name }}
+        token: ${{ inputs.token }}

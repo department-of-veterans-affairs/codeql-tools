@@ -1,0 +1,32 @@
+name: EMASS Promotion
+description: Promote CodeQL Assets to EMASS Repositories
+author: GitHub Expert Services
+inputs:
+  admin_token:
+    description: A personal access token with admin:org permissions
+    required: true
+  days_to_scan:
+    description: The number of days to scan
+    required: true
+    default: 7
+  emass_org:
+    description: The slug of the EMASS organization
+    required: true
+  ghas_emass_organization_installation_id:
+    description: The installation ID of the GitHub EMASS Promotion app in the EMASS organization
+    required: true
+  ghas_emass_promotion_app_id:
+    description: The app ID of the GitHub EMASS Promotion app
+    required: true
+  ghas_emass_promotion_private_key:
+    description: The private key of the GitHub EMASS Promotion app
+    required: true
+  ghas_emass_promotion_installation_id:
+    description: The installation ID of the GitHub EMASS Promotion app
+    required: true
+  org:
+    description: The slug of the organization
+    required: true
+runs:
+  using: node16
+  main: dist/index.js
