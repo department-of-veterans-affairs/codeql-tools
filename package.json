@@ -1,12 +1,13 @@
 {
   "name": "codeql-tools",
   "version": "0.0.1-beta",
-  "description": "A collection of tools for managing the enablement of GitHub Advanced Security CodeQL features.",
+  "description": "A collection of tools for managing the enablement of GitHub Advanced Security CodeQL",
   "main": "index.js",
   "scripts": {
-    "build": "npm run build:configure-codeql && npm run build:emass-promotion && npm run build:upload-database && npm run build:verify-scans",
+    "build": "npm run build:configure-codeql && npm run build:emass-promotion && npm run build:parse-build-steps && npm run build:upload-database && npm run build:verify-scans",
     "build:configure-codeql": "npx rimraf configure-codeql/dist && npx @vercel/ncc build configure-codeql/index.js -o configure-codeql/dist",
     "build:emass-promotion": "npx rimraf emass-promotion/dist && npx @vercel/ncc build emass-promotion/index.js -o emass-promotion/dist",
+    "build:parse-build-steps": "npx rimraf parse-build-steps/dist && npx @vercel/ncc build parse-build-steps/index.js -o parse-build-steps/dist",
     "build:upload-database": "npx rimraf upload-database/dist && npx @vercel/ncc build upload-database/index.js -o upload-database/dist",
     "build:verify-scans": "npx rimraf verify-scans/dist && npx @vercel/ncc build verify-scans/index.js -o verify-scans/dist"
   },
