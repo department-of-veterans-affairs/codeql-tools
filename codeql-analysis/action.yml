@@ -57,6 +57,39 @@ runs:
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v2
 
+    - name: Generate CodeQL Results CSV
+      if: runner.os == 'Linux'
+      shell: bash
+      run: |
+        if [[ ! -v codeql ]]; then
+          $(realpath /opt/hostedtoolcache/CodeQL/*/x64/codeql/codeql | head -n 1) database interpret-results $path --format=csv --output="$temp/codeql-scan-results.csv"
+        else
+          codeql database interpret-results $path --format=csv --output="$temp/codeql-scan-results.csv"
+        fi
+      env:
+        path: ${{ runner.temp }}/codeql_databases/${{ inputs.language }}
+        temp: ${{ runner.temp }}
+
+    - name: Generate CodeQL Results CSV
+      if: runner.os == 'Windows'
+      shell: powershell
+      run: |
+        $Language = "$Env:language"
+        if (Get-Command codeql -errorAction SilentlyContinue) {
+          codeql database interpret-results $Language --format=csv --output=codeql-scan-results.csv
+        } else {
+          $CodeQLCommand = "$((Get-ChildItem C:\hostedtoolcache\windows\CodeQL\*\x64\codeql\codeql.exe).fullname | Select-Object -first 1)"
+          Invoke-Expression "codeql database interpret-results $Language --format=csv --output=codeql-scan-results.csv"
+        }
+      env:
+        language: ${{ inputs.language }}
+
+    - name: Upload Artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: codeql-scan-results
+        path: ${{ runner.temp }}/codeql-scan-results.csv
+
     - name: Upload CodeQL Database
       if: inputs.upload_db == 'true'
       uses: department-of-veterans-affairs/codeql-tools/upload-database@main
