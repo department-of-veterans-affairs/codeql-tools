@@ -79,7 +79,7 @@ runs:
           codeql database interpret-results $Language --format=csv --output=codeql-scan-results.csv
         } else {
           $CodeQLCommand = "$((Get-ChildItem C:\hostedtoolcache\windows\CodeQL\*\x64\codeql\codeql.exe).fullname | Select-Object -first 1)"
-          Invoke-Expression "codeql database interpret-results $Language --format=csv --output=codeql-scan-results.csv"
+          Invoke-Expression "$CodeQLCommand database interpret-results $Language --format=csv --output=codeql-scan-results.csv"
         }
       env:
         language: ${{ inputs.language }}
