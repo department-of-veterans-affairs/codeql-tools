@@ -20,7 +20,7 @@ def call(Org, Repo, Branch, Language, BuildCommand, Token) {
 
 
         Write-Output "Uploading SARIF file"
-        $env:GITHUB_TOKEN = "$Token"
+        \$env:GITHUB_TOKEN = "$Token"
         \$Commit = "\$(git rev-parse HEAD)"
         codeql github upload-results --repository "$Org/$Repo"  --ref "refs/heads/$Branch" --commit "\$Commit" --sarif="\$DatabasePath.sarif"
         Write-Output "SARIF file uploaded"
