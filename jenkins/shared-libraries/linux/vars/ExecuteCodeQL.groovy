@@ -19,7 +19,7 @@ def call(org, repo, branch, language, buildCommand) {
         echo "Database analyzed"
 
         echo "Generating CSV of results"
-        codeql database interpret-results "\$databasePath" --format=csv --output="codeql-scan-results.csv"
+        codeql database interpret-results "\$databasePath" --format=csv --output="$WORKSPACE_TMP/codeql-scan-results.csv"
         echo "CSV of results generated"
 
         echo "Uploading SARIF file"
@@ -37,7 +37,7 @@ def call(org, repo, branch, language, buildCommand) {
         echo "Database Bundle generated"
      """
 
-    String databasePath = sprintf("%s-%s", repo, language)
+    String databasePath = sprintf("%s-database.zip", language)
     File file = new File(databasePath)
     String fileContent = file.text
     String authorizationHeader = sprintf("token %s", env.GITHUB_TOKEN)
