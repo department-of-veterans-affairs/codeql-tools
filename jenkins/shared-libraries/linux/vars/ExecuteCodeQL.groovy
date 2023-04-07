@@ -12,7 +12,7 @@ def call(org, repo, branch, language, buildCommand, token) {
             codeql database create "\$databasePath" --language="$language" --source-root .
         fi
 
-        echo "Generating CSV of results"
+        echo "Generating CSV of results at $WORKSPACE_TMP/codeql-scan-results.csv"
         codeql database interpret-results "\$databasePath" --format=csv --output="$WORKSPACE_TMP/codeql-scan-results.csv"
         echo "CSV of results generated"
 
