@@ -1,4 +1,4 @@
-def call(org, repo, branch, language, buildCommand, token) {
+def call(org, repo, branch, language, buildCommand) {
     sh """
         if [[ -z "$branch" ]; then
             # This doesn't work if branch includes a slash in it
@@ -40,7 +40,7 @@ def call(org, repo, branch, language, buildCommand, token) {
     String databasePath = sprintf("%s-%s", repo, language)
     File file = new File(databasePath)
     String fileContent = file.text
-    String authorizationHeader = sprintf("token %s", token)
+    String authorizationHeader = sprintf("token %s", env.GITHUB_TOKEN)
     String url = sprintf("https://uploads.github.com/repos/%s/%s/code-scanning/codeql/databases/%s?name=%s", org, repo, language, repo, databasePath)
     def post = new URL(url).openConnection();
     post.setRequestMethod("POST")
