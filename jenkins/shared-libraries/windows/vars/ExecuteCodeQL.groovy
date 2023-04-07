@@ -1,6 +1,6 @@
 def call(Org, Repo, Branch, Language, BuildCommand, Token) {
     powershell """
-        $env:GITHUB_TOKEN= "$Token"
+        \$env:GITHUB_TOKEN= "$Token"
         dir env:
         if ("$Branch" -eq "")
         {
