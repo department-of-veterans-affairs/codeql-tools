@@ -13,7 +13,7 @@ def call(org, repo, branch, language, buildCommand, token) {
         fi
 
         sarifPath="$WORKSPACE_TMP/\$databasePath.sarif"
-        codeql database analyze --download "\$databasePath" --sarif-category "$language" --format sarif-latest --output "$WORKSPACE_TMP/\xwxw$databasePath.sarif" "codeql/$language-queries:codeql-suites/$language-code-scanning.qls"
+        codeql database analyze --download "\$databasePath" --sarif-category "$language" --format sarif-latest --output "$WORKSPACE_TMP/\$databasePath.sarif" "codeql/$language-queries:codeql-suites/$language-code-scanning.qls"
 
         commit=\$(git rev-parse HEAD)
         GITHUB_TOKEN="$token" codeql github upload-results \
