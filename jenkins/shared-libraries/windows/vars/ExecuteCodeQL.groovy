@@ -1,5 +1,6 @@
 def call(Org, Repo, Branch, Language, BuildCommand, Token) {
     powershell """
+        dir env:
         if ("$Branch" -eq "")
         {
             $Branch = "\$((Write-Output \$env:GIT_BRANCH).split('/')[1])"
