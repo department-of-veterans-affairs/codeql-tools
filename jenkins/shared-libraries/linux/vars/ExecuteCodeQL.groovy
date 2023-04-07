@@ -7,11 +7,7 @@ def call(org, repo, branch, language, buildCommand, token) {
 
         echo "Initializing database"
         databasePath="$repo-$language"
-        if [[ -z "$buildCommand" ]]; then
-            codeql database create "\$databasePath" --language="$language" --source-root . --command="$buildCommand"
-        else
-            codeql database create "\$databasePath" --language="$language" --source-root .
-        fi
+        codeql database create "\$databasePath" --language="$language" --source-root . --command="$buildCommand"
         echo "Database initialized"
 
         echo "Analyzing database"
