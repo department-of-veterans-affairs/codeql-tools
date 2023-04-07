@@ -1,7 +1,5 @@
 def call(org, repo, branch, language, buildCommand, token) {
     sh """
-        #!/usr/bin/env bash
-
         if [ -z "$branch" ]; then
             # This doesn't work if branch includes a slash in it
             branch=\$(echo "${env.GIT_BRANCH}" | cut -d'/' -f2)
@@ -9,9 +7,9 @@ def call(org, repo, branch, language, buildCommand, token) {
 
         databasePath="$repo-$language"
         if [[ -z "$buildCommand" ]]; then
-            codeql database create "\$databasePath" --language="$language" --source-root .
-        else
             codeql database create "\$databasePath" --language="$language" --source-root . --command="$buildCommand"
+        else
+            codeql database create "\$databasePath" --language="$language" --source-root .
         fi
 
         sarifPath="$WORKSPACE_TMP/\$databasePath.sarif"
