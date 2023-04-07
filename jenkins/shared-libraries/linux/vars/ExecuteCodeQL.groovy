@@ -17,10 +17,7 @@ def call(org, repo, branch, language, buildCommand, token) {
         sarifPath="$WORKSPACE_TMP/\$databasePath.sarif"
         codeql database analyze "\$databasePath" "$language-code-scanning.qls" --sarif-category="$language" --format=sarif-latest --output="\$sarifPath"
 
-        commit=$GIT_COMMIT
-        if [ -z "\$commit" ]; then
-            commit=\$(git rev-parse HEAD)
-        fi
+        commit=\$(git rev-parse HEAD)
         GITHUB_TOKEN="$token" codeql github upload-results \
         --repository="$org/$repo" \
         --ref="refs/heads/$branch" \
