@@ -1,24 +1,26 @@
 def call(org, repo, branch, language, buildCommand, token) {
     sh """
+        #!/usr/bin/env bash
+
         if [ -z "$branch" ]; then
             # This doesn't work if branch includes a slash in it
             branch=\$(echo "${env.GIT_BRANCH}" | cut -d'/' -f2)
         fi
 
         databasePath="$repo-$language"
-        echo "\$databasePath"
-        codeql database init --language "$language" --source-root . --begin-tracing "\$databasePath"
+        if [[ -z "$buildCommand" ]]; then
+            codeql database create "\$databasePath" --language="$language" --source-root .
+        else
+            codeql database create "\$databasePath" --language="$language" --source-root . --command="$buildCommand"
+        fi
 
-        echo "Executing build command: $buildCommand"
-        . "./\$databasePath/temp/tracingEnvironment/start-tracing.sh"
-        eval "$buildCommand"
-        . "./\$databasePath/temp/tracingEnvironment/end-tracing.sh"
-
-        codeql database finalize "\$databasePath"
         sarifPath="$WORKSPACE_TMP/\$databasePath.sarif"
         codeql database analyze "\$databasePath" "$language-code-scanning.qls" --sarif-category="$language" --format=sarif-latest --output="\$sarifPath"
 
-        commit=\$(git rev-parse HEAD)
+        commit=$GIT_COMMIT
+        if [ -z "\$commit" ]; then
+            commit=\$(git rev-parse HEAD)
+        fi
         GITHUB_TOKEN="$token" codeql github upload-results \
         --repository="$org/$repo" \
         --ref="refs/heads/$branch" \
