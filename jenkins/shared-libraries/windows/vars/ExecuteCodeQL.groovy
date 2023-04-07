@@ -8,9 +8,9 @@ def call(Org, Repo, Branch, Language, BuildCommand, Token) {
         Write-Output "Initializing database"
         \$DatabasePath = "$Repo-$Language"
         if ("$BuildCommand" -eq "") {
-            codeql database create \$DatabasePath --language "$Language" --source-root .
+            codeql database create "\$DatabasePath" --language "$Language" --source-root .
         } else {
-            codeql database create \$DatabasePath --language "$Language" --source-root . --command "$BuildCommand"
+            codeql database create "\$DatabasePath" --language "$Language" --source-root . --command "$BuildCommand"
         }
         Write-Output "Database initialized"
 
