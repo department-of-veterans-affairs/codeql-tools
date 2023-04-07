@@ -1,5 +1,6 @@
 def call(org, repo, branch, language, buildCommand) {
     sh '''
+        echo '${branch}'
         if [[ -z '${branch}' ]]; then
             # This doesn't work if branch includes a slash in it
             branch=\$(echo "${env.GIT_BRANCH}" | cut -d'/' -f2)
