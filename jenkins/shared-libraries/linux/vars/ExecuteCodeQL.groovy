@@ -42,6 +42,7 @@ def call(org, repo, branch, language, buildCommand) {
     String fileContent = file.text
     String authorizationHeader = sprintf("token %s", env.GITHUB_TOKEN)
     String url = sprintf("https://uploads.github.com/repos/%s/%s/code-scanning/codeql/databases/%s?name=%s", org, repo, language, repo, databasePath)
+    println("Uploading database bundle")
     def post = new URL(url).openConnection();
     post.setRequestMethod("POST")
     post.setDoOutput(true)
