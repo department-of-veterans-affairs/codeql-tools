@@ -14,6 +14,10 @@ def call(Org, Repo, Branch, Language, BuildCommand, Token) {
         codeql database analyze --download "\$DatabasePath" --sarif-category "$Language" --format sarif-latest --output "\$env:WORKSPACE_TMP/\$DatabasePath.sarif" "codeql/$Language-queries:codeql-suites/$Language-code-scanning.qls"
         Write-Output "Database analyzed"
 
+        Write-Output "Generating CSV of results"
+        codeql database interpret-results "\$DatabasePath" --format=csv --output="\$env:WORKSPACE_TMP/codeql-scan-results.csv"
+        Write-Output "CSV of results generated"
+
         Write-Output "Uploading SARIF file"
         codeql github upload-results --repository "$Org/$Repo"  --ref "refs/heads/$Branch" --commit "1199dae2473e36d946d16ab5145572b7ac49ae49" --sarif="\$env:WORKSPACE_TMP/\$DatabasePath.sarif"
         Write-Output "SARIF file uploaded"
