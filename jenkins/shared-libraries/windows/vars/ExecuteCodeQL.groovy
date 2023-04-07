@@ -1,13 +1,13 @@
 def call(Org, Repo, Branch, Language, BuildCommand, Token) {
     powershell """
-        if ($Branch -eq "")
+        if ("$Branch" -eq "")
         {
             $Branch = "\$((Write-Output \$env:GIT_BRANCH).split('/')[1])"
         }
 
         Write-Output "Initializing database"
         \$DatabasePath = "$Repo-$Language"
-        if ($BuildCommand -eq "") {
+        if ("$BuildCommand" -eq "") {
             codeql database create \$DatabasePath --language "$Language" --source-root .
         } else {
             codeql database create \$DatabasePath --language "$Language" --source-root . --command "$BuildCommand"
