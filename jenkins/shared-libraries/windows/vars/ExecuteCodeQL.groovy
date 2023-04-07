@@ -1,7 +1,5 @@
 def call(Org, Repo, Branch, Language, BuildCommand, Token) {
     powershell """
-        \$env:GITHUB_TOKEN= "$Token"
-        dir env:
         if ("$Branch" -eq "")
         {
             $Branch = "\$((Write-Output \$env:GIT_BRANCH).split('/')[1])"
