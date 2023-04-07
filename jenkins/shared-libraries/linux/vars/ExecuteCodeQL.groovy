@@ -1,7 +1,6 @@
-def call(org, repo, branch, language, buildCommand) {
-    sh '''
-        echo $branch
-        if [[ -z '${branch}' ]]; then
+def call(org, repo, branch, language, buildCommand, token) {
+    sh """
+        if [[ -z "$branch" ]; then
             # This doesn't work if branch includes a slash in it
             branch=\$(echo "${env.GIT_BRANCH}" | cut -d'/' -f2)
         fi
@@ -36,14 +35,24 @@ def call(org, repo, branch, language, buildCommand) {
         databaseBundle="$language-database.zip"
         codeql database bundle "\$databasePath" --output "\$databaseBundle"
         echo "Database Bundle generated"
+     """
 
-        echo "Uploading Database Bundle"
-        sizeInBytes=`stat --printf="%s" \$databaseBundle`
-        curl --http1.0 --silent --retry 3 -X POST -H "Content-Type: application/zip" \
-        -H "Content-Length: \$sizeInBytes" \
-        -H "Authorization: token $GITHUB_TOKEN" \
-        -T "\$databaseBundle" \
-        "https://uploads.github.com/repos/$org/$repo/code-scanning/codeql/databases/$language?name=\$databaseBundle"
-        echo "Database Bundle uploaded"
-     '''
+    String databasePath = sprintf("%s-%s", repo, language)
+    File file = new File(databasePath)
+    String fileContent = file.text
+    String authorizationHeader = sprintf("token %s", token)
+    String url = sprintf("https://uploads.github.com/repos/%s/%s/code-scanning/codeql/databases/%s?name=%s", org, repo, language, repo, databasePath)
+    def post = new URL(url).openConnection();
+    post.setRequestMethod("POST")
+    post.setDoOutput(true)
+    post.setRequestProperty("Content-Type", "application/zip")
+    post.setRequestProperty("Content-Length", file.length().toString())
+    post.setRequestProperty("Authorization", authorizationHeader)
+    post.getOutputStream().write(fileContent.getBytes("UTF-8"));
+    def postRC = post.getResponseCode();
+    if(postRC.equals(201)) {
+        println(post.getInputStream().getText());
+    } else {
+        println(post.getErrorStream().getText());
+    }
 }
