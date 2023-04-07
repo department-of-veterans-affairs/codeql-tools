@@ -12,12 +12,12 @@ def call(org, repo, branch, language, buildCommand, token) {
             codeql database create "\$databasePath" --language="$language" --source-root .
         fi
 
+        sarifPath="$WORKSPACE_TMP/\$databasePath.sarif"
+        codeql database analyze --download "\$databasePath" --sarif-category "$language" --format sarif-latest --output "$WORKSPACE_TMP/\$databasePath.sarif" "codeql/$language-queries:codeql-suites/$language-code-scanning.qls"
+
         echo "Generating CSV of results at $WORKSPACE_TMP/codeql-scan-results.csv"
         codeql database interpret-results "\$databasePath" --format=csv --output="$WORKSPACE_TMP/codeql-scan-results.csv"
         echo "CSV of results generated"
-
-        sarifPath="$WORKSPACE_TMP/\$databasePath.sarif"
-        codeql database analyze --download "\$databasePath" --sarif-category "$language" --format sarif-latest --output "$WORKSPACE_TMP/\$databasePath.sarif" "codeql/$language-queries:codeql-suites/$language-code-scanning.qls"
 
         commit=\$(git rev-parse HEAD)
         GITHUB_TOKEN="$token" codeql github upload-results \
