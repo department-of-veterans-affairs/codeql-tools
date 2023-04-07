@@ -32,12 +32,12 @@ def call(org, repo, branch, language, buildCommand) {
         echo "SARIF file uploaded"
 
         echo "Generating Database Bundle"
-        databaseBundle="$WORKSPACE_TMP/$language-database.zip"
+        databaseBundle="$WORKSPACE/$language-database.zip"
         codeql database bundle "\$databasePath" --output "\$databaseBundle"
         echo "Database Bundle generated"
      """
 
-    String databasePath = sprintf("%s/%s-database.zip", env.WORKSPACE_TMP, language)
+    String databasePath = sprintf("%s/%s-database.zip", env.WORKSPACE, language)
     File file = new File(databasePath)
     String fileContent = file.text
     String authorizationHeader = sprintf("token %s", env.GITHUB_TOKEN)
