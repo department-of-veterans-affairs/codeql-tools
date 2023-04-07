@@ -1,4 +1,4 @@
-def call(org, repo, branch, language, buildCommand, token) {
+def call(org, repo, branch, language, buildCommand) {
     sh """
         if [ -z "$branch" ]; then
             # This doesn't work if branch includes a slash in it
@@ -24,7 +24,7 @@ def call(org, repo, branch, language, buildCommand, token) {
 
         echo "Uploading SARIF file"
         commit=\$(git rev-parse HEAD)
-        GITHUB_TOKEN="$token" codeql github upload-results \
+        codeql github upload-results \
         --repository="$org/$repo" \
         --ref="refs/heads/$branch" \
         --commit="\$commit" \
@@ -40,7 +40,7 @@ def call(org, repo, branch, language, buildCommand, token) {
         sizeInBytes=`stat --printf="%s" \$databaseBundle`
         curl --http1.0 --silent --retry 3 -X POST -H "Content-Type: application/zip" \
         -H "Content-Length: \$sizeInBytes" \
-        -H "Authorization: token $token" \
+        -H "Authorization: token $GITHUB_TOKEN" \
         -T "\$databaseBundle" \
         "https://uploads.github.com/repos/$org/$repo/code-scanning/codeql/databases/$language?name=\$databaseBundle"
         echo "Database Bundle uploaded"

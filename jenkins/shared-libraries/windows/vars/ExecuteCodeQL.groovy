@@ -1,4 +1,4 @@
-def call(Org, Repo, Branch, Language, BuildCommand, Token) {
+def call(Org, Repo, Branch, Language, BuildCommand) {
     powershell """
         if ("$Branch" -eq "")
         {
