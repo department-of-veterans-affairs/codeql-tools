@@ -7,7 +7,11 @@ def call(Org, Repo, Branch, Language, BuildCommand, Token) {
 
         Write-Output "Initializing database"
         \$DatabasePath = "$Repo-$Language"
-        codeql database create \$DatabasePath --language "$Language" --source-root . --command "$BuildCommand"
+        if ($BuildCommand -eq "") {
+            codeql database create \$DatabasePath --language "$Language" --source-root .
+        } else {
+            codeql database create \$DatabasePath --language "$Language" --source-root . --command "$BuildCommand"
+        }
         Write-Output "Database initialized"
 
         Write-Output "Analyzing database"
@@ -18,8 +22,9 @@ def call(Org, Repo, Branch, Language, BuildCommand, Token) {
         codeql database interpret-results "\$DatabasePath" --format=csv --output="codeql-scan-results.csv"
         Write-Output "CSV of results generated"
 
-        \$Commit = "\$(git rev-parse HEAD)"
+
         Write-Output "Uploading SARIF file"
+        \$Commit = "\$(git rev-parse HEAD)"
         codeql github upload-results --repository "$Org/$Repo"  --ref "refs/heads/$Branch" --commit "\$Commit" --sarif="\$DatabasePath.sarif"
         Write-Output "SARIF file uploaded"
 
