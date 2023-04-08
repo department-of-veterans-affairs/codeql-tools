@@ -17,10 +17,10 @@ def call(Org, Repo, Branch, Language, BuildCommand, Token) {
 
     powershell """
         Write-Output "Initializing database"
-        if ("\$Env:$BUILD_COMMAND" -eq "") {
+        if ("\$Env:BUILD_COMMAND" -eq "") {
             codeql database create "\$Env:DATABASE_PATH" --language "\$Env:Language" --source-root .
         } else {
-            codeql database create "\$Env:DATABASE_PATH" --language "\$Env:Language" --source-root . --command "\$Env:$BUILD_COMMAND"
+            codeql database create "\$Env:DATABASE_PATH" --language "\$Env:Language" --source-root . --command "\$Env:BUILD_COMMAND"
         }
         Write-Output "Database initialized"
 
