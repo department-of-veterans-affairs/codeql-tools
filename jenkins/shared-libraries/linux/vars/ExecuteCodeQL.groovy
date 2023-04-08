@@ -13,6 +13,7 @@ def call(org, repo, branch, language, buildCommand, token) {
     sh """
         if [[ -z "$BRANCH" ]; then
             # This doesn't work if branch includes a slash in it
+            echo "Branch is empty, using GIT_BRANCH"
             branch=\$(echo "${env.GIT_BRANCH}" | cut -d'/' -f2)
         fi
 
