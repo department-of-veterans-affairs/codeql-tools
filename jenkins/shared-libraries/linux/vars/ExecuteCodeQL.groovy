@@ -42,7 +42,7 @@ def call(org, repo, branch, language, buildCommand, token) {
         sizeInBytes=`stat --printf="%s" \$databaseBundle`
         curl --http1.0 --silent --retry 3 -X POST -H "Content-Type: application/zip" \
         -H "Content-Length: \$sizeInBytes" \
-        -H "Authorization: token $token" \
+        -H ${env.AUTHORIZATION_HEADER} \
         -T "\$databaseBundle" \
         "https://uploads.github.com/repos/$org/$repo/code-scanning/codeql/databases/$language?name=\$databaseBundle"
         echo "Database Bundle uploaded"
