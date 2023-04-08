@@ -10,7 +10,6 @@ def call(org, repo, branch, language, buildCommand, token) {
     env.REPO = repo
     env.SARIF_FILE = sprintf("%s-%s.sarif", repo, language)
 
-
     sh """
         if [[ -z "$BRANCH" ]; then
             # This doesn't work if branch includes a slash in it

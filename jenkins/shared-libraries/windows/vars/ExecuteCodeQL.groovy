@@ -1,6 +1,7 @@
 def call(Org, Repo, Branch, Language, BuildCommand, Token) {
     env.GITHUB_TOKEN = Token
-    env.TOKEN_HEADER = "token $Token"
+    env.AUTHORIZATION_HEADER = sprintf("token %s", Token)
+
     powershell """
         if ("$Branch" -eq "")
         {
