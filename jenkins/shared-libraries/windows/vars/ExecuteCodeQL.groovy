@@ -1,6 +1,6 @@
 def call(Org, Repo, Branch, Language, BuildCommand, Token) {
     env.AUTHORIZATION_HEADER = sprintf("Authorization: token %s", Token)
-    if(branch == "") {
+    if(Branch == "") {
         // TODO: This doesn't work if branch includes a slash in it, split and reform based on branch name
         env.BRANCH = env.GIT_BRANCH.split('/')[1]
     } else {
