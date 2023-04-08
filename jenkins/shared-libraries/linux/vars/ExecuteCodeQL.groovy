@@ -1,6 +1,8 @@
 def call(org, repo, branch, language, buildCommand, token) {
     env.GITHUB_TOKEN = Token
+    env.TOKEN_HEADER = 'token $token'
     sh """
+        echo $TOKEN_HEADER
         if [[ -z "$branch" ]; then
             # This doesn't work if branch includes a slash in it
             branch=\$(echo "${env.GIT_BRANCH}" | cut -d'/' -f2)
