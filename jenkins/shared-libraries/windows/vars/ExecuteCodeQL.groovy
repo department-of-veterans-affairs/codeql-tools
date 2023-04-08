@@ -1,6 +1,6 @@
 def call(Org, Repo, Branch, Language, BuildCommand, Token) {
         powershell '''
-            Write-Output "$Token"
+            Write-Output "Token: ${Token}"
         '''
 
 //     powershell """
