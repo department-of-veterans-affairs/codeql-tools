@@ -51,9 +51,8 @@ def call(Org, Repo, Branch, Language, BuildCommand, Token) {
             "Authorization" = "\$Env:AUTHORIZATION_HEADER"
         }
 
-        ls
-        Write-Output "-ContentType "application/zip" -Headers \$Headers -Method Post -InFile "\$Env:DATABASE_BUNDLE" -Uri "\$Env:UPLOAD_URL""
-        Invoke-RestMethod -ContentType "application/zip" -Headers \$Headers -Method Post -InFile './\$Env:DATABASE_BUNDLE' -Uri '\$Env:UPLOAD_URL'
+        Write-Output "-ContentType "application/zip" -Headers \$Headers -Method Post -InFile "./\$Env:DATABASE_BUNDLE" -Uri "\$Env:UPLOAD_URL""
+        Invoke-RestMethod -ContentType "application/zip" -Headers \$Headers -Method Post -InFile "\$(\$Env:DATABASE_BUNDLE)" -Uri "\$(\$Env:UPLOAD_URL)"
         Write-Output "Database Bundle uploaded"
     """
 
