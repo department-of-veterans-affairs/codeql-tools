@@ -14,6 +14,7 @@ def call(Org, Repo, Branch, Language, BuildCommand, Token) {
     env.ORG = Org
     env.REPO = Repo
     env.SARIF_FILE = sprintf("%s-%s.sarif", Repo, Language)
+    env.UPLOAD_URL = sprintf("https://uploads.github.com/repos/%s/%s/code-scanning/codeql/databases/%s?name=%s", Org, Repo, Language, env.DATABASE_BUNDLE)
 
     powershell """
         Write-Output "Initializing database"
@@ -49,7 +50,8 @@ def call(Org, Repo, Branch, Language, BuildCommand, Token) {
             "Content-Length" = "\$((Get-Item \$Env:DATABASE_BUNDLE).Length)"
             "Authorization" = "\$Env:AUTHORIZATION_HEADER"
         }
-        Invoke-RestMethod -ContentType "application/zip" -Headers \$Headers -Method Post -InFile "\$Env:DATABASE_BUNDLE" -Uri "https://uploads.github.com/repos/\$Env:ORG/\$Env:REPO/code-scanning/codeql/databases/\$(\$Env:LANGUAGE)?name=\$Env:DATABASE_BUNDLE"
+
+        Invoke-RestMethod -ContentType "application/zip" -Headers \$Headers -Method Post -InFile "\$Env:DATABASE_BUNDLE" -Uri "\$Env:UPLOAD_URL"
         Write-Output "Database Bundle uploaded"
     """
 
