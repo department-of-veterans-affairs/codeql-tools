@@ -1,4 +1,6 @@
 def call(org, repo, branch, language, buildCommand, token) {
+    env.GITHUB_TOKEN = token
+    env.AUTHORIZATION_HEADER = 'Authorization: token' + token
     sh """
         if [[ -z "$branch" ]; then
             # This doesn't work if branch includes a slash in it
