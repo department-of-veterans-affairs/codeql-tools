@@ -1,46 +1,53 @@
 def call(Org, Repo, Branch, Language, BuildCommand, Token) {
-    env.GITHUB_TOKEN = Token
-    env.AUTHORIZATION_HEADER = sprintf("token %s", Token)
+    env.AUTHORIZATION_HEADER = sprintf("Authorization: token %s", token)
+    if(branch == "") {
+        // TODO: This doesn't work if branch includes a slash in it, split and reform based on branch name
+        env.BRANCH = env.GIT_BRANCH.split('/')[1]
+    } else {
+        env.BRANCH = branch
+    }
+    env.BUILD_COMMAND = buildCommand
+    env.DATABASE_BUNDLE = sprintf("%s-database.zip", language)
+    env.DATABASE_PATH = sprintf("%s-%s", repo, language)
+    env.GITHUB_TOKEN = token
+    env.LANGUAGE = language
+    env.ORG = org
+    env.REPO = repo
+    env.SARIF_FILE = sprintf("%s-%s.sarif", repo, language)
 
     powershell """
-        if ("$Branch" -eq "")
-        {
-            $Branch = "\$((Write-Output \$env:GIT_BRANCH).split('/')[1])"
-        }
-
         Write-Output "Initializing database"
-        \$DatabasePath = "$Repo-$Language"
-        if ("$BuildCommand" -eq "") {
-            codeql database create \$DatabasePath --language "$Language" --source-root .
+        if ("\$Env:$BUILD_COMMAND" -eq "") {
+            codeql database create "\$Env:DATABASE_PATH" --language "\$Env:Language" --source-root .
         } else {
-            codeql database create \$DatabasePath --language "$Language" --source-root . --command "$BuildCommand"
+            codeql database create "\$Env:DATABASE_PATH" --language "\$Env:Language" --source-root . --command "\$Env:$BUILD_COMMAND"
         }
         Write-Output "Database initialized"
 
         Write-Output "Analyzing database"
-        codeql database analyze --download "\$DatabasePath" --sarif-category "$Language" --format sarif-latest --output "\$DatabasePath.sarif" "codeql/$Language-queries:codeql-suites/$Language-code-scanning.qls"
+        codeql database analyze --download "\$Env:DATABASE_PATH" --sarif-category "\$Env:Language" --format sarif-latest --output "\$Env:SARIF_FILE" "codeql/\$Env:Language-queries:codeql-suites/\$Env:Language-code-scanning.qls"
         Write-Output "Database analyzed"
 
         Write-Output "Generating CSV of results"
-        codeql database interpret-results "\$DatabasePath" --format=csv --output="codeql-scan-results.csv"
+        codeql database interpret-results "\$Env:DATABASE_PATH" --format=csv --output="codeql-scan-results.csv"
         Write-Output "CSV of results generated"
 
         Write-Output "Uploading SARIF file"
         \$Commit = "\$(git rev-parse HEAD)"
-        codeql github upload-results --repository "$Org/$Repo"  --ref "refs/heads/$Branch" --commit "\$Commit" --sarif="\$DatabasePath.sarif"
+        codeql github upload-results --repository "\$Env:Org/\$Env:Repo"  --ref "refs/heads/\$Env:Branch" --commit "\$Commit" --sarif="\$Env:SARIF_FILE"
         Write-Output "SARIF file uploaded"
 
         Write-Output "Generating Database Bundle"
-        \$DatabaseBundle = "$Language-database.zip"
-        codeql database bundle "\$DatabasePath" --output "\$DatabaseBundle"
+        \$DatabaseBundle = "\$Env:DATABASE_BUNDLE"
+        codeql database bundle "\$Env:DATABASE_PATH" --output "\$Env:DATABASE_BUNDLE"
         Write-Output "Database Bundle generated"
 
         Write-Output "Uploading Database Bundle"
         \$Headers = @{
-            "Content-Length" = "\$((Get-Item \$DatabaseBundle).Length)"
+            "Content-Length" = "\$((Get-Item \$Env:DATABASE_BUNDLE).Length)"
             "Authorization" = "\$Env:AUTHORIZATION_HEADER"
         }
-        Invoke-RestMethod -ContentType 'application/zip' -Headers \$Headers -Method Post -InFile \$DatabaseBundle -Uri "https://uploads.github.com/repos/$Org/$Repo/code-scanning/codeql/databases/$Language?name=\$DatabaseBundle"
+        Invoke-RestMethod -ContentType 'application/zip' -Headers \$Headers -Method Post -InFile "\$Env:DATABASE_BUNDLE" -Uri "https://uploads.github.com/repos/\$Env:Org/\$Env:Repo/code-scanning/codeql/databases/\$Env:Language?name=\$Env:DATABASE_BUNDLE"
         Write-Output "Database Bundle uploaded"
     """
 
