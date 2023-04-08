@@ -24,7 +24,7 @@ def call(org, repo, branch, language, buildCommand, token) {
         echo "CSV of results generated"
 
         echo "Uploading SARIF file"
-        commit=\$(git rev-parse HEAD)
+        GITHUB_TOKEN=$token commit=\$(git rev-parse HEAD)
         codeql github upload-results \
         --repository="$org/$repo" \
         --ref="refs/heads/$branch" \
