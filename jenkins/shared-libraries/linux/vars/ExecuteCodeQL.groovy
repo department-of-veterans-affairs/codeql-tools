@@ -1,7 +1,7 @@
 def call(org, repo, branch, language, buildCommand, token) {
     env.GITHUB_TOKEN = token
     env.AUTHORIZATION_HEADER = 'Authorization: token' + token
-    sh 'echo ${env.GITHUB_TOKEN}'
+    sh 'echo 'Token: ${GITHUB_TOKEN}''
 
 //     sh """
 //         if [[ -z "$branch" ]; then
