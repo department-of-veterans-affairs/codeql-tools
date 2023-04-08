@@ -1,6 +1,5 @@
 def call(Org, Repo, Branch, Language, BuildCommand, Token) {
-        env.TokenHeader = "token $Token"
-
+    env.TokenHeader = "token $Token"
     powershell """
         if ("$Branch" -eq "")
         {
@@ -37,7 +36,7 @@ def call(Org, Repo, Branch, Language, BuildCommand, Token) {
         Write-Output "Uploading Database Bundle"
         \$Headers = @{
             "Content-Length" = "\$((Get-Item \$DatabaseBundle).Length)"
-            "Authorization" = "\$Env:TokenHeader
+            "Authorization" = "\$Env:TokenHeader"
         }
         Invoke-RestMethod -ContentType 'application/zip' -Headers \$Headers -Method Post -InFile \$DatabaseBundle -Uri "https://uploads.github.com/repos/$Org/$Repo/code-scanning/codeql/databases/$Language?name=\$DatabaseBundle"
         Write-Output "Database Bundle uploaded"
