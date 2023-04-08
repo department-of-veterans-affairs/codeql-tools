@@ -42,7 +42,7 @@ def call(org, repo, branch, language, buildCommand, token) {
 
      sh '''
         echo "Uploading Database Bundle"
-        databaseBundle="${language}-database.zip"
+        databaseBundle="$language-database.zip"
         sizeInBytes=`stat --printf="%s" \$databaseBundle`
         curl --http1.0 --silent --retry 3 -X POST -H "Content-Type: application/zip" \
         -H "Content-Length: \$sizeInBytes" \
