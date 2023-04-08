@@ -19,15 +19,15 @@ def call(Org, Repo, Branch, Language, BuildCommand, Token) {
         Write-Output "Initializing database"
         if ("\$Env:BUILD_COMMAND" -eq "") {
             Write-Output "No build command specified, using default"
-            codeql database create "\$Env:DATABASE_PATH" --language "\$Env:Language" --source-root .
+            codeql database create "\$Env:DATABASE_PATH" --language "\$Env:LANGUAGE" --source-root .
         } else {
             Write-Output "Build command specified, using '\$Env:BUILD_COMMAND'"
-            codeql database create "\$Env:DATABASE_PATH" --language "\$Env:Language" --source-root . --command "\$Env:BUILD_COMMAND"
+            codeql database create "\$Env:DATABASE_PATH" --language "\$Env:LANGUAGE" --source-root . --command "\$Env:BUILD_COMMAND"
         }
         Write-Output "Database initialized"
 
         Write-Output "Analyzing database"
-        codeql database analyze --download "\$Env:DATABASE_PATH" --sarif-category "\$Env:Language" --format sarif-latest --output "\$Env:SARIF_FILE" "codeql/\$Env:Language-queries:codeql-suites/\$Env:Language-code-scanning.qls"
+        codeql database analyze --download "\$Env:DATABASE_PATH" --sarif-category "\$Env:LANGUAGE" --format sarif-latest --output "\$Env:SARIF_FILE" "codeql/\$Env:LANGUAGE-queries:codeql-suites/\$Env:LANGUAGE-code-scanning.qls"
         Write-Output "Database analyzed"
 
         Write-Output "Generating CSV of results"
@@ -36,7 +36,7 @@ def call(Org, Repo, Branch, Language, BuildCommand, Token) {
 
         Write-Output "Uploading SARIF file"
         \$Commit = "\$(git rev-parse HEAD)"
-        codeql github upload-results --repository "\$Env:Org/\$Env:Repo"  --ref "refs/heads/\$Env:Branch" --commit "\$Commit" --sarif="\$Env:SARIF_FILE"
+        codeql github upload-results --repository "\$Env:ORG/\$Env:REPO"  --ref "refs/heads/\$Env:BRANCH" --commit "\$Commit" --sarif="\$Env:SARIF_FILE"
         Write-Output "SARIF file uploaded"
 
         Write-Output "Generating Database Bundle"
@@ -49,7 +49,7 @@ def call(Org, Repo, Branch, Language, BuildCommand, Token) {
             "Content-Length" = "\$((Get-Item \$Env:DATABASE_BUNDLE).Length)"
             "Authorization" = "\$Env:AUTHORIZATION_HEADER"
         }
-        Invoke-RestMethod -ContentType 'application/zip' -Headers \$Headers -Method Post -InFile "\$Env:DATABASE_BUNDLE" -Uri "https://uploads.github.com/repos/\$Env:Org/\$Env:Repo/code-scanning/codeql/databases/\$Env:Language?name=\$Env:DATABASE_BUNDLE"
+        Invoke-RestMethod -ContentType 'application/zip' -Headers \$Headers -Method Post -InFile \$Env:DATABASE_BUNDLE -Uri "https://uploads.github.com/repos/\$Env:ORG/\$Env:REPO/code-scanning/codeql/databases/\$Env:LANGUAGE?name=\$Env:DATABASE_BUNDLE"
         Write-Output "Database Bundle uploaded"
     """
 
