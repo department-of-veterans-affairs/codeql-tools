@@ -8,7 +8,7 @@ def call(org, repo, branch, language, buildCommand, token) {
     env.LANGUAGE = language
     env.ORG = org
     env.REPO = repo
-    env.SARIF_FILE = "$repo-$language.sarif"
+    env.SARIF_FILE = "$repo-$language\.sarif"
 
     sh """
         if [[ -z "$BRANCH" ]; then
