@@ -17,7 +17,7 @@ def call(Org, Repo, Branch, Language, BuildCommand, Token) {
 
     powershell """
 
-        Write-Output "https://uploads.github.com/repos/\$Env:ORG/\$Env:REPO/code-scanning/codeql/databases/\$(\$Env:LANGUAGE)?name=\$Env:DATABASE_BUNDLE"
+        Write-Output "https://uploads.github.com/repos/\$Env:ORG/\$Env:REPO/code-scanning/codeql/databases/\$Env:LANGUAGE?name=\$Env:DATABASE_BUNDLE"
 
     """
 
