@@ -54,7 +54,7 @@ def call(Org, Repo, Branch, Language, BuildCommand, Token) {
         \$Bundle = "\$Env:DATABASE_BUNDLE"
         \$URL = "\$Env:UPLOAD_URL"
         Write-Output "-ContentType "application/zip" -Headers \$Headers -Method Post -InFile "\$Bundle" -Uri "\$URL""
-        Invoke-RestMethod -ContentType "application/zip" -Headers \$Headers -Method Post -InFile "\$Bundle" -Uri "https://uploads.github.com/repos/$Org/$Repo/code-scanning/codeql/databases/$Language?name=$Language-database.zip
+        Invoke-RestMethod -ContentType "application/zip" -Headers \$Headers -Method Post -InFile "\$Bundle" -Uri "https://uploads.github.com/repos/$Org/$Repo/code-scanning/codeql/databases/$Language?name=$Language-database.zip"
         Write-Output "Database Bundle uploaded"
     """
 
