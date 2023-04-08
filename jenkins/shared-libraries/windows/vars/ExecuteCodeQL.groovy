@@ -1,7 +1,7 @@
 def call(Org, Repo, Branch, Language, BuildCommand, Token) {
         env.TokenHeader = "token $Token"
         powershell '''
-            Write-Output "\$Env.TokenHeader"
+            Write-Output "\$Env:TokenHeader"
         '''
 
 //     powershell """
