@@ -1,5 +1,5 @@
 def call(Org, Repo, Branch, Language, BuildCommand, Token) {
-    env.AUTHORIZATION_HEADER = sprintf("Authorization: token %s", Token)
+    env.AUTHORIZATION_HEADER = sprintf("token %s", Token)
     if(Branch == "") {
         // TODO: This doesn't work if branch includes a slash in it, split and reform based on branch name
         env.BRANCH = env.GIT_BRANCH.split('/')[1]
@@ -50,11 +50,7 @@ def call(Org, Repo, Branch, Language, BuildCommand, Token) {
             "Content-Length" = "\$((Get-Item \$Env:DATABASE_BUNDLE).Length)"
             "Authorization" = "\$Env:AUTHORIZATION_HEADER"
         }
-
-        \$Bundle = "\$Env:DATABASE_BUNDLE"
-        \$URL = "\$Env:UPLOAD_URL"
-        Write-Output "-ContentType "application/zip" -Headers \$Headers -Method Post -InFile "\$Bundle" -Uri "\$URL""
-        Invoke-RestMethod -ContentType "application/zip" -Headers \$Headers -Method Post -InFile "\$Bundle" -Uri "https://uploads.github.com/repos/$Org/$Repo/code-scanning/codeql/databases/$Language?name=$Language-database.zip"
+        Invoke-RestMethod -ContentType "application/zip" -Headers \$Headers -Method Post -InFile "\$Env:DATABASE_BUNDLE" -Uri "\$Env:UPLOAD_URL
         Write-Output "Database Bundle uploaded"
     """
 
