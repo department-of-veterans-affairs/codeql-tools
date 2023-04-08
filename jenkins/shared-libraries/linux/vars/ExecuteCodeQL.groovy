@@ -1,55 +1,58 @@
 def call(org, repo, branch, language, buildCommand, token) {
     env.AUTHORIZATION_HEADER = "Authorization: token $token"
+    env.BRANCH = branch
+    env.BUILD_COMMAND = buildCommand
+    env.DATABASE_BUNDLE = "$language-database.zip"
+    env.DATABASE_PATH = "$repo-$language"
     env.GITHUB_TOKEN = token
     env.LANGUAGE = language
+    env.ORG = org
+    env.REPO = repo
 
     sh """
-        if [[ -z "$branch" ]; then
+        if [[ -z "$BRANCH" ]; then
             # This doesn't work if branch includes a slash in it
             branch=\$(echo "${env.GIT_BRANCH}" | cut -d'/' -f2)
         fi
 
         echo "Initializing database"
-        databasePath="$repo-$language"
-        if [[ -z "$buildCommand" ]]; then
-            codeql database create "\$databasePath" --language="$language" --source-root . --command="$buildCommand"
+        if [[ -z "$BUILD_COMMAND" ]]; then
+            codeql database create "$DATABASE_PATH" --language="$LANGUAGE" --source-root . --command="$BUILD_COMMAND"
         else
-            codeql database create "\$databasePath" --language="$language" --source-root .
+            codeql database create "$DATABASE_PATH" --language="$LANGUAGE" --source-root .
         fi
         echo "Database initialized"
 
         echo "Analyzing database"
-        codeql database analyze --download "\$databasePath" --sarif-category "$language" --format sarif-latest --output "\$databasePath.sarif" "codeql/$language-queries:codeql-suites/$language-code-scanning.qls"
+        codeql database analyze --download "$DATABASE_PATH" --sarif-category "$LANGUAGE" --format sarif-latest --output "$DATABASE_PATH.sarif" "codeql/$LANGUAGE-queries:codeql-suites/$LANGUAGE-code-scanning.qls"
         echo "Database analyzed"
 
         echo "Generating CSV of results"
-        codeql database interpret-results "\$databasePath" --format=csv --output="codeql-scan-results.csv"
+        codeql database interpret-results "$DATABASE_PATH" --format=csv --output="codeql-scan-results.csv"
         echo "CSV of results generated"
 
         echo "Uploading SARIF file"
         commit=\$(git rev-parse HEAD)
         codeql github upload-results \
-        --repository="$org/$repo" \
-        --ref="refs/heads/$branch" \
+        --repository="$ORG/$REPO" \
+        --ref="refs/heads/$BRANCH" \
         --commit="\$commit" \
-        --sarif="\$databasePath.sarif"
+        --sarif="$DATABASE_PATH.sarif"
         echo "SARIF file uploaded"
 
         echo "Generating Database Bundle"
-        databaseBundle="$language-database.zip"
-        codeql database bundle "\$databasePath" --output "\$databaseBundle"
+        codeql database bundle "$DATABASE_PATH" --output "$DATABASE_BUNDLE"
         echo "Database Bundle generated"
      """
 
      sh '''
         echo "Uploading Database Bundle"
-        databaseBundle="${LANGUAGE}-database.zip"
-        sizeInBytes=`stat --printf="%s" \$databaseBundle`
+        sizeInBytes=`stat --printf="%s" ${DATABASE_BUNDLE}`
         curl --http1.0 --silent --retry 3 -X POST -H "Content-Type: application/zip" \
         -H "Content-Length: \$sizeInBytes" \
         -H "${AUTHORIZATION_HEADER}" \
-        -T "\$databaseBundle" \
-        "https://uploads.github.com/repos/$org/$repo/code-scanning/codeql/databases/$language?name=\$databaseBundle"
+        -T "${DATABASE_BUNDLE}" \
+        "https://uploads.github.com/repos/$ORG/$REPO/code-scanning/codeql/databases/$LANGUAGE?name=${DATABASE_BUNDLE}"
         echo "Database Bundle uploaded"
      '''
 }
