@@ -1,4 +1,4 @@
-def call(org, repo, branch, language, buildCommand) {
+def call(org, repo, branch, language, buildCommand, token) {
     sh """
         if [[ -z "$branch" ]; then
             # This doesn't work if branch includes a slash in it
@@ -19,7 +19,7 @@ def call(org, repo, branch, language, buildCommand) {
         echo "Database analyzed"
 
         echo "Generating CSV of results"
-        codeql database interpret-results "\$databasePath" --format=csv --output="$WORKSPACE_TMP/codeql-scan-results.csv"
+        codeql database interpret-results "\$databasePath" --format=csv --output="codeql-scan-results.csv"
         echo "CSV of results generated"
 
         echo "Uploading SARIF file"
@@ -32,28 +32,17 @@ def call(org, repo, branch, language, buildCommand) {
         echo "SARIF file uploaded"
 
         echo "Generating Database Bundle"
-        databaseBundle="$WORKSPACE/$language-database.zip"
+        databaseBundle="$language-database.zip"
         codeql database bundle "\$databasePath" --output "\$databaseBundle"
         echo "Database Bundle generated"
-     """
 
-    String databasePath = sprintf("%s/%s-database.zip", env.WORKSPACE, language)
-    File file = new File(databasePath)
-    String fileContent = file.text
-    String authorizationHeader = sprintf("token %s", env.GITHUB_TOKEN)
-    String url = sprintf("https://uploads.github.com/repos/%s/%s/code-scanning/codeql/databases/%s?name=%s", org, repo, language, repo, databasePath)
-    println("Uploading database bundle")
-    def post = new URL(url).openConnection();
-    post.setRequestMethod("POST")
-    post.setDoOutput(true)
-    post.setRequestProperty("Content-Type", "application/zip")
-    post.setRequestProperty("Content-Length", file.length().toString())
-    post.setRequestProperty("Authorization", authorizationHeader)
-    post.getOutputStream().write(fileContent.getBytes("UTF-8"));
-    def postRC = post.getResponseCode();
-    if(postRC.equals(201)) {
-        println(post.getInputStream().getText());
-    } else {
-        println(post.getErrorStream().getText());
-    }
+        echo "Uploading Database Bundle"
+        sizeInBytes=`stat --printf="%s" \$databaseBundle`
+        curl --http1.0 --silent --retry 3 -X POST -H "Content-Type: application/zip" \
+        -H "Content-Length: \$sizeInBytes" \
+        -H "Authorization: token $token" \
+        -T "\$databaseBundle" \
+        "https://uploads.github.com/repos/$org/$repo/code-scanning/codeql/databases/$language?name=\$databaseBundle"
+        echo "Database Bundle uploaded"
+     """
 }
