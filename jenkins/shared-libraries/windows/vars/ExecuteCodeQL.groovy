@@ -1,19 +1,19 @@
 def call(Org, Repo, Branch, Language, BuildCommand, Token) {
-    env.AUTHORIZATION_HEADER = sprintf("Authorization: token %s", token)
+    env.AUTHORIZATION_HEADER = sprintf("Authorization: token %s", Token)
     if(branch == "") {
         // TODO: This doesn't work if branch includes a slash in it, split and reform based on branch name
         env.BRANCH = env.GIT_BRANCH.split('/')[1]
     } else {
-        env.BRANCH = branch
+        env.BRANCH = Branch
     }
-    env.BUILD_COMMAND = buildCommand
-    env.DATABASE_BUNDLE = sprintf("%s-database.zip", language)
-    env.DATABASE_PATH = sprintf("%s-%s", repo, language)
-    env.GITHUB_TOKEN = token
-    env.LANGUAGE = language
-    env.ORG = org
-    env.REPO = repo
-    env.SARIF_FILE = sprintf("%s-%s.sarif", repo, language)
+    env.BUILD_COMMAND = BuildCommand
+    env.DATABASE_BUNDLE = sprintf("%s-database.zip", Language)
+    env.DATABASE_PATH = sprintf("%s-%s", Repo, Language)
+    env.GITHUB_TOKEN = Token
+    env.LANGUAGE = Language
+    env.ORG = Org
+    env.REPO = Repo
+    env.SARIF_FILE = sprintf("%s-%s.sarif", Repo, Language)
 
     powershell """
         Write-Output "Initializing database"
