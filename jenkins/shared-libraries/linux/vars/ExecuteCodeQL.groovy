@@ -1,6 +1,7 @@
 def call(org, repo, branch, language, buildCommand, token) {
+    env.AUTHORIZATION_HEADER = "Authorization: token $token"
     env.GITHUB_TOKEN = token
-    env.AUTHORIZATION_HEADER = 'Authorization: token' + token
+    env.LANGUAGE = language
 
     sh """
         if [[ -z "$branch" ]; then
@@ -42,7 +43,7 @@ def call(org, repo, branch, language, buildCommand, token) {
 
      sh '''
         echo "Uploading Database Bundle"
-        databaseBundle="$language-database.zip"
+        databaseBundle="${LANGUAGE}-database.zip"
         sizeInBytes=`stat --printf="%s" \$databaseBundle`
         curl --http1.0 --silent --retry 3 -X POST -H "Content-Type: application/zip" \
         -H "Content-Length: \$sizeInBytes" \
