@@ -8,6 +8,7 @@ def call(org, repo, branch, language, buildCommand, token) {
     env.LANGUAGE = language
     env.ORG = org
     env.REPO = repo
+    env.SARIF_FILE = "$repo-$language.sarif"
 
     sh """
         if [[ -z "$BRANCH" ]; then
@@ -24,7 +25,7 @@ def call(org, repo, branch, language, buildCommand, token) {
         echo "Database initialized"
 
         echo "Analyzing database"
-        codeql database analyze --download "$DATABASE_PATH" --sarif-category "$LANGUAGE" --format sarif-latest --output "$DATABASE_PATH.sarif" "codeql/$LANGUAGE-queries:codeql-suites/$LANGUAGE-code-scanning.qls"
+        codeql database analyze --download "$DATABASE_PATH" --sarif-category "$LANGUAGE" --format sarif-latest --output "$SARIF_FILE" "codeql/$LANGUAGE-queries:codeql-suites/$LANGUAGE-code-scanning.qls"
         echo "Database analyzed"
 
         echo "Generating CSV of results"
@@ -37,7 +38,7 @@ def call(org, repo, branch, language, buildCommand, token) {
         --repository="$ORG/$REPO" \
         --ref="refs/heads/$BRANCH" \
         --commit="\$commit" \
-        --sarif="$DATABASE_PATH.sarif"
+        --sarif="$SARIF_FILE"
         echo "SARIF file uploaded"
 
         echo "Generating Database Bundle"
