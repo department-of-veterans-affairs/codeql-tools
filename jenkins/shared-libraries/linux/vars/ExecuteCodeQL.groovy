@@ -22,7 +22,7 @@ def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
 
     sh """
         # set +x
-
+        env | grep PATH
         if [ "$INSTALL_CODEQL" = false ]; then
             echo "Skipping installation of CodeQL"
         else
