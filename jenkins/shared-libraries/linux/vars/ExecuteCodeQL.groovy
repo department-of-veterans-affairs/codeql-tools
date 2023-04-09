@@ -44,6 +44,7 @@ def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
             rm codeql.tgz
 
             echo "CodeQL installed"
+        fi
     """
 
     sh """
@@ -86,7 +87,7 @@ def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
         -H "Content-Length: \$sizeInBytes" \
         -H "${AUTHORIZATION_HEADER}" \
         -T "${DATABASE_BUNDLE}" \
-        "https://uploads.github.com/repos/$ORG/$REPO/code-scanning/codeql/databases/$LANGUAGE?name=${DATABASE_BUNDLE}"
+        "https://uploads.github.com/repos/$ORG/$REPO/code-scanning/codeql/databases/${LANGUAGE}?name=${DATABASE_BUNDLE}"
         echo "Database Bundle uploaded"
     '''
 }
