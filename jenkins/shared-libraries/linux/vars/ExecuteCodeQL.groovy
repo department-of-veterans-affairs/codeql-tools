@@ -4,7 +4,7 @@ def call(org, repo, branch, language, buildCommand, token) {
         // TODO: This doesn't work if branch includes a slash in it, split and reform based on branch name
         env.BRANCH = env.GIT_BRANCH.split('/')[1]
     } else {
-        env.BRANCH = Branch
+        env.BRANCH = branch
     }
     env.BUILD_COMMAND = buildCommand
     env.DATABASE_BUNDLE = sprintf("%s-database.zip", language)
