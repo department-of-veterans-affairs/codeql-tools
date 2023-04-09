@@ -1,6 +1,11 @@
 def call(org, repo, branch, language, buildCommand, token) {
     env.AUTHORIZATION_HEADER = sprintf("Authorization: token %s", token)
-    env.BRANCH = branch
+    if(branch == "") {
+        // TODO: This doesn't work if branch includes a slash in it, split and reform based on branch name
+        env.BRANCH = env.GIT_BRANCH.split('/')[1]
+    } else {
+        env.BRANCH = Branch
+    }
     env.BUILD_COMMAND = buildCommand
     env.DATABASE_BUNDLE = sprintf("%s-database.zip", language)
     env.DATABASE_PATH = sprintf("%s-%s", repo, language)
@@ -11,12 +16,6 @@ def call(org, repo, branch, language, buildCommand, token) {
     env.SARIF_FILE = sprintf("%s-%s.sarif", repo, language)
 
     sh """
-        if [[ -z "$BRANCH" ]; then
-            # This doesn't work if branch includes a slash in it
-            echo "Branch is empty, using GIT_BRANCH"
-            branch=\$(echo "${env.GIT_BRANCH}" | cut -d'/' -f2)
-        fi
-
         echo "Initializing database"
         if [[ "\${#BUILD_COMMAND}"  -eq "0" ]]; then
             echo "No build command, using default"
