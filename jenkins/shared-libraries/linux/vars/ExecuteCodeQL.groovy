@@ -11,8 +11,6 @@ def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
     env.DATABASE_PATH = sprintf("%s-%s", repo, language)
     env.GITHUB_TOKEN = token
     if(installCodeQL == true || installCodeQL == "true") {
-        printf "Adding CodeQL to PATH"
-        env.PATH = sprintf("%s/codeql:%s", env.WORKSPACE, env.PATH)
         env.INSTALL_CODEQL = true
     } else {
         env.INSTALL_CODEQL = false
