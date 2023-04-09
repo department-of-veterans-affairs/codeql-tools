@@ -33,9 +33,9 @@ def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
             --header "Accept: application/vnd.github+json" \
             "https://api.github.com/repos/github/codeql-action/releases/latest" | jq -r .tag_name)
 
-            echo "Downloading CodeQL bundle for version '$id'"
+            echo "Downloading CodeQL bundle for version '\$id'"
             curl --silent --retry 3 --location --output codeql.tgz \
-            "https://github.com/github/codeql-action/releases/download/$id/codeql-bundle-linux64.tar.gz"
+            "https://github.com/github/codeql-action/releases/download/\$id/codeql-bundle-linux64.tar.gz"
 
             echo "Extracting CodeQL bundle"
             tar -xzf codeql.tgz --directory $WORKSPACE/codeql-bundle
