@@ -50,9 +50,7 @@ def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
 
     sh """
         set +x
-        which codeql
-        env | grep PATH
-        ls "$WORKSPACE/codeql"
+
         echo "Initializing database"
         if [ -z "$BUILD_COMMAND" ]; then
             echo "No build command, using default"
