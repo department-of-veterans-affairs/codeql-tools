@@ -22,7 +22,7 @@ def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
     env.SARIF_FILE = sprintf("%s-%s.sarif", repo, language)
 
     sh """
-        if [ -z "$INSTALL_CODEQL" || $INSTALL_CODEQL == false ]; then
+        if [ -z "$INSTALL_CODEQL" ] || [ $INSTALL_CODEQL == false ]; then
             echo "Skipping installation of CodeQL"
         else
             echo "Installing CodeQL"
