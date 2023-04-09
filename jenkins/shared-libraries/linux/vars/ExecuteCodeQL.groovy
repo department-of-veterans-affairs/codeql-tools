@@ -10,8 +10,8 @@ def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
     env.DATABASE_BUNDLE = sprintf("%s-database.zip", language)
     env.DATABASE_PATH = sprintf("%s-%s", repo, language)
     env.GITHUB_TOKEN = token
-    printf "Install CodeQL: $installCodeQL"
     if(installCodeQL == true || installCodeQL == "true") {
+        printf "Adding CodeQL to PATH"
         env.PATH = sprintf("%s/codeql:%s", env.WORKSPACE, env.PATH)
         env.INSTALL_CODEQL = true
     } else {
