@@ -1,4 +1,4 @@
-def call(Org, Repo, Branch, Language, BuildCommand, Token) {
+def call(Org, Repo, Branch, Language, BuildCommand, Token, InstallCodeQL) {
     env.AUTHORIZATION_HEADER = sprintf("token %s", Token)
     if(Branch == "") {
         // TODO: This doesn't work if branch includes a slash in it, split and reform based on branch name
@@ -10,11 +10,38 @@ def call(Org, Repo, Branch, Language, BuildCommand, Token) {
     env.DATABASE_BUNDLE = sprintf("%s-database.zip", Language)
     env.DATABASE_PATH = sprintf("%s-%s", Repo, Language)
     env.GITHUB_TOKEN = Token
+    if(InstallCodeQL == true || InstallCodeQL == "true") {
+        env.PATH = sprintf("%s\codeql-bundle:%s", env.WORKSPACE, env.PATH)
+        env.INSTALL_CODEQL = true
+    } else {
+        env.INSTALL_CODEQL = false
+    }
     env.LANGUAGE = Language
     env.ORG = Org
     env.REPO = Repo
     env.SARIF_FILE = sprintf("%s-%s.sarif", Repo, Language)
     env.UPLOAD_URL = sprintf("https://uploads.github.com/repos/%s/%s/code-scanning/codeql/databases/%s?name=%s", Org, Repo, Language, env.DATABASE_BUNDLE)
+
+    powershell """
+        if("$Env:INSTALL_CODEQL" == "false") {
+            Write-Output "Skipping installation of CodeQL"
+        } else {
+            Write-Output "Installing CodeQL"
+
+            Write-Output "Retrieving latest CodeQL release id"
+            \$Headers = @{
+                "Authorization" = "\$Env:AUTHORIZATION_HEADER"
+                "Accept": "application/vnd.github+json"
+            }
+            \$Id=\$(((Invoke-WebRequest -Method Get -Uri "https://api.github.com/repos/github/codeql-action/releases/latest").Content | ConvertFrom-Json).tag_name)
+
+            Write-Output "Downloading CodeQL bundle for version '\$Id'"
+            Invoke-WebRequest -Method Get -OutFile "codeql-bundle.tgz" -Uri "https://github.com/github/codeql-action/releases/download/\$Id/codeql-bundle-win64.tar.gz"
+
+            Write-Output "Extracting CodeQL bundle"
+            tar -xzf "\$Env:WORKSPACE\codeql-bundle.tgz" -C "\$Env:WORKSPACE\codeql-bundle"
+        }
+    """
 
     powershell """
         Write-Output "Initializing database"

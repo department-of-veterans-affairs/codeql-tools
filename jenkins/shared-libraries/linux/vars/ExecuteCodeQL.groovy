@@ -1,4 +1,4 @@
-def call(org, repo, branch, language, buildCommand, token) {
+def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
     env.AUTHORIZATION_HEADER = sprintf("Authorization: token %s", token)
     if(branch == "") {
         // TODO: This doesn't work if branch includes a slash in it, split and reform based on branch name
@@ -10,10 +10,41 @@ def call(org, repo, branch, language, buildCommand, token) {
     env.DATABASE_BUNDLE = sprintf("%s-database.zip", language)
     env.DATABASE_PATH = sprintf("%s-%s", repo, language)
     env.GITHUB_TOKEN = token
+    if(installCodeQL == true || installCodeQL == "true") {
+        env.PATH = sprintf("%s/codeql-bundle:%s", env.WORKSPACE, env.PATH)
+        env.INSTALL_CODEQL = true
+    } else {
+        env.INSTALL_CODEQL = false
+    }
     env.LANGUAGE = language
     env.ORG = org
     env.REPO = repo
     env.SARIF_FILE = sprintf("%s-%s.sarif", repo, language)
+
+    sh """
+        if [ -z "$INSTALL_CODEQL" || $INSTALL_CODEQL == false ]; then
+            echo "Skipping installation of CodeQL"
+        else
+            echo "Installing CodeQL"
+
+            echo "Retrieving latest CodeQL release id"
+            id=$(curl --silent --retry 3 --location \
+            --header "$AUTHORIZATION_HEADER" \
+            --header "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/github/codeql-action/releases/latest" | jq -r .tag_name)
+
+            echo "Downloading CodeQL bundle for version '$id'"
+            curl --silent --retry 3 --location --output codeql.tgz \
+            "https://github.com/github/codeql-action/releases/download/$id/codeql-bundle-linux64.tar.gz"
+
+            echo "Extracting CodeQL bundle"
+            tar -xzf codeql.tgz --directory $WORKSPACE/codeql-bundle
+
+            echo "Removing CodeQL bundle tarball"
+            rm codeql.tgz
+
+            echo "CodeQL installed"
+    """
 
     sh """
         echo "Initializing database"
