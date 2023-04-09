@@ -40,7 +40,7 @@ def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
             "https://github.com/github/codeql-action/releases/download/\$id/codeql-bundle-linux64.tar.gz"
 
             echo "Extracting CodeQL bundle"
-            tar -xzf codeql.tgz --directory $WORKSPACE/codeql-bundle
+            tar -xzf codeql.tgz --directory "$WORKSPACE/codeql-bundle"
 
             echo "Removing CodeQL bundle tarball"
             rm codeql.tgz
