@@ -22,14 +22,14 @@ def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
     env.SARIF_FILE = sprintf("%s-%s.sarif", repo, language)
 
     sh """
-        set +x
+        # set +x
 
         if [ $INSTALL_CODEQL == false ]; then
             echo "Skipping installation of CodeQL"
         else
             echo "Installing CodeQL"
 
-            echo "Retrieving latest CodeQL release id"
+            echo "Retrieving latest CodeQL release"
             id=\$(curl --silent --retry 3 --location \
             --header "$AUTHORIZATION_HEADER" \
             --header "Accept: application/vnd.github+json" \
