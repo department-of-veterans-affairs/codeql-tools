@@ -11,7 +11,6 @@ def call(org, repo, branch, language, buildCommand, token) {
     env.SARIF_FILE = sprintf("%s-%s.sarif", repo, language)
 
     sh """
-        set -x
         if [[ -z "$BRANCH" ]; then
             # This doesn't work if branch includes a slash in it
             echo "Branch is empty, using GIT_BRANCH"
