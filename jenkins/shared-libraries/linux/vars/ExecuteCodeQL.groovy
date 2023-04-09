@@ -22,7 +22,7 @@ def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
     env.SARIF_FILE = sprintf("%s-%s.sarif", repo, language)
 
     sh """
-        #!/bin/sh -e
+        set +x
 
         if [ -z "$INSTALL_CODEQL" ] || [ $INSTALL_CODEQL == false ]; then
             echo "Skipping installation of CodeQL"
@@ -50,7 +50,8 @@ def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
     """
 
     sh """
-        #!/bin/sh -e
+        set +x
+
         echo "Initializing database"
         if [ -z "$BUILD_COMMAND" ]; then
             echo "No build command, using default"
@@ -84,7 +85,8 @@ def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
      """
 
     sh '''
-        #!/bin/sh -e
+        set +x
+
         echo "Uploading Database Bundle"
         sizeInBytes=`stat --printf="%s" ${DATABASE_BUNDLE}`
         curl --http1.0 --silent --retry 3 -X POST -H "Content-Type: application/zip" \
