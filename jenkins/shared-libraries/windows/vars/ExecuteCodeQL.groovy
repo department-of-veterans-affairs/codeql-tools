@@ -27,20 +27,20 @@ def call(Org, Repo, Branch, Language, BuildCommand, Token, InstallCodeQL) {
         } else {
             Write-Output "Installing CodeQL"
 
-            Write-Output "Retrieving latest CodeQL release id"
+            Write-Output "Retrieving latest CodeQL release"
             \$Headers = @{
                 "Authorization" = "\$Env:AUTHORIZATION_HEADER"
                 "Accept" = "application/vnd.github+json"
             }
-            \$Request = (Invoke-WebRequest -UseBasicParsing -Method Get -Headers  \$Headers -Uri "https://api.github.com/repos/github/codeql-action/releases/latest")
+            \$Request = Invoke-WebRequest -UseBasicParsing -Method Get -Headers  \$Headers -Uri "https://api.github.com/repos/github/codeql-cli-binaries/releases/latest"
             \$Json = \$Request.Content | ConvertFrom-Json
             \$Id = \$Json.tag_name
 
             Write-Output "Downloading CodeQL bundle for version '\$Id'"
-            Invoke-WebRequest -Method Get -OutFile "codeql-bundle.tgz" -Uri "https://github.com/github/codeql-action/releases/download/\$Id/codeql-bundle-win64.tar.gz"
+            Invoke-WebRequest -Method Get -OutFile "codeql-bundle.tgz" -Uri "https://github.com/github/codeql-cli-binaries/releases/download/\$Id/codeql-win64.zip"
 
             Write-Output "Extracting CodeQL bundle"
-            tar -xzf "\$Env:WORKSPACE\\codeql-bundle.tgz" -C "\$Env:WORKSPACE\\codeql"
+            Expand-Archive -Path "codeql-bundle.tgz" -DestinationPath "\$Env:WORKSPACE"
 
             Write-Output "Removing CodeQL bundle tarball"
             Remove-Item "\$Env:WORKSPACE\\codeql-bundle.tgz"
