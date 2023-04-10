@@ -32,7 +32,7 @@ def call(Org, Repo, Branch, Language, BuildCommand, Token, InstallCodeQL) {
                 "Authorization" = "\$Env:AUTHORIZATION_HEADER"
                 "Accept" = "application/vnd.github+json"
             }
-            \$Request = (Invoke-WebRequest -Method Get -Headers \$Headers -Uri "https://api.github.com/repos/github/codeql-action/releases/latest")
+            \$Request = (Invoke-WebRequest -UseBasicParsing -Method Get -Headers  \$Headers -Uri "https://api.github.com/repos/github/codeql-action/releases/latest")
             \$Json = \$Request.Content | ConvertFrom-Json
             \$Id = \$Json.tag_name
 
