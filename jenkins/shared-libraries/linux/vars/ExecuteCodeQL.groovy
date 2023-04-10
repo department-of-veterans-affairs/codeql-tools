@@ -2,6 +2,7 @@ def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
     env.AUTHORIZATION_HEADER = sprintf("Authorization: token %s", token)
     if(branch == "") {
         // TODO: This doesn't work if branch includes a slash in it, split and reform based on branch name
+        printf env.GIT_BRANCH
         env.BRANCH = env.GIT_BRANCH.split('/')[1]
     } else {
         env.BRANCH = branch
