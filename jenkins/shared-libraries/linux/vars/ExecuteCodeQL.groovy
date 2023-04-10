@@ -20,17 +20,17 @@ def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
     env.REPO = repo
     env.SARIF_FILE = sprintf("%s-%s.sarif", repo, language)
 
-    sh """
+    sh '''
         set +x
 
-        if [ "$INSTALL_CODEQL" = false ]; then
+        if [ "${INSTALL_CODEQL}" = false ]; then
             echo "Skipping installation of CodeQL"
         else
             echo "Installing CodeQL"
 
             echo "Retrieving latest CodeQL release"
             id=\$(curl --silent --retry 3 --location \
-            --header "$AUTHORIZATION_HEADER" \
+            --header "${AUTHORIZATION_HEADER}" \
             --header "Accept: application/vnd.github+json" \
             "https://api.github.com/repos/github/codeql-cli-binaries/releases/latest" | jq -r .tag_name)
 
@@ -39,14 +39,14 @@ def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
             "https://github.com/github/codeql-cli-binaries/releases/download/\$id/codeql-linux64.zip"
 
             echo "Extracting CodeQL archive"
-            unzip -qq codeql.zip -d "$WORKSPACE"
+            unzip -qq codeql.zip -d "${WORKSPACE}"
 
             echo "Removing CodeQL archive"
             rm codeql.zip
 
             echo "CodeQL installed"
         fi
-    """
+    '''
 
     sh """
         set +x
