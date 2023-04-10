@@ -43543,7 +43543,7 @@ const main = async () => {
             }
 
             core.info(`Generating pull request body for ${repository.name} with supported languages: [${languages.join(', ')}]`)
-            const pullRequestBody = generatePullRequestBody(languages, config.pull_request_body, repository.owner.login, repository.name, repository.default_branch)
+            const pullRequestBody = generatePullRequestBody(languages, config.pull_request_body, repository.owner.login, repository.name, SOURCE_BRANCH_NAME)
 
             core.info(`Creating 'codeql' pull request for ${repository.name}`)
             await createPullRequest(octokit, repository.owner.login, repository.name, PULL_REQUEST_TITLE, SOURCE_BRANCH_NAME, repository.default_branch, pullRequestBody)
