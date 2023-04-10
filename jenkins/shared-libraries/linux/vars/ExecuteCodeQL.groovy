@@ -39,7 +39,7 @@ def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
             "https://github.com/github/codeql-cli-binaries/releases/download/\$id/codeql-linux64.zip"
 
             echo "Extracting CodeQL archive"
-            unzip codeql.zip -d "$WORKSPACE"
+            unzip -qq codeql.zip -d "$WORKSPACE"
 
             echo "Removing CodeQL archive"
             rm codeql.zip
