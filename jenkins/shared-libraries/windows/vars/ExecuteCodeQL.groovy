@@ -37,6 +37,7 @@ def call(Org, Repo, Branch, Language, BuildCommand, Token, InstallCodeQL) {
             \$Id = \$Json.tag_name
 
             Write-Output "Downloading CodeQL archive for version '\$Id'"
+            \$ProgressPreference = 'SilentlyContinue'
             Invoke-WebRequest -Method Get -OutFile "codeql-bundle.zip" -Uri "https://github.com/github/codeql-cli-binaries/releases/download/\$Id/codeql-win64.zip"
 
             Write-Output "Extracting CodeQL archive"
