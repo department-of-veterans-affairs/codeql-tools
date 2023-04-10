@@ -21,7 +21,7 @@ def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
     env.SARIF_FILE = sprintf("%s-%s.sarif", repo, language)
 
     sh """
-        # set +x
+        set +x
 
         if [ "$INSTALL_CODEQL" = false ]; then
             echo "Skipping installation of CodeQL"
@@ -51,7 +51,6 @@ def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
     sh """
         set +x
 
-        which codeql
         echo "Initializing database"
         if [ -z "$BUILD_COMMAND" ]; then
             echo "No build command, using default"
