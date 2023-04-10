@@ -39,13 +39,13 @@ def call(Org, Repo, Branch, Language, BuildCommand, Token, InstallCodeQL) {
             Write-Output "Downloading CodeQL archive for version '\$Id'"
             \$ProgressPreference = 'SilentlyContinue'
             Invoke-WebRequest -Method Get -OutFile "codeql-bundle.zip" -Uri "https://github.com/github/codeql-cli-binaries/releases/download/\$Id/codeql-win64.zip"
-            \$ProgressPreference = 'Continue'
 
             Write-Output "Extracting CodeQL archive"
             Expand-Archive -Path "codeql-bundle.zip" -DestinationPath "\$Env:WORKSPACE"
 
             Write-Output "Removing CodeQL bundle archive"
             Remove-Item "\$Env:WORKSPACE\\codeql-bundle.zip"
+            \$ProgressPreference = 'Continue'
 
             Write-Output "CodeQL installed"
         }
