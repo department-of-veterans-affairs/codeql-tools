@@ -38,10 +38,10 @@ def call(Org, Repo, Branch, Language, BuildCommand, Token, InstallCodeQL) {
             Invoke-WebRequest -Method Get -OutFile "codeql-bundle.tgz" -Uri "https://github.com/github/codeql-action/releases/download/\$Id/codeql-bundle-win64.tar.gz"
 
             Write-Output "Extracting CodeQL bundle"
-            tar -xzf "\$Env:WORKSPACE\codeql-bundle.tgz" -C "\$Env:WORKSPACE\codeql-bundle"
+            tar -xzf "\$Env:WORKSPACE\\codeql-bundle.tgz" -C "\$Env:WORKSPACE\\codeql-bundle"
 
             Write-Output "Removing CodeQL bundle tarball"
-            Remove-Item "\$Env:WORKSPACE\codeql-bundle.tgz"
+            Remove-Item "\$Env:WORKSPACE\\codeql-bundle.tgz"
 
             Write-Output "CodeQL installed"
         }
