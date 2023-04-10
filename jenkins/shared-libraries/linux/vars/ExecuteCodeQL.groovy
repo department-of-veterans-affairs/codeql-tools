@@ -54,10 +54,10 @@ def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
         echo "Initializing database"
         if [ -z "$BUILD_COMMAND" ]; then
             echo "No build command, using default"
-            codeql database create "$DATABASE_PATH" --language="$LANGUAGE" --source-root . --overwrite
+            codeql database create "$DATABASE_PATH" --language="$LANGUAGE" --source-root .
         else
             echo "Build command specified, using '$BUILD_COMMAND'"
-            codeql database create "$DATABASE_PATH" --language="$LANGUAGE" --source-root . --overwrite --command="$BUILD_COMMAND"
+            codeql database create "$DATABASE_PATH" --language="$LANGUAGE" --source-root . --command="$BUILD_COMMAND"
         fi
         echo "Database initialized"
 
