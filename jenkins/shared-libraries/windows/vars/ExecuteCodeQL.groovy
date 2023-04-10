@@ -11,7 +11,6 @@ def call(Org, Repo, Branch, Language, BuildCommand, Token, InstallCodeQL) {
     env.DATABASE_PATH = sprintf("%s-%s", Repo, Language)
     env.GITHUB_TOKEN = Token
     if(InstallCodeQL == true || InstallCodeQL == "true") {
-        env.PATH = sprintf("%s\codeql-bundle:%s", env.WORKSPACE, env.PATH)
         env.INSTALL_CODEQL = true
     } else {
         env.INSTALL_CODEQL = false
@@ -40,6 +39,11 @@ def call(Org, Repo, Branch, Language, BuildCommand, Token, InstallCodeQL) {
 
             Write-Output "Extracting CodeQL bundle"
             tar -xzf "\$Env:WORKSPACE\codeql-bundle.tgz" -C "\$Env:WORKSPACE\codeql-bundle"
+
+            Write-Output "Removing CodeQL bundle tarball"
+            Remove-Item "\$Env:WORKSPACE\codeql-bundle.tgz"
+
+            Write-Output "CodeQL installed"
         }
     """
 
