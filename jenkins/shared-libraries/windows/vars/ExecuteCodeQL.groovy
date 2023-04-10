@@ -39,6 +39,7 @@ def call(Org, Repo, Branch, Language, BuildCommand, Token, InstallCodeQL) {
             Write-Output "Downloading CodeQL archive for version '\$Id'"
             \$ProgressPreference = 'SilentlyContinue'
             Invoke-WebRequest -Method Get -OutFile "codeql-bundle.zip" -Uri "https://github.com/github/codeql-cli-binaries/releases/download/\$Id/codeql-win64.zip"
+            \$ProgressPreference = 'Continue'
 
             Write-Output "Extracting CodeQL archive"
             Expand-Archive -Path "codeql-bundle.zip" -DestinationPath "\$Env:WORKSPACE"
@@ -51,6 +52,7 @@ def call(Org, Repo, Branch, Language, BuildCommand, Token, InstallCodeQL) {
     """
 
     powershell """
+        Get-Command codeql
         Write-Output "Initializing database"
         if ("\$Env:BUILD_COMMAND" -eq "") {
             Write-Output "No build command specified, using default"
