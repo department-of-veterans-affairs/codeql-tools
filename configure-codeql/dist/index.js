@@ -43584,10 +43584,10 @@ const parseInput = () => {
             required: true,
             trimWhitespace: true
         })
-        const pull_request_body = Number(core.getInput('pull_request_body', {
+        const pull_request_body = core.getInput('pull_request_body', {
             required: true,
             trimWhitespace: true
-        }))
+        })
         const verify_scans_id = Number(core.getInput('ghas_verify_scans_app_id', {
             required: true,
             trimWhitespace: true
