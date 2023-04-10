@@ -30,7 +30,7 @@ def call(Org, Repo, Branch, Language, BuildCommand, Token, InstallCodeQL) {
             Write-Output "Retrieving latest CodeQL release id"
             \$Headers = @{
                 "Authorization" = "\$Env:AUTHORIZATION_HEADER"
-                "Accept": "application/vnd.github+json"
+                "Accept" = "application/vnd.github+json"
             }
             \$Id=\$(((Invoke-WebRequest -Method Get -Uri "https://api.github.com/repos/github/codeql-action/releases/latest").Content | ConvertFrom-Json).tag_name)
 
