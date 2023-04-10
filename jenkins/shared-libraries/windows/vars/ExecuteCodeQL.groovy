@@ -22,6 +22,7 @@ def call(Org, Repo, Branch, Language, BuildCommand, Token, InstallCodeQL) {
     env.UPLOAD_URL = sprintf("https://uploads.github.com/repos/%s/%s/code-scanning/codeql/databases/%s?name=%s", Org, Repo, Language, env.DATABASE_BUNDLE)
 
     powershell """
+        dir env:
         if("$Env:INSTALL_CODEQL" -eq "false") {
             Write-Output "Skipping installation of CodeQL"
         } else {
