@@ -2,7 +2,6 @@ def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
     env.AUTHORIZATION_HEADER = sprintf("Authorization: token %s", token)
     if(branch == "") {
         // TODO: This doesn't work if branch includes a slash in it, split and reform based on branch name
-        printf env.GIT_BRANCH
         env.BRANCH = env.GIT_BRANCH.split('/')[1]
     } else {
         env.BRANCH = branch
@@ -55,10 +54,10 @@ def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
         echo "Initializing database"
         if [ -z "$BUILD_COMMAND" ]; then
             echo "No build command, using default"
-            codeql database create "$DATABASE_PATH" --language="$LANGUAGE" --source-root .
+            codeql database create "$DATABASE_PATH" --language="$LANGUAGE" --source-root --overwrite .
         else
             echo "Build command specified, using '$BUILD_COMMAND'"
-            codeql database create "$DATABASE_PATH" --language="$LANGUAGE" --source-root . --command="$BUILD_COMMAND"
+            codeql database create "$DATABASE_PATH" --language="$LANGUAGE" --source-root --overwrite . --command="$BUILD_COMMAND"
         fi
         echo "Database initialized"
 
