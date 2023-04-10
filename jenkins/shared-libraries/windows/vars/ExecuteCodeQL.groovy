@@ -22,7 +22,6 @@ def call(Org, Repo, Branch, Language, BuildCommand, Token, InstallCodeQL) {
     env.UPLOAD_URL = sprintf("https://uploads.github.com/repos/%s/%s/code-scanning/codeql/databases/%s?name=%s", Org, Repo, Language, env.DATABASE_BUNDLE)
 
     powershell """
-        dir env:
         if("$Env:INSTALL_CODEQL" -eq "false") {
             Write-Output "Skipping installation of CodeQL"
         } else {
@@ -53,7 +52,6 @@ def call(Org, Repo, Branch, Language, BuildCommand, Token, InstallCodeQL) {
     """
 
     powershell """
-        Get-Command codeql
         Write-Output "Initializing database"
         if ("\$Env:BUILD_COMMAND" -eq "") {
             Write-Output "No build command specified, using default"
@@ -90,5 +88,4 @@ def call(Org, Repo, Branch, Language, BuildCommand, Token, InstallCodeQL) {
         Invoke-RestMethod -ContentType "application/zip" -Headers \$Headers -Method Post -InFile "\$Env:DATABASE_BUNDLE" -Uri "\$Env:UPLOAD_URL"
         Write-Output "Database Bundle uploaded"
     """
-
 }
