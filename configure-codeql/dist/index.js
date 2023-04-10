@@ -43837,11 +43837,9 @@ const createFile = async (octokit, owner, repo, branch, path, message, content) 
 
 const generatePullRequestBody = (languages, template, org, repo, branch) => {
     const languageList = languages.map(language => `- \`${language}\``).join('\n')
-    let message = template.replace('<LANGUAGES_PLACEHOLDER>', languageList)
-    message = message.replaceAll('<CODEQL_WORKFLOW_URL_PLACEHOLDER>', `https://github.com/${org}/${repo}/blob/${branch}/.github/workflows/codeql-analysis.yml`)
-    message = message.replaceAll('<EXCLUDED_LANGUAGES_URL_PLACEHOLDER>', `https://github.com/${org}/${repo}/tree/${branch}/.github`)
-
-    return message
+    return template.replaceAll('<LANGUAGES_PLACEHOLDER>', languageList)
+        .replaceAll('<CODEQL_WORKFLOW_URL_PLACEHOLDER>', `https://github.com/${org}/${repo}/blob/${branch}/.github/workflows/codeql-analysis.yml`)
+        .replaceAll('<EXCLUDED_LANGUAGES_URL_PLACEHOLDER>', `https://github.com/${org}/${repo}/tree/${branch}/.github`)
 }
 
 const createPullRequest = async (octokit, owner, repo, title, head, base, body) => {

@@ -378,8 +378,8 @@ const generateMissingEMASSInfoEmail = (template, repository, languages) => {
     }
 
     return template
-        .replace('<REPOSITORY_URL_PLACEHOLDER>', repository)
-        .replace('<LANGUAGES_PLACEHOLDER>', languageTemplate)
+        .replaceAll('<REPOSITORY_URL_PLACEHOLDER>', repository)
+        .replaceAll('<LANGUAGES_PLACEHOLDER>', languageTemplate)
 }
 
 const generateMissingEMASSInfoIssue = (template, repository, languages) => {
@@ -389,8 +389,8 @@ const generateMissingEMASSInfoIssue = (template, repository, languages) => {
     }
 
     return template
-        .replace('<REPOSITORY_URL_PLACEHOLDER>', repository)
-        .replace('<LANGUAGES_PLACEHOLDER>', languageTemplate)
+        .replaceAll('<REPOSITORY_URL_PLACEHOLDER>', repository)
+        .replaceAll('<LANGUAGES_PLACEHOLDER>', languageTemplate)
 }
 
 const generateNonCompliantEmailBody = (template, systemID, systemName, repository, languages) => {
@@ -400,10 +400,10 @@ const generateNonCompliantEmailBody = (template, systemID, systemName, repositor
     }
 
     return template
-        .replace('<SYSTEM_ID_PLACEHOLDER>', systemID)
-        .replace('<SYSTEM_NAME_PLACEHOLDER>', systemName)
-        .replace('<REPOSITORY_URL_PLACEHOLDER>', repository)
-        .replace('<LANGUAGES_PLACEHOLDER>', languageTemplate)
+        .replaceAll('<SYSTEM_ID_PLACEHOLDER>', systemID)
+        .replaceAll('<SYSTEM_NAME_PLACEHOLDER>', systemName)
+        .replaceAll('<REPOSITORY_URL_PLACEHOLDER>', repository)
+        .replaceAll('<LANGUAGES_PLACEHOLDER>', languageTemplate)
 }
 
 const installApp = async (octokit, installationID, repositoryID) => {
