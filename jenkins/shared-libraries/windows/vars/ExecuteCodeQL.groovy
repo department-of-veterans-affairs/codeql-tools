@@ -55,10 +55,10 @@ def call(Org, Repo, Branch, Language, BuildCommand, Token, InstallCodeQL) {
         Write-Output "Initializing database"
         if ("\$Env:BUILD_COMMAND" -eq "") {
             Write-Output "No build command specified, using default"
-            codeql database create "\$Env:DATABASE_PATH" --language "\$Env:LANGUAGE" --source-root .
+            codeql database create "\$Env:DATABASE_PATH" --language "\$Env:LANGUAGE" --source-root --overwrite .
         } else {
             Write-Output "Build command specified, using '\$Env:BUILD_COMMAND'"
-            codeql database create "\$Env:DATABASE_PATH" --language "\$Env:LANGUAGE" --source-root . --command "\$Env:BUILD_COMMAND"
+            codeql database create "\$Env:DATABASE_PATH" --language "\$Env:LANGUAGE" --source-root --overwrite . --command "\$Env:BUILD_COMMAND"
         }
         Write-Output "Database initialized"
 
