@@ -32,17 +32,17 @@ def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
             id=\$(curl --silent --retry 3 --location \
             --header "$AUTHORIZATION_HEADER" \
             --header "Accept: application/vnd.github+json" \
-            "https://api.github.com/repos/github/codeql-action/releases/latest" | jq -r .tag_name)
+            "https://api.github.com/repos/github/codeql-cli-binaries/releases/latest" | jq -r .tag_name)
 
-            echo "Downloading CodeQL bundle for version '\$id'"
-            curl --silent --retry 3 --location --output codeql.tgz \
-            "https://github.com/github/codeql-action/releases/download/\$id/codeql-bundle-linux64.tar.gz"
+            echo "Downloading CodeQL archive for version '\$id'"
+            curl --silent --retry 3 --location --output codeql.zip \
+            "https://github.com/github/codeql-cli-binaries/releases/download/\$id/codeql-linux64.zip"
 
-            echo "Extracting CodeQL bundle"
-            tar -xzf codeql.tgz --directory "$WORKSPACE"
+            echo "Extracting CodeQL archive"
+            unzip codeql.zip -d "$WORKSPACE"
 
-            echo "Removing CodeQL bundle tarball"
-            rm codeql.tgz
+            echo "Removing CodeQL archive"
+            rm codeql.zip
 
             echo "CodeQL installed"
         fi

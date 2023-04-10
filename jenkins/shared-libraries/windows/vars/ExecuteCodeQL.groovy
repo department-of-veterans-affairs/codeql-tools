@@ -36,14 +36,14 @@ def call(Org, Repo, Branch, Language, BuildCommand, Token, InstallCodeQL) {
             \$Json = \$Request.Content | ConvertFrom-Json
             \$Id = \$Json.tag_name
 
-            Write-Output "Downloading CodeQL bundle for version '\$Id'"
-            Invoke-WebRequest -Method Get -OutFile "codeql-bundle.tgz" -Uri "https://github.com/github/codeql-cli-binaries/releases/download/\$Id/codeql-win64.zip"
+            Write-Output "Downloading CodeQL archive for version '\$Id'"
+            Invoke-WebRequest -Method Get -OutFile "codeql-bundle.zip" -Uri "https://github.com/github/codeql-cli-binaries/releases/download/\$Id/codeql-win64.zip"
 
-            Write-Output "Extracting CodeQL bundle"
-            Expand-Archive -Path "codeql-bundle.tgz" -DestinationPath "\$Env:WORKSPACE"
+            Write-Output "Extracting CodeQL archive"
+            Expand-Archive -Path "codeql-bundle.zip" -DestinationPath "\$Env:WORKSPACE"
 
-            Write-Output "Removing CodeQL bundle tarball"
-            Remove-Item "\$Env:WORKSPACE\\codeql-bundle.tgz"
+            Write-Output "Removing CodeQL bundle archive"
+            Remove-Item "\$Env:WORKSPACE\\codeql-bundle.zip"
 
             Write-Output "CodeQL installed"
         }
