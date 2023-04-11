@@ -31,7 +31,7 @@ def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
             echo "Retrieving CodeQL query packs"
             curl -k --silent --retry 3 --location --output codeql-queries.tgz \
             "https://github.com/github/codeql-action/releases/download/codeql-bundle-20230403/codeql-bundle-linux64.tar.gz"
-            tar -xvf codeql-queries.tgz
+            tar -xf codeql-queries.tgz
             mv codeql codeql-queries
 
             echo "Retrieving latest CodeQL release"
