@@ -39,10 +39,10 @@ const main = async () => {
     core.info('Instantiating admin GitHub client')
     const adminClient = await createGitHubClient(config.admin_token)
 
-    core.info('Instantiating emass-promotion GitHub App client')
+    core.info('Instantiating emass-promotion GitHub app client')
     const verifyScansApp = await createGitHubAppClient(config.verify_scans_app_id, config.verify_scans_private_key)
 
-    core.info('Instantiating emass-promotion GitHub App client')
+    core.info('Instantiating emass-promotion GitHub app client')
     const emassPromotionApp = await createGitHubAppClient(config.emass_promotion_app_id, config.emass_promotion_private_key)
 
     core.info('Creating EMASS Promotion installation client')
@@ -50,52 +50,52 @@ const main = async () => {
 
     await verifyScansApp.eachRepository(async ({octokit, repository}) => {
         try {
-            core.info(`Retrieving .emass-ignore file for ${repository.name}`)
+            core.info(`[${repository.name}]: Retrieving .emass-ignore file`)
             const emassIgnore = await getFile(octokit, repository.owner.login, repository.name, '.emass-ignore')
             if (emassIgnore) {
-                core.info(`Found .emass-ignore file for ${repository.name}, skipping repository`)
+                core.info(`[${repository.name}]: Found .emass-ignore file, skipping repository`)
                 skippedIgnored.push(repository.name)
                 return
             }
 
-            core.info(`Retrieving codeql-config.yml file for ${repository.name}`)
+            core.info(`[${repository.name}]: Retrieving codeql-config.yml file`)
             let codeqlConfig
             let ignoredLanguages = []
             const _codeqlConfig = await getFile(octokit, repository.owner.login, repository.name, '.github/codeql-config.yml')
             if (_codeqlConfig) {
-                core.info(`Found codeql-config.yml file for ${repository.name}, parsing file`)
+                core.info(`[${repository.name}]: Found codeql-config.yml file, parsing file`)
                 codeqlConfig = yaml.load(_codeqlConfig)
 
-                core.info(`Parsing ignored languages for ${repository.name}`)
+                core.info(`[${repository.name}]: Parsing ignored languages`)
                 ignoredLanguages = codeqlConfig.excluded_languages.map(language => language.name.toLowerCase())
             }
 
 
-            core.info(`Retrieving supported CodeQL languages for ${repository.name}`)
+            core.info(`[${repository.name}]: Retrieving supported CodeQL languages`)
             const requiredLanguages = await listLanguages(octokit, repository.owner.login, repository.name, ignoredLanguages)
 
-            core.info(`Retrieving analyses for ${repository.name}`)
+            core.info(`[${repository.name}]: Retrieving existing CodeQL analyses`)
             const analysesLanguages = await listCodeQLAnalysesLanguages(octokit, repository.owner.login, repository.name, repository.default_branch, config.days_to_scan)
             if (analysesLanguages.length > 0) {
-                core.info(`Analyses found for ${repository.name}, validating EMASS Promotion app is installed on repository`)
+                core.info(`[${repository.name}]: Analyses found, validating 'emass-promotion' app is installed on repository`)
                 const installed = await isAppInstalled(emassPromotionInstallationClient, repository.owner.login, repository.name)
                 if (!installed) {
-                    core.info(`App not installed for ${repository.name}, installing app on repository`)
+                    core.info(`[${repository.name}]: 'emass-promotion' app not installed, installing app on repository`)
                     await installApp(adminClient, config.emass_promotion_installation_id, repository.id)
                 }
             }
 
-            core.info(`Calculating missing analyses languages for ${repository.name}`)
+            core.info(`[${repository.name}]: Calculating missing analyses languages`)
             const missingAnalyses = await missingLanguages(requiredLanguages, analysesLanguages)
 
-            core.info(`Retrieving CodeQL database languages for ${repository.name}`)
+            core.info(`[${repository.name}]: Retrieving supported CodeQL database languages`)
             const databaseLanguages = await listCodeQLDatabaseLanguages(octokit, repository.owner.login, repository.name, config.days_to_scan)
 
-            core.info(`Calculating missing database languages for ${repository.name}`)
+            core.info(`[${repository.name}]: Calculating missing database languages`)
             const missingDatabases = await missingLanguages(requiredLanguages, databaseLanguages)
 
             if (missingAnalyses.length === 0 && missingDatabases.length === 0) {
-                core.info(`No missing analyses or databases found for ${repository.name}`)
+                core.info(`[${repository.name}]: No missing analyses or databases found`)
                 return
             }
 
@@ -104,7 +104,7 @@ const main = async () => {
                 missingDatabases: missingDatabases
             }
 
-            core.info(`Missing analyses or databases found for ${repository.name}: ${JSON.stringify(missing[repository.name])}`)
+            core.info(`[${repository.name}]: Missing analyses or databases identified: ${JSON.stringify(missing[repository.name])}`)
             const emassConfig = await getFile(octokit, repository.owner.login, repository.name, '.github/emass.json')
 
             const uniqueMissingLanguages = [...new Set([...missingAnalyses, ...missingDatabases])]
@@ -113,16 +113,16 @@ const main = async () => {
 
             // TODO: Validate EMASS ID is valid
             if (!emassConfig || !emassConfig.systemOwnerEmail) {
-                core.info(`No .github/emass.json file found for ${repository.name}`)
+                core.info(`[${repository.name}]: No .github/emass.json file found`)
                 emassMissing.push(repository.name)
 
-                core.info(`Sending email to SWA for ${repository.name}`)
+                core.info(`[${repository.name}]: Sending missing EMASS information email to SWA`)
                 const body = generateMissingEMASSInfoEmail(config.missing_info_email_template, repoURL, uniqueMissingLanguages)
                 await sendEmail(mailer, config.gmail_from, config.gmail_from, 'Error: GitHub Repository Not Mapped To eMASS System ', body)
 
                 const emassMissingIssueExists = await issueExists(octokit, repository.owner.login, repository.name, 'ghas-non-compliant')
                 if (!emassMissingIssueExists) {
-                    core.info(`Creating issue for ${repository.name}`)
+                    core.info(`[${repository.name}]: Creating missing EMASS information issue`)
                     const issueBody = generateMissingEMASSInfoIssue(config.missing_info_issue_template, repoURL, uniqueMissingLanguages)
                     await createIssue(octokit, repository.owner.login, repository.name, 'Error: GitHub Repository Not Mapped To eMASS System', issueBody)
                 }
@@ -130,14 +130,14 @@ const main = async () => {
                 return
             }
 
-            core.info(`Generating Non-Compliant email body`)
+            core.info(`[${repository.name}]: Generating Non-Compliant repository email body`)
             const body = generateNonCompliantEmailBody(config.non_compliant_email_template, emassConfig.systemID, emassConfig.systemName, repoURL, uniqueMissingLanguages)
 
-            core.info(`Sending email to system owner for ${repository.name}`)
+            core.info(`[${repository.name}]: Sending email to system owner`)
             await sendEmail(mailer, config.gmail_from, emassConfig.systemOwnerEmail, 'GitHub Repository Code Scanning Not Enabled', body)
             notified.push(repository.name)
         } catch (error) {
-            core.error(`Error processing ${repository.name}: ${error}`)
+            core.error(`[${repository.name}]: Error processing repository: ${error}`)
         }
     })
 

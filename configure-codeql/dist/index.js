@@ -43462,10 +43462,10 @@ const main = async () => {
     core.info('Instantiating admin GitHub client')
     const adminClient = await createGitHubClient(config.admin_token)
 
-    core.info('Instantiating configure-codeql GitHub App client')
+    core.info('Instantiating configure-codeql GitHub app client')
     const configureCodeQLApp = await createGitHubAppClient(config.configure_codeql_id, config.configure_codeql_privateKey)
 
-    core.info('Instantiating verify-scans GitHub App client')
+    core.info('Instantiating verify-scans GitHub app client')
     const verifyScansApp = await createGitHubAppClient(config.verify_scans_id, config.verify_scans_privateKey)
     const verifyScansInstalledRepositories = await listInstalledRepos(verifyScansApp, config.verify_scans_installationID, config.org)
 
