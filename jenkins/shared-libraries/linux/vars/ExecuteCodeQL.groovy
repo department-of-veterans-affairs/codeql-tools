@@ -46,7 +46,9 @@ def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
             rm codeql.zip
 
             echo "Retrieving CodeQL query packs"
-            git clone https://github.com/github/codeql codeql-queries
+            curl -k --silent --retry 3 --location --output codeql-queries.tgz \
+            "https://github.com/github/codeql-action/releases/download/codeql-bundle-20230403/codeql-bundle-linux64.tar.gz"
+            tar -xvf codeql-queries.tgz -C "${WORKSPACE}/codeql-queries"
 
             echo "CodeQL installed"
         fi
