@@ -38,11 +38,15 @@ def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
             curl -k --silent --retry 3 --location --output codeql.zip \
             "https://github.com/github/codeql-cli-binaries/releases/download/\$id/codeql-linux64.zip"
 
+
             echo "Extracting CodeQL archive"
             unzip -qq codeql.zip -d "${WORKSPACE}"
 
             echo "Removing CodeQL archive"
             rm codeql.zip
+
+            echo "Cloning CodeQL query packs"
+            git clone https://github.com/github/codeql codeql/codeql-queries
 
             echo "CodeQL installed"
         fi
@@ -62,7 +66,7 @@ def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
         echo "Database initialized"
 
         echo "Analyzing database"
-        codeql database analyze "$DATABASE_PATH" --no-download --sarif-category "$LANGUAGE" --format sarif-latest --output "$SARIF_FILE" "codeql/$LANGUAGE-queries:codeql-suites/$LANGUAGE-code-scanning.qls"
+        codeql database analyze "$DATABASE_PATH" --no-download --sarif-category "$LANGUAGE" --format sarif-latest --output "$SARIF_FILE" --search-path="codeql/codeql-queries" "codeql/$LANGUAGE-queries:codeql-suites/$LANGUAGE-code-scanning.qls"
         echo "Database analyzed"
 
         echo "Generating CSV of results"
