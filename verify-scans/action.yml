@@ -18,6 +18,9 @@ inputs:
   ghas_emass_promotion_installation_id:
     description: The installation ID of the GitHub EMASS Promotion app
     required: true
+  gmail_from:
+    description: The email address to send emails from
+    required: true
   gmail_user:
     description: The username of the Gmail account to use
     required: true
