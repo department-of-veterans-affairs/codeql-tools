@@ -56,7 +56,7 @@ def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
     '''
 
     sh """
-        # set +x
+        set +x
 
         echo "Initializing database"
         if [ -z "$BUILD_COMMAND" ]; then
