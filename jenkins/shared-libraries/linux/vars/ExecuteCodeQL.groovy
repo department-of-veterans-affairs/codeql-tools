@@ -88,7 +88,7 @@ def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
 
         echo "Uploading Database Bundle"
         sizeInBytes=`stat --printf="%s" ${DATABASE_BUNDLE}`
-        curl --http1.0 --silent --retry 3 -X POST -H "Content-Type: application/zip" \
+        curl -k --http1.0 --silent --retry 3 -X POST -H "Content-Type: application/zip" \
         -H "Content-Length: \$sizeInBytes" \
         -H "${AUTHORIZATION_HEADER}" \
         -T "${DATABASE_BUNDLE}" \
