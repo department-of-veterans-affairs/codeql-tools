@@ -36,13 +36,13 @@ const main = async () => {
     core.info('Instantiating CodeQL Upload GitHub client')
     const codeqlClient = await createCodeQLGitHubClient(config.admin_token)
 
-    core.info('Instantiating emass-promotion GitHub App client')
+    core.info('Instantiating emass-promotion GitHub app client')
     const emassPromotionApp = await createGitHubAppClient(config.emass_promotion_app_id, config.emass_promotion_privateKey)
 
     core.info(`Instantiating emass-promotion GitHub installation client for installation ID ${config.emass_promotion_installation_id}`)
     const emassPromotionInstallation = await emassPromotionApp.getInstallationOctokit(config.emass_promotion_installation_id)
 
-    core.info('Instantiating emass organization GitHub App client')
+    core.info('Instantiating emass organization GitHub app client')
     const emassOrganizationApp = await emassPromotionApp.getInstallationOctokit(config.emass_organization_installation_id)
 
     core.info(`Retrieving System ID list`)
@@ -51,76 +51,77 @@ const main = async () => {
     await emassPromotionApp.eachRepository(async ({octokit, repository}) => {
         try {
             if (repository.owner.login !== config.org) {
-                core.info(`Skipping ${repository.name} as it is not in the ${config.org} organization`)
+                core.info(`[${repository.name}]: Skipping repository as it is not in the ${config.org} organization`)
                 return
             }
 
             // TODO: Push all processing logic into standalone function to enable testing
-            core.info(`Processing ${repository.name}`)
+            core.info(`[${repository.name}]: Processing repository`)
             const emassConfig = await getFileJSON(octokit, repository.owner.login, repository.name, '.github/emass.json')
             if (!emassConfig) {
-                core.info(`Skipping ${repository.name} as it does not contain an emass.json file`)
+                core.info(`[${repository.name}]: Skipping repository as it does not contain an emass.json file`)
                 emassFileNotFound.push(repository.name)
                 return
             }
 
             if (!systemIDs.includes(emassConfig.systemID)) {
-                core.info(`Skipping ${repository.name} as it contains an invalid System ID`)
+                core.info(`[${repository.name}]: Skipping repository as it contains an invalid System ID`)
                 invalidSystemIDs.push(repository.name)
                 return
             }
 
             const emassRepoName = `${emassConfig.systemID}-${repository.name}`
 
-            core.info('Validating EMASS repository exists')
+            core.info(`[${repository.name}]: Validating EMASS repository exists`)
             const exists = await repoExists(emassOrganizationApp, config.emass_org, emassRepoName)
             if (!exists) {
-                core.info(`Repository does not exist, creating EMASS repository ${emassRepoName}`)
+                core.info(`[${repository.name}]: Repository does not exist, creating EMASS repository '${emassRepoName}'`)
                 await createRepo(emassOrganizationApp, config.emass_org, emassRepoName)
             }
 
-            core.info(`Retrieving CodeQL databases for ${repository.name}`)
+            core.info(`[${repository.name}]: Retrieving CodeQL databases`)
             const codeqlDatabases = await listCodeQLDatabases(emassPromotionInstallation, repository.owner.login, repository.name, config.days_to_scan)
 
             if (codeqlDatabases.length === 0) {
-                core.info(`Skipping ${repository.name} as it does not contain any new CodeQL databases`)
+                core.info(`[${repository.name}]: Skipping repository as it does not contain any new CodeQL databases`)
                 skippedDatabaseNotFound.push(repository.name)
             } else {
                 for (const database of codeqlDatabases) {
-
                     // TODO: Generate app token for each database download
-                    core.info(`Downloading CodeQL database ${database.name} for ${repository.name}`)
+                    core.info(`[${repository.name}]: Downloading CodeQL database ${database.name}`)
                     await downloadCodeQLDatabase(config.admin_token, database.url, `${database.language}-database.zip`)
 
-                    core.info(`Uploading CodeQL database ${database.name} for ${repository.name}`)
+                    core.info(`[${repository.name}]: Uploading CodeQL database ${database.name}`)
                     await uploadCodeQLDatabase(codeqlClient, config.admin_token, config.emass_org, emassRepoName, database.language, `${database.language}-database.zip`, database.name)
 
-                    core.info(`Cleaning up local Database file`)
+                    core.info(`[${repository.name}]: Cleaning up local Database file`)
                     await deleteLocalFile(`${database.language}-database.zip`)
                 }
             }
 
-            core.info(`Retrieving recent CodeQL analysis runs for ${repository.name}`)
+            core.info(`[${repository.name}]: Retrieving recent CodeQL analysis runs`)
             const codeqlAnalysisRuns = await listCodeQLAnalyses(octokit, repository.owner.login, repository.name, repository.default_branch, config.days_to_scan)
             if (codeqlAnalysisRuns.count === 0) {
-                core.info(`Skipping ${repository.name} as it does not contain any new SARIF analyses`)
+                core.info(`[${repository.name}]: Skipping repository as it does not contain any new SARIF analyses`)
                 skippedSarifNotFound.push(repository.name)
             } else {
                 for (const _analysis of Object.keys(codeqlAnalysisRuns.analyses)) {
                     const analysis = codeqlAnalysisRuns.analyses[_analysis]
-                    core.info(`Downloading SARIF analysis ${_analysis} for ${repository.name}`)
+                    core.info(`[${repository.name}]: Downloading SARIF analysis ${_analysis}`)
                     const sarif = await downloadAndEncodeAnalysis(octokit, repository.owner.login, repository.name, analysis.id)
 
-                    core.info(`Retrieving default branch for ${repository.name}`)
+                    core.info(`[${repository.name}]: Retrieving default branch`)
                     const defaultBranchSHA = await getDefaultBranchSHA(emassOrganizationApp, config.emass_org, emassRepoName)
 
-                    core.info(`Uploading SARIF analysis ${_analysis} for ${repository.name}`)
+                    core.info(`[${repository.name}]: Uploading SARIF analysis ${_analysis}`)
                     await uploadAnalysis(emassOrganizationApp, config.emass_org, emassRepoName, defaultBranchSHA, analysis.ref, sarif)
                 }
             }
             successfulUploads.push(repository.name)
+
+            core.info(`[${repository.name}]: Finished processing repository`)
         } catch (error) {
-            core.error(`Error processing ${repository.name}: ${error}`)
+            core.error(`[${repository.name}]: Error processing repository: ${error}`)
         }
     })
 
