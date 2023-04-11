@@ -312,7 +312,7 @@ const generateRandomWeeklyCron = () => {
 const generateEMASSJson = () => {
     const emass = {
         systemID: 0,
-        SystemName: '<system_name>',
+        systemName: '<system_name>',
         systemOwnerName: '<full_name>',
         systemOwnerEmail: '<email>',
     }
