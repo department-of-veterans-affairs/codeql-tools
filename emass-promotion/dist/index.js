@@ -47939,7 +47939,7 @@ const main = async () => {
     const emassOrganizationApp = await emassPromotionApp.getInstallationOctokit(config.emass_organization_installation_id)
 
     core.info(`Retrieving System ID list`)
-    const systemIDs = await getFileArray(adminClient, config.org, '.github-private', '.emass-system-include')
+    const systemIDs = await getFileArray(adminClient, config.org, '.github-internal', '.emass-system-include')
 
     await emassPromotionApp.eachRepository(async ({octokit, repository}) => {
         try {
