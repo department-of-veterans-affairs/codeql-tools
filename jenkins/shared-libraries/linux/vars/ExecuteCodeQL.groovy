@@ -45,7 +45,7 @@ def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
             echo "Removing CodeQL archive"
             rm codeql.zip
 
-            echo "Cloning CodeQL query packs"
+            echo "Retrieving CodeQL query packs"
             git clone https://github.com/github/codeql codeql/codeql-queries
 
             echo "CodeQL installed"
