@@ -65006,7 +65006,7 @@ const main = async () => {
     await verifyScansApp.eachRepository(async ({octokit, repository}) => {
         try {
             core.info(`[${repository.name}]: Retrieving .emass-ignore file`)
-            const emassIgnore = await getFile(octokit, repository.owner.login, repository.name, '.emass-ignore')
+            const emassIgnore = await getRawFile(octokit, repository.owner.login, repository.name, '.emass-ignore')
             if (emassIgnore) {
                 core.info(`[${repository.name}]: Found .emass-ignore file, skipping repository`)
                 skippedIgnored.push(repository.name)
@@ -65196,6 +65196,22 @@ const getFile = async (octokit, owner, repo, path) => {
             path: path
         })
         return JSON.parse(Buffer.from(response.data.content, 'base64').toString())
+    } catch (error) {
+        if (error.status === 404) {
+            return null
+        }
+        throw error
+    }
+}
+
+const getRawFile = async (octokit, owner, repo, path) => {
+    try {
+        const response = await octokit.repos.getContent({
+            owner: owner,
+            repo: repo,
+            path: path
+        })
+        return Buffer.from(response.data.content, 'base64').toString()
     } catch (error) {
         if (error.status === 404) {
             return null
