@@ -28,7 +28,7 @@ def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
             echo "Installing CodeQL"
 
             echo "Downloading CodeQL archive for version 'v2.12.6'"
-            curl --silent --retry 3 --location --output codeql.zip \
+            curl --retry 3 --location --output codeql.zip \
             "https://github.com/github/codeql-cli-binaries/releases/download/v2.12.6/codeql-linux64.zip"
 
             echo "Extracting CodeQL archive"
