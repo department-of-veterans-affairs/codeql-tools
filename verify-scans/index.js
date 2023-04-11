@@ -363,9 +363,11 @@ const isAppInstalled = async (octokit, owner, repo) => {
 
 // TODO: Add logic for generating emails after determining email body language
 const sendEmail = async (client, from, emails, subject, html) => {
+    console.log(`Sending email to ${emails} from ${from}`)
     await client.sendMail({
         from: from,
         to: emails,
+        replyTo: from,
         subject: subject,
         html: html
     })
