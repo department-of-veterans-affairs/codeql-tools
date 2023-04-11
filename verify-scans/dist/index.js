@@ -65059,7 +65059,7 @@ const main = async () => {
                 missingDatabases: missingDatabases
             }
 
-            core.info(`[${repository.name}]: Missing analyses or databases identified: ${JSON.stringify(missing[repository.name])}`)
+            core.warning(`[${repository.name}]: Missing analyses or databases identified: ${JSON.stringify(missing[repository.name])}`)
             const emassConfig = await getFile(octokit, repository.owner.login, repository.name, '.github/emass.json')
 
             const uniqueMissingLanguages = [...new Set([...missingAnalyses, ...missingDatabases])]
@@ -65068,7 +65068,7 @@ const main = async () => {
 
             // TODO: Validate EMASS ID is valid
             if (!emassConfig || !emassConfig.systemOwnerEmail) {
-                core.info(`[${repository.name}]: No .github/emass.json file found`)
+                core.warning(`[${repository.name}]: No .github/emass.json file found`)
                 emassMissing.push(repository.name)
 
                 core.info(`[${repository.name}]: Sending missing EMASS information email to SWA`)

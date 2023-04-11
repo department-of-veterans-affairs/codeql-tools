@@ -68,7 +68,7 @@ const main = async () => {
             core.info(`[${repository.name}]: Retrieving repository languages`)
             const languages = await retrieveSupportedCodeQLLanguages(octokit, repository.owner.login, repository.name)
             if (languages.length === 0) {
-                core.info(`[${repository.name}]: Skipping repository as it does not contain any supported languages`)
+                core.warning(`[${repository.name}]: Skipping repository as it does not contain any supported languages`)
                 skippedNoSupportedLanguages.push(repository.name)
                 return
             }
@@ -86,7 +86,7 @@ const main = async () => {
                 core.info(`[${repository.name}]: Creating '${SOURCE_BRANCH_NAME}' branch`)
                 await createRef(octokit, repository.owner.login, repository.name, sha, SOURCE_BRANCH_NAME)
             } else {
-                core.info(`[${repository.name}]: Skipping branch creation as branch already exists`)
+                core.warning(`[${repository.name}]: Skipping branch creation as branch already exists`)
             }
 
             core.info(`[${repository.name}]: Checking if '.github/workflows/codeql-analysis.yml' exists`)
@@ -95,7 +95,7 @@ const main = async () => {
                 core.info(`[${repository.name}]: Creating '.github/workflows/codeql-analysis.yml'`)
                 await createFile(octokit, repository.owner.login, repository.name, SOURCE_BRANCH_NAME, '.github/workflows/codeql-analysis.yml', 'Create CodeQL workflow', workflow)
             } else {
-                core.info(`[${repository.name}]: Skipping CodeQL workflow creation as file already exists`)
+                core.warning(`[${repository.name}]: Skipping CodeQL workflow creation as file already exists`)
             }
 
             core.info(`[${repository.name}]: Checking if '.github/emass.json' exists`)
@@ -104,7 +104,7 @@ const main = async () => {
                 core.info(`[${repository.name}]: Creating '.github/emass.json'`)
                 await createFile(octokit, repository.owner.login, repository.name, SOURCE_BRANCH_NAME, '.github/emass.json', 'Create emass.json file', emass)
             } else {
-                core.info(`[${repository.name}]: Skipping emass.json creation as file already exists`)
+                core.warning(`[${repository.name}]: Skipping emass.json creation as file already exists`)
             }
 
             core.info(`[${repository.name}]: Generating pull request body with supported languages: [${languages.join(', ')}]`)
