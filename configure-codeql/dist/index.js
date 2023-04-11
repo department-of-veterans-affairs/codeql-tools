@@ -43471,89 +43471,89 @@ const main = async () => {
 
     await configureCodeQLApp.eachRepository(async ({octokit, repository}) => {
         try {
-            core.info(`Processing ${repository.name}`)
+            core.info(`[${repository.name}]: Processing repository`)
             if (verifyScansInstalledRepositories.includes(repository.name)) {
-                core.info(`Skipping ${repository.name} as it is has already been configured via the Configure CodeQL GitHub App Pull Request`)
+                core.info(`[${repository.name}]: Skipping repository as it is has already been configured via the Configure CodeQL GitHub App Pull Request`)
                 skippedAlreadyConfigured.push(repository.name)
                 return
             }
 
-            core.info(`Checking if ${repository.name} has Code Scanning enabled`)
+            core.info(`[${repository.name}]: Checking if repository has Code Scanning enabled`)
             // TODO: Figure out what app permission grants the `security_event` permission
             const codeScanningConfig = await codeScanningEnabled(adminClient, repository.owner.login, repository.name)
             if (codeScanningConfig.enabled) {
-                core.info(`Validating ${repository.name} is not using default code scanning configuration`)
+                core.info(`[${repository.name}]: Validating repository is not using default code scanning configuration`)
                 const defaultConfig = await defaultCodeScanningEnabled(adminClient, repository.owner.login, repository.name)
                 if (defaultConfig) {
-                    core.info(`Repository ${repository.name} has Default Code Scanning enabled, executing configuration`)
+                    core.info(`[${repository.name}]: Repository has Default Code Scanning enabled, executing configuration`)
                 } else {
-                    core.info(`Validating reusable workflow in use for ${repository.name}`)
+                    core.info(`[${repository.name}]: Validating reusable workflow in use`)
                     const reusableWorkflowUsed = await reusableWorkflowInUse(adminClient, repository.owner.login, repository.name, repository.default_branch, codeScanningConfig.workflow)
                     if (reusableWorkflowUsed) {
-                        core.info(`Repository ${repository.name} has Code Scanning enabled and reusable workflow in use, installing 'verify-scans' GitHub App`)
+                        core.info(`[${repository.name}]: Repository has Code Scanning enabled and reusable workflow in use, installing 'verify-scans' GitHub App`)
                         await installVerifyScansApp(adminClient, config.verify_scans_installationID, repository.id)
                         installedVerifyScansAppRepoAlreadyConfigured.push(repository.name)
                         return
                     } else {
-                        core.info(`Repository ${repository.name} has Code Scanning enabled, but is not using the reusable workflow, executing configuration`)
+                        core.info(`[${repository.name}]: Repository has Code Scanning enabled, but is not using the reusable workflow, executing configuration`)
                     }
                 }
             }
 
-            core.info(`Retrieving languages for ${repository.name}`)
+            core.info(`[${repository.name}]: Retrieving repository languages`)
             const languages = await retrieveSupportedCodeQLLanguages(octokit, repository.owner.login, repository.name)
             if (languages.length === 0) {
-                core.info(`Skipping ${repository.name} as it does not contain any supported languages`)
+                core.info(`[${repository.name}]: Skipping repository as it does not contain any supported languages`)
                 skippedNoSupportedLanguages.push(repository.name)
                 return
             }
 
-            core.info(`Generating CodeQL workflow for ${repository.name} for supported languages: [${languages.join(', ')}]`)
+            core.info(`[${repository.name}]: Generating CodeQL workflow for supported languages: [${languages.join(', ')}]`)
             const workflow = generateCodeQLWorkflow(languages, repository.default_branch)
             const emass = generateEMASSJson()
 
-            core.info(`Retrieving SHA for ${repository.name} for branch ${repository.default_branch}`)
+            core.info(`[${repository.name}]: Retrieving SHA for branch ${repository.default_branch}`)
             const sha = await getDefaultRefSHA(octokit, repository.owner.login, repository.name, repository.default_branch)
 
-            core.info(`Checking if 'codeql' branch exists for ${repository.name}`)
+            core.info(`[${repository.name}]: Checking if '${SOURCE_BRANCH_NAME}' branch exists`)
             const branchExists = await refExists(octokit, repository.owner.login, repository.name, SOURCE_BRANCH_NAME)
             if (!branchExists) {
-                core.info(`Creating 'codeql' branch for ${repository.name}`)
+                core.info(`[${repository.name}]: Creating '${SOURCE_BRANCH_NAME}' branch`)
                 await createRef(octokit, repository.owner.login, repository.name, sha, SOURCE_BRANCH_NAME)
             } else {
-                core.info(`Skipping branch creation for ${repository.name} as branch already exists`)
+                core.info(`[${repository.name}]: Skipping branch creation as branch already exists`)
             }
 
-            core.info(`Checking if '.github/workflows/codeql-analysis.yml' exists for ${repository.name}`)
+            core.info(`[${repository.name}]: Checking if '.github/workflows/codeql-analysis.yml' exists`)
             const workflowExists = await fileExists(octokit, repository.owner.login, repository.name, SOURCE_BRANCH_NAME, '.github/workflows/codeql-analysis.yml')
             if (!workflowExists) {
-                core.info(`Creating '.github/workflows/codeql-analysis.yml' for ${repository.name}`)
+                core.info(`[${repository.name}]: Creating '.github/workflows/codeql-analysis.yml'`)
                 await createFile(octokit, repository.owner.login, repository.name, SOURCE_BRANCH_NAME, '.github/workflows/codeql-analysis.yml', 'Create CodeQL workflow', workflow)
             } else {
-                core.info(`Skipping CodeQL workflow creation for ${repository.name} as file already exists`)
+                core.info(`[${repository.name}]: Skipping CodeQL workflow creation as file already exists`)
             }
 
-            core.info(`Checking if '.github/emass.json' exists for ${repository.name}`)
+            core.info(`[${repository.name}]: Checking if '.github/emass.json' exists`)
             const emassExists = await fileExists(octokit, repository.owner.login, repository.name, SOURCE_BRANCH_NAME, '.github/emass.json')
             if (!emassExists) {
-                core.info(`Creating '.github/emass.json' for ${repository.name}`)
+                core.info(`[${repository.name}]: Creating '.github/emass.json'`)
                 await createFile(octokit, repository.owner.login, repository.name, SOURCE_BRANCH_NAME, '.github/emass.json', 'Create emass.json file', emass)
             } else {
-                core.info(`Skipping emass.json creation for ${repository.name} as file already exists`)
+                core.info(`[${repository.name}]: Skipping emass.json creation as file already exists`)
             }
 
-            core.info(`Generating pull request body for ${repository.name} with supported languages: [${languages.join(', ')}]`)
+            core.info(`[${repository.name}]: Generating pull request body with supported languages: [${languages.join(', ')}]`)
             const pullRequestBody = generatePullRequestBody(languages, config.pull_request_body, repository.owner.login, repository.name, SOURCE_BRANCH_NAME)
 
-            core.info(`Creating 'codeql' pull request for ${repository.name}`)
+            core.info(`[${repository.name}]: Creating CodeQL pull request`)
             await createPullRequest(octokit, repository.owner.login, repository.name, PULL_REQUEST_TITLE, SOURCE_BRANCH_NAME, repository.default_branch, pullRequestBody)
 
-            core.info(`Installing 'verify-scans' GitHub App for ${repository.name}`)
+            core.info(`[${repository.name}]: Installing 'verify-scans' GitHub App`)
             await installVerifyScansApp(adminClient, config.verify_scans_installationID, repository.id)
             installedVerifyScansApp.push(repository.name)
-            core.info(`Finished processing ${repository.name}`)
+            core.info(`[${repository.name}]: Finished processing repository`)
         } catch (e) {
-            core.error(`Failed to process ${repository.name}: ${e}`)
+            core.error(`[${repository.name}]: Failed to process repository: ${e}`)
             configFailed[repository.name] = e.message
         }
     })
