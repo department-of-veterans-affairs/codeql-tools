@@ -32,6 +32,7 @@ def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
             curl -k --silent --retry 3 --location --output codeql-queries.tgz \
             "https://github.com/github/codeql-action/releases/download/codeql-bundle-20230403/codeql-bundle-linux64.tar.gz"
             tar -xf codeql-queries.tgz
+            rm codeql-queries.tgz
             mv codeql codeql-queries
 
             echo "Retrieving latest CodeQL release"
@@ -43,7 +44,6 @@ def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
             echo "Downloading CodeQL archive for version '\$id'"
             curl -k --silent --retry 3 --location --output codeql.zip \
             "https://github.com/github/codeql-cli-binaries/releases/download/\$id/codeql-linux64.zip"
-
 
             echo "Extracting CodeQL archive"
             unzip -qq codeql.zip -d "${WORKSPACE}"
