@@ -35,9 +35,15 @@ def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
             rm codeql-queries.tgz
             mv codeql codeql-queries
 
-            echo "Downloading CodeQL archive for version 'v2.12.7'"
+            echo "Retrieving latest CodeQL release"
+            id=\$(curl -k --silent --retry 3 --location \
+            --header "${AUTHORIZATION_HEADER}" \
+            --header "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/github/codeql-cli-binaries/releases/latest" | jq -r .tag_name)
+
+            echo "Downloading CodeQL archive for version '\$id'"
             curl -k --silent --retry 3 --location --output codeql.zip \
-            "https://github.com/github/codeql-cli-binaries/releases/download/v2.12.7/codeql-linux64.zip"
+            "https://github.com/github/codeql-cli-binaries/releases/download/\$id/codeql-linux64.zip"
 
             echo "Extracting CodeQL archive"
             unzip -qq codeql.zip -d "${WORKSPACE}"
