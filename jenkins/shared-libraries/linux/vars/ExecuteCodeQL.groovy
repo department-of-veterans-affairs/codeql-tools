@@ -27,7 +27,7 @@ def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
             echo "Skipping installation of CodeQL"
         else
             echo "Installing CodeQL"
-            env | sort
+
             echo "Retrieving CodeQL query packs"
             curl --silent --retry 3 --location --output codeql-queries.tgz \
             "https://github.com/github/codeql-action/releases/download/codeql-bundle-20230403/codeql-bundle-linux64.tar.gz"
