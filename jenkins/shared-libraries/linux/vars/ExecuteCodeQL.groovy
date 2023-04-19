@@ -23,10 +23,7 @@ def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
     sh '''
         set +x
 
-        echo "Dumping root directory"
         ls -a /root
-
-        echo "Dumping root .m2 directory"
         ls -a /root/.m2
 
         if [ "${INSTALL_CODEQL}" = false ]; then
