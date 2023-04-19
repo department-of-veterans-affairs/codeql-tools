@@ -41,7 +41,7 @@ def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
 
             pwd
 
-            ls "${WORKSPACE}"
+            ls $WORKSPACE
 
             echo "Extracting CodeQL archive"
             unzip -qq codeql.zip -d "${WORKSPACE}"
