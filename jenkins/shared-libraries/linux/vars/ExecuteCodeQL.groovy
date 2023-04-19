@@ -29,14 +29,14 @@ def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
             echo "Installing CodeQL"
 
             echo "Retrieving CodeQL query packs"
-            curl --silent --retry 3 --location --output codeql-queries.tgz \
+            curl --retry 3 --location --output codeql-queries.tgz \
             "https://github.com/github/codeql-action/releases/download/codeql-bundle-20230403/codeql-bundle-linux64.tar.gz"
             tar -xf codeql-queries.tgz
             rm codeql-queries.tgz
             mv codeql codeql-queries
 
             echo "Downloading CodeQL archive for version 'v2.12.7'"
-            curl --silent --retry 3 --location --output codeql.zip \
+            curl --retry 3 --location --output codeql.zip \
             "https://github.com/github/codeql-cli-binaries/releases/download/v2.12.7/codeql-linux64.zip"
 
             echo "Extracting CodeQL archive"
