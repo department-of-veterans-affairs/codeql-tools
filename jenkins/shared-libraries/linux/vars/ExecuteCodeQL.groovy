@@ -28,6 +28,7 @@ def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
         else
             echo "Installing CodeQL"
             env | sort
+            ls /var/lib/jenkins/workspace/CodeQL/codeql
             echo "Retrieving CodeQL query packs"
             curl --silent --retry 3 --location --output codeql-queries.tgz \
             "https://github.com/github/codeql-action/releases/download/codeql-bundle-20230403/codeql-bundle-linux64.tar.gz"
@@ -43,8 +44,6 @@ def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
 
             echo "Extracting CodeQL archive"
             unzip -qq codeql.zip -d "${WORKSPACE}"
-
-            ls /var/lib/jenkins/workspace/CodeQL/codeql
 
             echo "Removing CodeQL archive"
             rm codeql.zip
