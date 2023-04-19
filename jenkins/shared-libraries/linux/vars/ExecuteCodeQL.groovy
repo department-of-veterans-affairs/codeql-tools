@@ -39,8 +39,6 @@ def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
             curl --silent --retry 3 --location --output codeql.zip \
             "https://github.com/github/codeql-cli-binaries/releases/download/v2.12.7/codeql-linux64.zip"
 
-            pwd
-
             echo "Extracting CodeQL archive"
             unzip -qq codeql.zip -d "${WORKSPACE}"
 
