@@ -28,7 +28,6 @@ def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
         else
             echo "Installing CodeQL"
             env | sort
-            ls /var/lib/jenkins/workspace/CodeQL/codeql
             echo "Retrieving CodeQL query packs"
             curl --silent --retry 3 --location --output codeql-queries.tgz \
             "https://github.com/github/codeql-action/releases/download/codeql-bundle-20230403/codeql-bundle-linux64.tar.gz"
@@ -58,24 +57,24 @@ def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
         echo "Initializing database"
         if [ -z "$BUILD_COMMAND" ]; then
             echo "No build command, using default"
-            /var/lib/jenkins/workspace/CodeQL/codeql/codeql database create "$DATABASE_PATH" --language="$LANGUAGE" --source-root .
+            codeql database create "$DATABASE_PATH" --language="$LANGUAGE" --source-root .
         else
             echo "Build command specified, using '$BUILD_COMMAND'"
-            /var/lib/jenkins/workspace/CodeQL/codeql/codeql database create "$DATABASE_PATH" --language="$LANGUAGE" --source-root . --command="$BUILD_COMMAND"
+            codeql database create "$DATABASE_PATH" --language="$LANGUAGE" --source-root . --command="$BUILD_COMMAND"
         fi
         echo "Database initialized"
 
         echo "Analyzing database"
-        /var/lib/jenkins/workspace/CodeQL/codeql/codeql database analyze "$DATABASE_PATH" --no-download --sarif-category "$LANGUAGE" --format sarif-latest --output "$SARIF_FILE" --search-path="codeql-queries" "codeql/$LANGUAGE-queries:codeql-suites/$LANGUAGE-security-extended.qls"
+        codeql database analyze "$DATABASE_PATH" --no-download --sarif-category "$LANGUAGE" --format sarif-latest --output "$SARIF_FILE" --search-path="codeql-queries" "codeql/$LANGUAGE-queries:codeql-suites/$LANGUAGE-security-extended.qls"
         echo "Database analyzed"
 
         echo "Generating CSV of results"
-        /var/lib/jenkins/workspace/CodeQL/codeql/codeql database interpret-results "$DATABASE_PATH" --format=csv --output="codeql-scan-results.csv"
+        codeql database interpret-results "$DATABASE_PATH" --format=csv --output="codeql-scan-results.csv"
         echo "CSV of results generated"
 
         echo "Uploading SARIF file"
         commit=\$(git rev-parse HEAD)
-        /var/lib/jenkins/workspace/CodeQL/codeql/codeql github upload-results \
+        codeql github upload-results \
         --repository="$ORG/$REPO" \
         --ref="refs/heads/$BRANCH" \
         --commit="\$commit" \
@@ -83,7 +82,7 @@ def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
         echo "SARIF file uploaded"
 
         echo "Generating Database Bundle"
-        /var/lib/jenkins/workspace/CodeQL/codeql/codeql database bundle "$DATABASE_PATH" --output "$DATABASE_BUNDLE"
+        codeql database bundle "$DATABASE_PATH" --output "$DATABASE_BUNDLE"
         echo "Database Bundle generated"
      """
 
