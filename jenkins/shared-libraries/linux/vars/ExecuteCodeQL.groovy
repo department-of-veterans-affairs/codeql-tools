@@ -23,6 +23,8 @@ def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
     sh '''
         set +x
 
+        ls -a /root
+
         if [ "${INSTALL_CODEQL}" = false ]; then
             echo "Skipping installation of CodeQL"
         else
