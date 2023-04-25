@@ -23,6 +23,7 @@ const main = async () => {
     const missing = {}
     const emassMissing = []
     const notified = []
+    const outdatedCLI = []
 
     core.info('Parsing Actions input')
     const config = parseInput()
@@ -48,12 +49,15 @@ const main = async () => {
     core.info('Creating EMASS Promotion installation client')
     const emassPromotionInstallationClient = await emassPromotionApp.getInstallationOctokit(config.emass_promotion_installation_id)
 
+    core.info('Retrieving latest CodeQL CLI versions')
+    const codeQLVersions = await getLatestCodeQLVersions(adminClient)
+
     await verifyScansApp.eachRepository(async ({octokit, repository}) => {
         try {
-            core.info(`[${repository.name}]: Retrieving .emass-ignore file`)
-            const emassIgnore = await getRawFile(octokit, repository.owner.login, repository.name, '.emass-ignore')
+            core.info(`[${repository.name}]: Retrieving .emass-repo-ignore file`)
+            const emassIgnore = await getRawFile(octokit, repository.owner.login, repository.name, '.emass-repo-ignore')
             if (emassIgnore) {
-                core.info(`[${repository.name}]: Found .emass-ignore file, skipping repository`)
+                core.info(`[${repository.name}]: Found .emass-repo-ignore file, skipping repository`)
                 skippedIgnored.push(repository.name)
                 return
             }
@@ -75,18 +79,28 @@ const main = async () => {
             const requiredLanguages = await listLanguages(octokit, repository.owner.login, repository.name, ignoredLanguages)
 
             core.info(`[${repository.name}]: Retrieving existing CodeQL analyses`)
-            const analysesLanguages = await listCodeQLAnalysesLanguages(octokit, repository.owner.login, repository.name, repository.default_branch, config.days_to_scan)
-            if (analysesLanguages.length > 0) {
+            const analyses = await listCodeQLAnalyses(octokit, repository.owner.login, repository.name, repository.default_branch, config.days_to_scan)
+            if (analyses.languages.length > 0) {
                 core.info(`[${repository.name}]: Analyses found, validating 'emass-promotion' app is installed on repository`)
                 const installed = await isAppInstalled(emassPromotionInstallationClient, repository.owner.login, repository.name)
                 if (!installed) {
                     core.info(`[${repository.name}]: 'emass-promotion' app not installed, installing app on repository`)
                     await installApp(adminClient, config.emass_promotion_installation_id, repository.id)
                 }
+
+                core.info(`[${repository.name}]: Validating CodeQL CLI version`)
+                for(const version of analyses.versions) {
+                    if (!codeQLVersions.includes(version)) {
+                        core.info(`[${repository.name}]: Outdated CodeQL CLI version found: ${version}`)
+                        outdatedCLI.push(repository.name)
+                        // TODO: Should we send email or should we open an issue or should we just log it
+                        break
+                    }
+                }
             }
 
             core.info(`[${repository.name}]: Calculating missing analyses languages`)
-            const missingAnalyses = await missingLanguages(requiredLanguages, analysesLanguages)
+            const missingAnalyses = await missingLanguages(requiredLanguages, analyses.languages)
 
             core.info(`[${repository.name}]: Retrieving supported CodeQL database languages`)
             const databaseLanguages = await listCodeQLDatabaseLanguages(octokit, repository.owner.login, repository.name, config.days_to_scan)
@@ -312,7 +326,7 @@ const validateCodeQLDatabase = async (octokit, createdAt, range) => {
     return diffDays <= range
 }
 
-const listCodeQLAnalysesLanguages = async (octokit, owner, repo, branch, range) => {
+const listCodeQLAnalyses = async (octokit, owner, repo, branch, range) => {
     try {
         const analyses = await octokit.paginate('GET /repos/{owner}/{repo}/code-scanning/analyses', {
             owner: owner,
@@ -346,15 +360,20 @@ const listCodeQLAnalysesLanguages = async (octokit, owner, repo, branch, range) 
 
         // Find the most recent analysis for each language
         const languages = []
+        const versions = []
         for (const analysis of analyses) {
+            versions.push(analysis.tool.version)
             const environment = JSON.parse(analysis.environment)
             const language = environment.language
-            if (!languages.includes(language)) {
+            if (!languages.includes(language) || !language.includes(analysis.category)) {
                 languages.push(language)
             }
         }
 
-        return languages
+        return {
+            languages: languages,
+            versions: versions
+        }
     } catch
         (e) {
         if (e.status === 404) {
@@ -480,6 +499,20 @@ const reusableWorkflowInUse = async (octokit, owner, repo, branch, path) => {
             return false
         }
         throw e
+    }
+}
+
+const getLatestCodeQLVersions = async (client) => {
+    try {
+        const {data: versions} = await client.request('GET https://api.github.com/repos/{owner}/{repo}/releases', {
+            owner: 'github',
+            repo: 'codeql-cli-binaries',
+            per_page: 5
+        })
+
+        return versions.map(version => version.tag_name.split('v')[1])
+    } catch (e) {
+        throw new Error(`Failed to get latest CodeQL version: ${e.message}`)
     }
 }
 
