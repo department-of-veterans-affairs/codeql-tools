@@ -32,16 +32,16 @@ def call(Org, Repo, Branch, Language, BuildCommand, Token, InstallCodeQL) {
                 "Authorization" = "\$Env:AUTHORIZATION_HEADER"
                 "Accept" = "application/vnd.github+json"
             }
-            \$Request = Invoke-WebRequest -UseBasicParsing -Method Get -Headers  \$Headers -Uri "https://api.github.com/repos/github/codeql-cli-binaries/releases/latest"
+            \$Request = Invoke-WebRequest -UseBasicParsing -Method Get -Headers  \$Headers -Uri "https://api.github.com/repos/github/codeql-action/releases/latest"
             \$Json = \$Request.Content | ConvertFrom-Json
             \$Id = \$Json.tag_name
 
             Write-Output "Downloading CodeQL archive for version '\$Id'"
             \$ProgressPreference = 'SilentlyContinue'
-            Invoke-WebRequest -Method Get -OutFile "codeql-bundle.zip" -Uri "https://github.com/github/codeql-cli-binaries/releases/download/\$Id/codeql-win64.zip"
+            Invoke-WebRequest -Method Get -OutFile "codeql.tgz" -Uri ""https://github.com/github/codeql-action/releases/download/\$Id/codeql-bundle-win64.tar.gz"
 
             Write-Output "Extracting CodeQL archive"
-            Expand-Archive -Path "codeql-bundle.zip" -DestinationPath "\$Env:WORKSPACE"
+            tar -xf codeql.tgz --directory "\$Env:WORKSPACE"
 
             Write-Output "Removing CodeQL bundle archive"
             Remove-Item "\$Env:WORKSPACE\\codeql-bundle.zip"
@@ -55,29 +55,53 @@ def call(Org, Repo, Branch, Language, BuildCommand, Token, InstallCodeQL) {
         Write-Output "Initializing database"
         if ("\$Env:BUILD_COMMAND" -eq "") {
             Write-Output "No build command specified, using default"
-            codeql database create "\$Env:DATABASE_PATH" --language "\$Env:LANGUAGE" --source-root .
+            if("\$Env:INSTALL_CODEQL" -eq "true") {
+                .\\codeql\\codeql database create "\$Env:DATABASE_PATH" --language "\$Env:LANGUAGE" --source-root .
+            } else {
+                codeql database create "\$Env:DATABASE_PATH" --language "\$Env:LANGUAGE" --source-root .
+            }
         } else {
             Write-Output "Build command specified, using '\$Env:BUILD_COMMAND'"
-            codeql database create "\$Env:DATABASE_PATH" --language "\$Env:LANGUAGE" --source-root . --command "\$Env:BUILD_COMMAND"
+            if("\$Env:INSTALL_CODEQL" -eq "true") {
+                .\\codeql\\codeql database create "\$Env:DATABASE_PATH" --language "\$Env:LANGUAGE" --source-root . --command "\$Env:BUILD_COMMAND"
+            } else {
+                codeql database create "\$Env:DATABASE_PATH" --language "\$Env:LANGUAGE" --source-root . --command "\$Env:BUILD_COMMAND"
+            }
         }
         Write-Output "Database initialized"
 
         Write-Output "Analyzing database"
-        codeql database analyze --download "\$Env:DATABASE_PATH" --sarif-category "\$Env:LANGUAGE" --format sarif-latest --output "\$Env:SARIF_FILE" "codeql/\$Env:LANGUAGE-queries:codeql-suites/\$Env:LANGUAGE-security-extended.qls"
+        if("\$Env:INSTALL_CODEQL" -eq "true") {
+            .\\codeql\\codeql database analyze --download "\$Env:DATABASE_PATH" --sarif-category "\$Env:LANGUAGE" --format sarif-latest --output "\$Env:SARIF_FILE" "codeql/\$Env:LANGUAGE-queries:codeql-suites/\$Env:LANGUAGE-security-extended.qls"
+        } else {
+            codeql database analyze --download "\$Env:DATABASE_PATH" --sarif-category "\$Env:LANGUAGE" --format sarif-latest --output "\$Env:SARIF_FILE" "codeql/\$Env:LANGUAGE-queries:codeql-suites/\$Env:LANGUAGE-security-extended.qls"
+        }
         Write-Output "Database analyzed"
 
         Write-Output "Generating CSV of results"
-        codeql database interpret-results "\$Env:DATABASE_PATH" --format=csv --output="codeql-scan-results.csv"
+        if("\$Env:INSTALL_CODEQL" -eq "true") {
+            .\\codeql\\codeql database interpret-results "\$Env:DATABASE_PATH" --format=csv --output="codeql-scan-results.csv"
+        } else {
+            codeql database interpret-results "\$Env:DATABASE_PATH" --format=csv --output="codeql-scan-results.csv"
+        }
         Write-Output "CSV of results generated"
 
         Write-Output "Uploading SARIF file"
         \$Commit = "\$(git rev-parse HEAD)"
-        codeql github upload-results --repository "\$Env:ORG/\$Env:REPO"  --ref "refs/heads/\$Env:BRANCH" --commit "\$Commit" --sarif="\$Env:SARIF_FILE"
+        if("\$Env:INSTALL_CODEQL" -eq "true") {
+            .\\codeql\\codeql github upload-results --repository "\$Env:ORG/\$Env:REPO"  --ref "refs/heads/\$Env:BRANCH" --commit "\$Commit" --sarif="\$Env:SARIF_FILE"
+        } else {
+            codeql github upload-results --repository "\$Env:ORG/\$Env:REPO"  --ref "refs/heads/\$Env:BRANCH" --commit "\$Commit" --sarif="\$Env:SARIF_FILE"
+        }
         Write-Output "SARIF file uploaded"
 
         Write-Output "Generating Database Bundle"
         \$DatabaseBundle = "\$Env:DATABASE_BUNDLE"
-        codeql database bundle "\$Env:DATABASE_PATH" --output "\$Env:DATABASE_BUNDLE"
+        if("\$Env:INSTALL_CODEQL" -eq "true") {
+            .\\codeql\\codeql database bundle "\$Env:DATABASE_PATH" --output "\$Env:DATABASE_BUNDLE"
+        } else {
+            codeql database bundle "\$Env:DATABASE_PATH" --output "\$Env:DATABASE_BUNDLE"
+        }
         Write-Output "Database Bundle generated"
 
         Write-Output "Uploading Database Bundle"
