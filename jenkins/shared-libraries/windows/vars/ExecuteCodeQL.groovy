@@ -38,7 +38,7 @@ def call(Org, Repo, Branch, Language, BuildCommand, Token, InstallCodeQL) {
 
             Write-Output "Downloading CodeQL archive for version '\$Id'"
             \$ProgressPreference = 'SilentlyContinue'
-            Invoke-WebRequest -Method Get -OutFile "codeql.tgz" -Uri ""https://github.com/github/codeql-action/releases/download/\$Id/codeql-bundle-win64.tar.gz"
+            Invoke-WebRequest -Method Get -OutFile "codeql.tgz" -Uri "https://github.com/github/codeql-action/releases/download/\$Id/codeql-bundle-win64.tar.gz"
 
             Write-Output "Extracting CodeQL archive"
             tar -xf codeql.tgz --directory "\$Env:WORKSPACE"
