@@ -38,8 +38,10 @@ def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
             curl -k --silent --retry 3 --location --output codeql.tgz \
             --header "${AUTHORIZATION_HEADER}" \
             "https://github.com/github/codeql-action/releases/download/\$id/codeql-bundle-linux64.tar.gz"
-            tar -xf codeql.tgz
+            tar -xf codeql.tgz --directory "${WORKSPACE}"
             rm codeql.tgz
+            pwd
+            ls
 
             echo "CodeQL installed"
         fi
