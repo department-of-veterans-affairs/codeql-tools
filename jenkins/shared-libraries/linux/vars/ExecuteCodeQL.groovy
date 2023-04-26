@@ -9,6 +9,9 @@ def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
     env.BUILD_COMMAND = buildCommand
     env.DATABASE_BUNDLE = sprintf("%s-database.zip", language)
     env.DATABASE_PATH = sprintf("%s-%s", repo, language)
+    if(!env.ENABLE_DEBUG) {
+        env.ENABLE_DEBUG = false
+    }
     env.GITHUB_TOKEN = token
     if(installCodeQL == true || installCodeQL == "true") {
         env.INSTALL_CODEQL = true
