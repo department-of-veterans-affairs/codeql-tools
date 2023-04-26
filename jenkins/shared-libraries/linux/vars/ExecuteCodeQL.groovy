@@ -40,7 +40,6 @@ def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
             "https://github.com/github/codeql-action/releases/download/\$id/codeql-bundle-linux64.tar.gz"
             tar -xf codeql.tgz
             rm codeql.tgz
-            mv codeql
 
             echo "CodeQL installed"
         fi
