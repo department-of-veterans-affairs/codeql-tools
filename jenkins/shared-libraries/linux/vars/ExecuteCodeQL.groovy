@@ -29,34 +29,18 @@ def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
             echo "Installing CodeQL"
 
             echo "Retrieving latest CodeQL release"
-            id=\$(curl -k --retry 3 --location \
+            id=\$(curl -k --silent --retry 3 --location \
             --header "${AUTHORIZATION_HEADER}" \
             --header "Accept: application/vnd.github+json" \
             "https://api.github.com/repos/github/codeql-action/releases/latest" | jq -r .tag_name)
 
-            if [ $? -ne 0 ]; then
-                echo "Failed to retrieve latest CodeQL release"
-                exit 1
-            fi
-
             echo "Retrieving CodeQL query packs for version '\$id'"
             curl -k --silent --retry 3 --location --output codeql.tgz \
+            --header "${AUTHORIZATION_HEADER}" \
             "https://github.com/github/codeql-action/releases/download/\$id/codeql-bundle-linux64.tar.gz"
             tar -xf codeql.tgz
             rm codeql.tgz
             mv codeql
-
-            if [ $? -ne 0 ]; then
-                file -bL --mime codeql.zip | grep charset=binary
-                if [ \$? -ne 0 ]; then
-                    cat codeql.zip
-                    exit 1
-                fi
-
-                echo "Failed to download CodeQL query packs"
-                cat codeql.tgz
-                exit 1
-            fi
 
             echo "CodeQL installed"
         fi
