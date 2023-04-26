@@ -44,7 +44,7 @@ def call(Org, Repo, Branch, Language, BuildCommand, Token, InstallCodeQL) {
             tar -xf codeql.tgz --directory "\$Env:WORKSPACE"
 
             Write-Output "Removing CodeQL bundle archive"
-            Remove-Item "\$Env:WORKSPACE\\codeql-bundle.zip"
+            Remove-Item "\$Env:WORKSPACE\\codeql.tgz"
             \$ProgressPreference = 'Continue'
 
             Write-Output "CodeQL installed"
