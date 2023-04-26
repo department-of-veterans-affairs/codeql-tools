@@ -1,3 +1,6 @@
+import org.apache.commons.compress.archivers.tar.TarArchiveInputStream
+import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream
+
 def call(Org, Repo, Branch, Language, BuildCommand, Token, InstallCodeQL) {
     env.AUTHORIZATION_HEADER = sprintf("token %s", Token)
     if(Branch == "") {
@@ -112,4 +115,39 @@ def call(Org, Repo, Branch, Language, BuildCommand, Token, InstallCodeQL) {
         Invoke-RestMethod -ContentType "application/zip" -Headers \$Headers -Method Post -InFile "\$Env:DATABASE_BUNDLE" -Uri "\$Env:UPLOAD_URL"
         Write-Output "Database Bundle uploaded"
     """
+}
+
+def extract(String gzippedTarballPath, String destinationPath) {
+    def tarballFile = new File(gzippedTarballPath)
+    def destinationDir = new File(destinationPath)
+
+    if (!tarballFile.exists()) {
+        error "Error: Tarball file not found at ${gzippedTarballPath}"
+    }
+
+    if (!destinationDir.exists()) {
+        destinationDir.mkdirs()
+    }
+
+    tarballFile.withInputStream { fis ->
+        GzipCompressorInputStream gzipIn = new GzipCompressorInputStream(fis)
+        TarArchiveInputStream tarIn = new TarArchiveInputStream(gzipIn)
+
+        def entry
+
+        while ((entry = tarIn.nextTarEntry) != null) {
+            def outputFile = new File(destinationDir, entry.name)
+
+            if (entry.isDirectory()) {
+                outputFile.mkdirs()
+            } else {
+                outputFile.withOutputStream { fos ->
+                    tarIn.transferTo(fos)
+                }
+            }
+        }
+
+        tarIn.close()
+        gzipIn.close()
+    }
 }
