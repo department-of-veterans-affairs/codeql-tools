@@ -28,28 +28,35 @@ def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
         else
             echo "Installing CodeQL"
 
-            echo "Retrieving CodeQL query packs"
-            curl -k --silent --retry 3 --location --output codeql-queries.tgz \
-            "https://github.com/github/codeql-action/releases/download/codeql-bundle-20230403/codeql-bundle-linux64.tar.gz"
-            tar -xf codeql-queries.tgz
-            rm codeql-queries.tgz
-            mv codeql codeql-queries
-
             echo "Retrieving latest CodeQL release"
-            id=\$(curl -k --silent --retry 3 --location \
+            id=\$(curl -k --retry 3 --location \
             --header "${AUTHORIZATION_HEADER}" \
             --header "Accept: application/vnd.github+json" \
-            "https://api.github.com/repos/github/codeql-cli-binaries/releases/latest" | jq -r .tag_name)
+            "https://api.github.com/repos/github/codeql-action/releases/latest" | jq -r .tag_name)
 
-            echo "Downloading CodeQL archive for version '\$id'"
-            curl -k --silent --retry 3 --location --output codeql.zip \
-            "https://github.com/github/codeql-cli-binaries/releases/download/\$id/codeql-linux64.zip"
+            if [ $? -ne 0 ]; then
+                echo "Failed to retrieve latest CodeQL release"
+                exit 1
+            fi
 
-            echo "Extracting CodeQL archive"
-            unzip -qq codeql.zip -d "${WORKSPACE}"
+            echo "Retrieving CodeQL query packs for version '\$id'"
+            curl -k --silent --retry 3 --location --output codeql.tgz \
+            "https://github.com/github/codeql-action/releases/download/\$id/codeql-bundle-linux64.tar.gz"
+            tar -xf codeql.tgz
+            rm codeql.tgz
+            mv codeql
 
-            echo "Removing CodeQL archive"
-            rm codeql.zip
+            if [ $? -ne 0 ]; then
+                file -bL --mime codeql.zip | grep charset=binary
+                if [ \$? -ne 0 ]; then
+                    cat codeql.zip
+                    exit 1
+                fi
+
+                echo "Failed to download CodeQL query packs"
+                cat codeql.tgz
+                exit 1
+            fi
 
             echo "CodeQL installed"
         fi
