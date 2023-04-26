@@ -51,14 +51,14 @@ def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
         echo "Initializing database"
         if [ -z "$BUILD_COMMAND" ]; then
             echo "No build command, using default"
-            if [ "$INSTALL_CODEQL" == true ]; then
+            if [ "$INSTALL_CODEQL" = true ]; then
                 $WORKSPACE/codeql/codeql database create "$DATABASE_PATH" --language="$LANGUAGE" --source-root .
             else
                 codeql database create "$DATABASE_PATH" --language="$LANGUAGE" --source-root .
             fi
         else
             echo "Build command specified, using '$BUILD_COMMAND'"
-            if [ "$INSTALL_CODEQL" == true ]; then
+            if [ "$INSTALL_CODEQL" = true ]; then
                 $WORKSPACE/codeql/codeql database create "$DATABASE_PATH" --language="$LANGUAGE" --source-root . --command="$BUILD_COMMAND"
             else
                 codeql database create "$DATABASE_PATH" --language="$LANGUAGE" --source-root . --command="$BUILD_COMMAND"
@@ -67,7 +67,7 @@ def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
         echo "Database initialized"
 
         echo "Analyzing database"
-        if [ "$INSTALL_CODEQL" == true ]; then
+        if [ "$INSTALL_CODEQL" = true ]; then
             $WORKSPACE/codeql/codeql database analyze "$DATABASE_PATH" --no-download --sarif-category "$LANGUAGE" --format sarif-latest --output "$SARIF_FILE" "codeql/$LANGUAGE-queries:codeql-suites/$LANGUAGE-security-extended.qls"
         else
             codeql database analyze "$DATABASE_PATH" --no-download --sarif-category "$LANGUAGE" --format sarif-latest --output "$SARIF_FILE" "codeql/$LANGUAGE-queries:codeql-suites/$LANGUAGE-security-extended.qls"
@@ -75,7 +75,7 @@ def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
         echo "Database analyzed"
 
         echo "Generating CSV of results"
-        if [ "$INSTALL_CODEQL" == true ]; then
+        if [ "$INSTALL_CODEQL" = true ]; then
             $WORKSPACE/codeql/codeql database interpret-results "$DATABASE_PATH" --format=csv --output="codeql-scan-results.csv"
         else
             codeql database interpret-results "$DATABASE_PATH" --format=csv --output="codeql-scan-results.csv"
@@ -84,7 +84,7 @@ def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
 
         echo "Uploading SARIF file"
         commit=\$(git rev-parse HEAD)
-        if [ "$INSTALL_CODEQL" == true ]; then
+        if [ "$INSTALL_CODEQL" = true ]; then
             $WORKSPACE/codeql/codeql github upload-results \
             --repository="$ORG/$REPO" \
             --ref="refs/heads/$BRANCH" \
@@ -100,7 +100,7 @@ def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
         echo "SARIF file uploaded"
 
         echo "Generating Database Bundle"
-        if [ "$INSTALL_CODEQL" == true ]; then
+        if [ "$INSTALL_CODEQL" = true ]; then
             $WORKSPACE/codeql/codeql database bundle "$DATABASE_PATH" --output "$DATABASE_BUNDLE"
         else
             codeql database bundle "$DATABASE_PATH" --output "$DATABASE_BUNDLE"
