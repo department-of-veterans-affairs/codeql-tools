@@ -53,7 +53,8 @@ def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
         fi
     '''
 
-    extract("codeql.tgz", env.WORKSPACE)
+    path = sprintf("%s/codeql.tgz", env.WORKSPACE)
+    extract(path, env.WORKSPACE)
 
     sh """
         if [ "$ENABLE_DEBUG" = true ]; then
