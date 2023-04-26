@@ -1,3 +1,6 @@
+import org.apache.commons.compress.archivers.tar.TarArchiveInputStream
+import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream
+
 def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
     env.AUTHORIZATION_HEADER = sprintf("Authorization: token %s", token)
     if(branch == "") {
@@ -45,7 +48,7 @@ def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
             curl -k --silent --retry 3 --location --output codeql.tgz \
             --header "${AUTHORIZATION_HEADER}" \
             "https://github.com/github/codeql-action/releases/download/\$id/codeql-bundle-linux64.tar.gz"
-            tar -xf codeql.tgz --directory "${WORKSPACE}"
+            extract("codeql.tgz", "${WORKSPACE}")
             rm codeql.tgz
 
             echo "CodeQL installed"
@@ -137,4 +140,39 @@ def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
         "https://uploads.github.com/repos/$ORG/$REPO/code-scanning/codeql/databases/${LANGUAGE}?name=${DATABASE_BUNDLE}"
         echo "Database Bundle uploaded"
     '''
+}
+
+def extract(String gzippedTarballPath, String destinationPath) {
+    def tarballFile = new File(gzippedTarballPath)
+    def destinationDir = new File(destinationPath)
+
+    if (!tarballFile.exists()) {
+        error "Error: Tarball file not found at ${gzippedTarballPath}"
+    }
+
+    if (!destinationDir.exists()) {
+        destinationDir.mkdirs()
+    }
+
+    tarballFile.withInputStream { fis ->
+        GzipCompressorInputStream gzipIn = new GzipCompressorInputStream(fis)
+        TarArchiveInputStream tarIn = new TarArchiveInputStream(gzipIn)
+
+        def entry
+
+        while ((entry = tarIn.nextTarEntry) != null) {
+            def outputFile = new File(destinationDir, entry.name)
+
+            if (entry.isDirectory()) {
+                outputFile.mkdirs()
+            } else {
+                outputFile.withOutputStream { fos ->
+                    tarIn.transferTo(fos)
+                }
+            }
+        }
+
+        tarIn.close()
+        gzipIn.close()
+    }
 }
