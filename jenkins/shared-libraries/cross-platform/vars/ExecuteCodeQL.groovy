@@ -40,10 +40,10 @@ def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
     def url = sprintf("https://github.com/github/codeql-action/releases/download/%s/codeql-bundle-linux64.tar.gz", version)
     def downloadPath = sprintf("%s/codeql.tgz", env.WORKSPACE)
     println "Downloading CodeQL version ${version} from ${url} at ${downloadPath}"
-    downloadFile(url, "/home/jenkins/workspace/workspace/JavaScript\\ CodeQL\\ -\\ Linux/codeql.tgz")
+    downloadFile(url, "/home/jenkins/tmp/codeql.tgz")
 
     println "Extracting CodeQL bundle"
-    extract("codeql.tgz", "/tmp")
+    extract("codeql.tgz", "/home/jenkins/tmp/")
 }
 
 def getLatestCodeQLVersion(token) {
