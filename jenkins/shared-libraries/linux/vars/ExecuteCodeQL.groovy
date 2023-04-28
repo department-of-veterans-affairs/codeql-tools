@@ -166,9 +166,11 @@ def extract(String gzippedTarballPath, String destinationPath) {
         def tarballFile = new java.io.File(gzipPath)
         def destinationDir = new java.io.File(destPath)
 
+       println("1")
         if (!tarballFile.exists()) {
             error "Error: Tarball file not found at ${gzippedTarballPath}"
         }
+        println("2")
 
         if (!destinationDir.exists()) {
             destinationDir.mkdirs()
