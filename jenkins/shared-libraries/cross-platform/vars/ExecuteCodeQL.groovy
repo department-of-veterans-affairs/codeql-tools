@@ -12,8 +12,8 @@ import java.io.FileOutputStream
 import java.nio.file.Path
 import java.nio.file.Paths
 import java.nio.file.Files
-import java.util.tar.TarInputStream
-import java.util.tar.TarEntry
+import org.apache.tools.tar.TarInputStream
+import org.apache.tools.tar.TarEntry
 
 def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
     env.AUTHORIZATION_HEADER = sprintf("Authorization: token %s", token)
