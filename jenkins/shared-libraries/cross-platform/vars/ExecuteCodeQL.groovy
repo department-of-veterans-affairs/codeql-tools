@@ -40,9 +40,9 @@ def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
     def url = sprintf("https://github.com/github/codeql-action/releases/download/%s/codeql-bundle-linux64.tar.gz", version)
     def downloadPath = sprintf("%s/codeql.tgz", env.WORKSPACE)
     println "Downloading CodeQL version ${version} from ${url} at ${downloadPath}"
-    downloadFile(url, "/tmp/codeql.tgz")
+    downloadFile(url, "/home/jenkins/tmp/codeql.tgz")
 
-    def dir = new File('/tmp').absolutePath
+    def dir = new File('/home/jenkins/tmp').absolutePath
     println "Current directory is ${dir}"
     // List all files in current directory
     println "Listing files in current directory"
