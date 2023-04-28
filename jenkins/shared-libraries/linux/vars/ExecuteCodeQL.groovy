@@ -48,13 +48,12 @@ def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
             curl -k --silent --retry 3 --location --output "${WORKSPACE}/codeql.tgz" \
             --header "${AUTHORIZATION_HEADER}" \
             "https://github.com/github/codeql-action/releases/download/\$id/codeql-bundle-linux64.tar.gz"
+            tar -xf "${WORKSPACE}/codeql.tgz" -directory "${WORKSPACE}"
+            rm "${WORKSPACE}/codeql.tgz"
 
             echo "CodeQL installed"
         fi
     '''
-
-    path = sprintf("%s/codeql.tgz", env.WORKSPACE)
-    extract(path, env.WORKSPACE)
 
     sh """
         if [ "$ENABLE_DEBUG" = true ]; then
