@@ -172,7 +172,7 @@ def extract(String gzippedTarballPath, String destinationPath) {
         }
         println("2")
 
-        if (!Files.exists(destPath) {
+        if (!Files.exists(destPath)) {
             destinationDir.createDirectories()
         }
 
