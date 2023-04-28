@@ -114,7 +114,6 @@ def extract(String gzippedTarballPath, String destinationPath) {
         tarInputStream.close()
         gzipInputStream.close()
         fileInputStream.close()
-        }
     } catch (Exception e) {
         currentBuild.result = 'FAILURE'
         error sprintf("Unable to extract CodeQL: %s", e)
