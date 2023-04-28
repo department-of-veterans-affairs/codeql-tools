@@ -164,8 +164,8 @@ def extract(String gzippedTarballPath, String destinationPath) {
         def destPath = Paths.get(destinationPath).normalize()
 
         println("Extracting ${gzipPath} to ${destPath}")
-        def tarballFile = new java.io.File(gzipPath)
-        def destinationDir = new java.io.File(destPath)
+        def tarballFile = new File(gzipPath)
+        def destinationDir = new File(destPath)
 
        println("1")
         if (!tarballFile.exists()) {
@@ -184,7 +184,7 @@ def extract(String gzippedTarballPath, String destinationPath) {
             def entry
 
             while ((entry = tarIn.nextTarEntry) != null) {
-                def outputFile = new java.io.File(destinationDir, entry.name)
+                def outputFile = new File(destinationDir, entry.name)
 
                 if (entry.isDirectory()) {
                     outputFile.mkdirs()
