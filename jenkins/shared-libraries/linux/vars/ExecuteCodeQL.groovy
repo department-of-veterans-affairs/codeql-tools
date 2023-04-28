@@ -167,7 +167,7 @@ def extract(String gzippedTarballPath, String destinationPath) {
         def destinationDir = Paths.get(destPath)
 
        println("1")
-        if (!Files.exists(tarballFile)
+        if (!Files.exists(tarballFile)) {
             error "Error: Tarball file not found at ${gzipPath}"
         }
         println("2")
