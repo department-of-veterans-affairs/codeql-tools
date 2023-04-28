@@ -163,10 +163,11 @@ def extract(String gzippedTarballPath, String destinationPath) {
         def gzipPath = Paths.get(gzippedTarballPath.replaceAll(" ", "\\ ")).normalize().toString()
         def destPath = Paths.get(destinationPath.replaceAll(" ", "\\ ")).normalize().toString()
 
-        println("Extracting ${gzipPath} to ${destPath}")
+        println("Verify paths exist for ${gzipPath} and ${destPath}")
         def tarballFile = Paths.get(gzipPath)
         def destinationDir = Paths.get(destPath)
 
+        println("Extracting ${gzipPath} to ${destPath}")
         tarballFile.withInputStream { fis ->
             GzipCompressorInputStream gzipIn = new GzipCompressorInputStream(fis)
             TarArchiveInputStream tarIn = new TarArchiveInputStream(gzipIn)
