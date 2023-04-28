@@ -56,6 +56,11 @@ def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
       println "The specified path is not a directory or does not exist."
     }
 
+    sh """
+       echo "list files again"
+        ls /home/jenkins
+    """
+
 //     println "Extracting CodeQL bundle"
 //     extract("codeql.tgz", "/tmp/codeql")
 }
