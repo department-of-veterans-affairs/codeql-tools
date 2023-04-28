@@ -42,9 +42,7 @@ def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
 
     // Print env in Groovy
     println "Environment variables:"
-    env.each { k, v ->
-        println "${k}=${v}"
-    }
+    println env
 
     println "Retrieving latest CodeQL version"
     def version = getLatestCodeQLVersion(env.TOKEN)
