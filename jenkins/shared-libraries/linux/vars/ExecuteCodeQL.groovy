@@ -169,11 +169,14 @@ def extract(String gzippedTarballPath, String destinationPath) {
 
         println("Extracting ${gzipPath} to ${destPath}")
         tarballFile.withInputStream { fis ->
+            printf("Building GZIP compressor")
             GzipCompressorInputStream gzipIn = new GzipCompressorInputStream(fis)
+            printf("Building TAR extractor")
             TarArchiveInputStream tarIn = new TarArchiveInputStream(gzipIn)
 
             def entry
 
+            printf("Extracting tarball")
             while ((entry = tarIn.nextTarEntry) != null) {
                 def path = sprintf("%s/%s", destinationDir, entry.name)
                 printf("Extracting %s to %s\n", entry.name, path)
