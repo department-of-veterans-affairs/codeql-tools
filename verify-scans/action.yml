@@ -39,6 +39,9 @@ inputs:
   org:
     description: The slug of the organization
     required: true
+  out_of_compliance_cli_email_template:
+    description: The template for the email to send when a repository is using an outdated CodeQL CLI version
+    required: true
   ghas_verify_scans_app_id:
     description: The ID of the GitHub Verify Scans app
     required: true
