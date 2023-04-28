@@ -159,8 +159,8 @@ def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
 
 def extract(String gzippedTarballPath, String destinationPath) {
     try {
-        def gzipPath = Paths.get(gzippedTarballPath).normalize()
-        def destPath = Paths.get(destinationPath).normalize()
+        def gzipPath = Paths.get(gzippedTarballPath).normalize().toString()
+        def destPath = Paths.get(destinationPath).normalize().toString()
 
         println("Extracting ${gzipPath} to ${destPath}")
         def tarballFile = Paths.get(gzipPath)
@@ -185,7 +185,7 @@ def extract(String gzippedTarballPath, String destinationPath) {
             while ((entry = tarIn.nextTarEntry) != null) {
                 def path = sprintf("%s/%s", destinationDir, entry.name)
                 printf("Extracting %s to %s\n", entry.name, path)
-                def entryPath = Paths.get().normalize()
+                def entryPath = Paths.get(path).normalize().toString()
                 def outputFile = Paths.get(entryPath)
 
                 if (entry.isDirectory()) {
