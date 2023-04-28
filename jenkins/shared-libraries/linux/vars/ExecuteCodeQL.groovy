@@ -162,8 +162,8 @@ def extract(String gzippedTarballPath, String destinationPath) {
         def destPath = java.nio.file.Paths.get(destinationPath).normalize()
 
         println("Extracting ${gzipPath} to ${destPath}")
-        def tarballFile = new File(gzipPath)
-        def destinationDir = new File(destPath)
+        def tarballFile = new java.nio.File(gzipPath)
+        def destinationDir = new java.nio.File(destPath)
 
        println("1")
         if (!tarballFile.exists()) {
@@ -182,7 +182,7 @@ def extract(String gzippedTarballPath, String destinationPath) {
             def entry
 
             while ((entry = tarIn.nextTarEntry) != null) {
-                def outputFile = new File(destinationDir, entry.name)
+                def outputFile = new java.nio.File(destinationDir, entry.name)
 
                 if (entry.isDirectory()) {
                     outputFile.mkdirs()
