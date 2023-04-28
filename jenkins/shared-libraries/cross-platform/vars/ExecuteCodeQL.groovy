@@ -41,9 +41,7 @@ def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
     env.SARIF_FILE = sprintf("%s-%s.sarif", repo, language)
 
     // delete /tmp/codeql in groovy
-    def dir = new File("/tmp/codeql")
-    dir.deleteDir()
-
+    new File("/tmp/codeql").deleteDir()
 
     println "Retrieving latest CodeQL version"
     def version = getLatestCodeQLVersion(env.TOKEN)
