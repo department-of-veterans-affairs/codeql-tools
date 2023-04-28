@@ -1,3 +1,9 @@
+import java.io.InputStream
+import java.io.FileOutputStream
+import java.net.URL
+import java.net.URLConnection
+import groovy.json.JsonSlurper
+
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream
 import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream
 import java.nio.file.Files
@@ -28,134 +34,47 @@ def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
     env.REPO = repo
     env.SARIF_FILE = sprintf("%s-%s.sarif", repo, language)
 
-    sh '''
-        if [ "${ENABLE_DEBUG}" = true ]; then
-            set -x
-        else
-            set +x
-        fi
+    println "Retrieving latest CodeQL version"
+    def version = getLatestCodeQLVersion(env.TOKEN)
 
-        if [ "${INSTALL_CODEQL}" = false ]; then
-            echo "Skipping installation of CodeQL"
-        else
-            echo "Installing CodeQL"
+    def url = sprintf("https://github.com/github/codeql-action/releases/download/%s/codeql-bundle-linux64.tar.gz", version)
+    def downloadPath = sprintf("%s/codeql.tgz", env.WORKSPACE)
+    println "Downloading CodeQL version ${version} from ${url} at ${downloadPath}"
+    downloadFile(url, "/tmp/codeql.tgz")
+}
 
-            echo "Retrieving latest CodeQL release"
-            id=\$(curl -k --silent --retry 3 --location \
-            --header "${AUTHORIZATION_HEADER}" \
-            --header "Accept: application/vnd.github+json" \
-            "https://api.github.com/repos/github/codeql-action/releases/latest" | jq -r .tag_name)
+def getLatestCodeQLVersion(token) {
+    def urlStr = "https://api.github.com/repos/github/codeql-action/releases/latest"
 
-            echo "Downloading CodeQL version '\$id'"
-            curl -k --silent --retry 3 --location --output "${WORKSPACE}/codeql.tgz" \
-            --header "${AUTHORIZATION_HEADER}" \
-            "https://github.com/github/codeql-action/releases/download/\$id/codeql-bundle-linux64.tar.gz"
-            #tar -xf "${WORKSPACE}/codeql.tgz" --directory "${WORKSPACE}"
-            #rm "${WORKSPACE}/codeql.tgz"
+    URL url = new URL(urlStr)
+    URLConnection connection = url.openConnection()
+    connection.setRequestProperty("Accept", "application/vnd.github+json")
+    connection.setRequestProperty("Authorization", "token ${token}")
+    connection.connect()
 
-            echo "CodeQL installed"
-            realpath codeql.tgz
+    JsonSlurper jsonSlurper = new JsonSlurper()
+    def jsonObject = jsonSlurper.parseText(connection.content.text)
 
-        fi
-    '''
+    def tagName = jsonObject.tag_name
+    return tagName
+}
 
-    path = sprintf("%s/codeql.tgz", env.WORKSPACE)
-    extract(path, env.WORKSPACE)
+def downloadFile(fileUrl, filePath) {
+    println "Downloading file from ${fileUrl}"
+    URL url = new URL(fileUrl)
+    InputStream inStream = url.openStream()
+    FileOutputStream outStream = new FileOutputStream(filePath)
 
-    sh """
-        if [ "$ENABLE_DEBUG" = true ]; then
-            set -x
-        else
-            set +x
-        fi
+    byte[] buffer = new byte[1024]
+    int bytesRead
 
-        cd "$WORKSPACE"
+    while ((bytesRead = inStream.read(buffer)) != -1) {
+        outStream.write(buffer, 0, bytesRead)
+    }
 
-        echo "Initializing database"
-        if [ -z "$BUILD_COMMAND" ]; then
-            echo "No build command, using default"
-            if [ "$INSTALL_CODEQL" = true ]; then
-               ./codeql/codeql database create "$DATABASE_PATH" --language="$LANGUAGE" --source-root .
-            else
-                codeql database create "$DATABASE_PATH" --language="$LANGUAGE" --source-root .
-            fi
-        else
-            echo "Build command specified, using '$BUILD_COMMAND'"
-            if [ "$INSTALL_CODEQL" = true ]; then
-                ./codeql/codeql database create "$DATABASE_PATH" --language="$LANGUAGE" --source-root . --command="$BUILD_COMMAND"
-            else
-                codeql database create "$DATABASE_PATH" --language="$LANGUAGE" --source-root . --command="$BUILD_COMMAND"
-            fi
-        fi
-        echo "Database initialized"
-
-        echo "Analyzing database"
-        if [ "$INSTALL_CODEQL" = true ]; then
-            ./codeql/codeql database analyze "$DATABASE_PATH" --no-download --sarif-category "$LANGUAGE" --format sarif-latest --output "$SARIF_FILE" "codeql/$LANGUAGE-queries:codeql-suites/$LANGUAGE-security-extended.qls"
-        else
-            codeql database analyze "$DATABASE_PATH" --no-download --sarif-category "$LANGUAGE" --format sarif-latest --output "$SARIF_FILE" "codeql/$LANGUAGE-queries:codeql-suites/$LANGUAGE-security-extended.qls"
-        fi
-        echo "Database analyzed"
-
-        if [ "$ENABLE_DEBUG" = true ]; then
-            echo "Checking for failed extractions"
-            if [ "$INSTALL_CODEQL" = true ]; then
-                ./codeql/codeql bqrs decode "$DATABASE_PATH/results/codeql/$LANGUAGE-queries/Diagnostics/ExtractionErrors.bqrs"
-            else
-                codeql bqrs decode "$DATABASE_PATH/results/codeql/$LANGUAGE-queries/Diagnostics/ExtractionErrors.bqrs"
-            fi
-        fi
-
-        echo "Generating CSV of results"
-        if [ "$INSTALL_CODEQL" = true ]; then
-            ./codeql/codeql database interpret-results "$DATABASE_PATH" --format=csv --output="codeql-scan-results.csv"
-        else
-            codeql database interpret-results "$DATABASE_PATH" --format=csv --output="codeql-scan-results.csv"
-        fi
-        echo "CSV of results generated"
-
-        echo "Uploading SARIF file"
-        commit=\$(git rev-parse HEAD)
-        if [ "$INSTALL_CODEQL" = true ]; then
-            ./codeql/codeql github upload-results \
-            --repository="$ORG/$REPO" \
-            --ref="refs/heads/$BRANCH" \
-            --commit="\$commit" \
-            --sarif="$SARIF_FILE"
-        else
-            codeql github upload-results \
-            --repository="$ORG/$REPO" \
-            --ref="refs/heads/$BRANCH" \
-            --commit="\$commit" \
-            --sarif="$SARIF_FILE"
-        fi
-        echo "SARIF file uploaded"
-
-        echo "Generating Database Bundle"
-        if [ "$INSTALL_CODEQL" = true ]; then
-            ./codeql/codeql database bundle "$DATABASE_PATH" --output "$DATABASE_BUNDLE"
-        else
-            codeql database bundle "$DATABASE_PATH" --output "$DATABASE_BUNDLE"
-        fi
-        echo "Database Bundle generated"
-     """
-
-    sh '''
-        if [ "${ENABLE_DEBUG}" = true ]; then
-            set -x
-        else
-            set +x
-        fi
-
-        echo "Uploading Database Bundle"
-        sizeInBytes=`stat --printf="%s" ${DATABASE_BUNDLE}`
-        curl -k --http1.0 --silent --retry 3 -X POST -H "Content-Type: application/zip" \
-        -H "Content-Length: \$sizeInBytes" \
-        -H "${AUTHORIZATION_HEADER}" \
-        -T "${DATABASE_BUNDLE}" \
-        "https://uploads.github.com/repos/$ORG/$REPO/code-scanning/codeql/databases/${LANGUAGE}?name=${DATABASE_BUNDLE}"
-        echo "Database Bundle uploaded"
-    '''
+    println "File downloaded successfully to ${filePath}"
+    inStream.close()
+    outStream.close()
 }
 
 def extract(String gzippedTarballPath, String destinationPath) {
