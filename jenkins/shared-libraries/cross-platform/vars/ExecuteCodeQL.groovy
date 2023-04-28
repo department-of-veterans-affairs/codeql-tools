@@ -39,7 +39,7 @@ def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
     env.ORG = org
     env.REPO = repo
     env.SARIF_FILE = sprintf("%s-%s.sarif", repo, language)
-    this.runOnAgent {
+    this.run {
         def command = "hostname"
         def process = Runtime.getRuntime().exec(command)
 
