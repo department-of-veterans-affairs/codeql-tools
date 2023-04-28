@@ -44,6 +44,7 @@ def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
 
     sh """
        pwd
+       ls
        ls /tmp
     """
 
