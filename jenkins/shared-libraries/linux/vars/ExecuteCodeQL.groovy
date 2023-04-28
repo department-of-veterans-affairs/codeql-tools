@@ -190,8 +190,7 @@ def extract(String gzippedTarballPath, String destinationPath) {
             gzipIn.close()
         }
     } catch (Exception e) {
-        printf "Error: %s", e
         currentBuild.result = 'FAILURE'
-        error e
+        error sprintf("Error: %s", e)
     }
 }
