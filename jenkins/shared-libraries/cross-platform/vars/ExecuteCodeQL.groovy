@@ -42,11 +42,10 @@ def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
     println "Downloading CodeQL version ${version} from ${url} at ${downloadPath}"
     downloadFile(url, "codeql.tgz")
 
-    sh """
-       pwd
-       ls
-       ls /tmp
-    """
+    def dir = new File('.').absolutePath
+    println "Current directory is ${dir}"
+    // List all files in current directory
+    Files.list(Paths.get(dir)).forEach { println it }
 
     println "Extracting CodeQL bundle"
     extract("codeql.tgz", "/tmp/codeql")
