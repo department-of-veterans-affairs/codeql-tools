@@ -49,7 +49,7 @@ def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
     downloadFile(url, downloadPath)
 
     println "Extracting CodeQL bundle"
-    extract("codeql.tgz", "/tmp/codeql")
+    extract("codeql.tgz", "/tmp")
 
     def dir = new File("/tmp/codeql").absolutePath
     println "Current directory is ${dir}"
@@ -115,7 +115,7 @@ def extract(String gzippedTarballPath, String destinationPath) {
                 Files.createDirectories(outputPath.getParent())
                 BufferedOutputStream outputStream = new BufferedOutputStream(new FileOutputStream(outputPath.toFile()))
 
-                byte[] buffer = new byte[1024]
+                byte[] buffer = new byte[4096]
                 int bytesRead
                 while ((bytesRead = tarInputStream.read(buffer)) != -1) {
                     outputStream.write(buffer, 0, bytesRead)
