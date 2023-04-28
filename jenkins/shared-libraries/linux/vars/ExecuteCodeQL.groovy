@@ -183,7 +183,7 @@ def extract(String gzippedTarballPath, String destinationPath) {
             def entry
 
             while ((entry = tarIn.nextTarEntry) != null) {
-                def outputFile = new java.io.File(destinationDir, entry.name)
+                def outputFile = new File(destinationDir, entry.name)
 
                 if (entry.isDirectory()) {
                     outputFile.mkdirs()
