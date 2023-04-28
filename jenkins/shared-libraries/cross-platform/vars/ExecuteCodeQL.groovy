@@ -6,7 +6,8 @@ import groovy.json.JsonSlurper
 
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream
 import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream
-import java.nio.file.*
+import java.nio.file.Files
+import java.nio.file.Paths
 
 def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
     env.AUTHORIZATION_HEADER = sprintf("Authorization: token %s", token)
@@ -36,12 +37,12 @@ def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
     println "Retrieving latest CodeQL version"
     def version = getLatestCodeQLVersion(env.TOKEN)
 
-    def url = sprintf("https://github.com/github/codeql-action/releases/download/%s/codeql-bundle-linux64.tar.gz", version)
-    def downloadPath = sprintf("%s/codeql.tgz", env.WORKSPACE)
-    println "Downloading CodeQL version ${version} from ${url} at ${downloadPath}"
-    downloadFile(url, "/home/jenkins/tmp/codeql.tgz")
+//     def url = sprintf("https://github.com/github/codeql-action/releases/download/%s/codeql-bundle-linux64.tar.gz", version)
+//     def downloadPath = sprintf("%s/codeql.tgz", env.WORKSPACE)
+//     println "Downloading CodeQL version ${version} from ${url} at ${downloadPath}"
+//     downloadFile(url, "/home/jenkins/tmp/codeql.tgz")
 
-    def dir = new File('/home/jenkins/tmp').absolutePath
+    def dir = new File('/home/jenkins').absolutePath
     println "Current directory is ${dir}"
     // List all files in current directory
     println "Listing files in current directory"
@@ -55,8 +56,8 @@ def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
       println "The specified path is not a directory or does not exist."
     }
 
-    println "Extracting CodeQL bundle"
-    extract("codeql.tgz", "/tmp/codeql")
+//     println "Extracting CodeQL bundle"
+//     extract("codeql.tgz", "/tmp/codeql")
 }
 
 def getLatestCodeQLVersion(token) {
