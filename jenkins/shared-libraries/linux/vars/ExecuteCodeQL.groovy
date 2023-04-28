@@ -159,15 +159,15 @@ def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
 
 def extract(String gzippedTarballPath, String destinationPath) {
     try {
-        def gzipPath = Paths.get(gzippedTarballPath).normalize().toString()
-        def destPath = Paths.get(destinationPath).normalize().toString()
+        def gzipPath = Paths.get(gzippedTarballPath).normalize().toString().replaceAll(" ", "\\ ")
+        def destPath = Paths.get(destinationPath).normalize().toString().replaceAll(" ", "\\ ")
 
         println("Extracting ${gzipPath} to ${destPath}")
         def tarballFile = Paths.get(gzipPath)
         def destinationDir = Paths.get(destPath)
 
        println("1")
-        if (!Files.exists(tarballFile)) {
+        if (!Files.exists(gzipPath)) {
             error "Error: Tarball file not found at ${gzipPath}"
         }
         println("2")
