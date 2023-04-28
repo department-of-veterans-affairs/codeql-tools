@@ -39,13 +39,13 @@ def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
             echo "Installing CodeQL"
 
             echo "Retrieving latest CodeQL release"
-            id=\$(curl -k --retry 3 --location \
+            id=\$(curl -k --silent --retry 3 --location \
             --header "${AUTHORIZATION_HEADER}" \
             --header "Accept: application/vnd.github+json" \
             "https://api.github.com/repos/github/codeql-action/releases/latest" | jq -r .tag_name)
 
             echo "Downloading CodeQL version '\$id'"
-            curl -k --retry 3 --location --output "${WORKSPACE}/codeql.tgz" \
+            curl -k --silent --retry 3 --location --output "${WORKSPACE}/codeql.tgz" \
             --header "${AUTHORIZATION_HEADER}" \
             "https://github.com/github/codeql-action/releases/download/\$id/codeql-bundle-linux64.tar.gz"
 
