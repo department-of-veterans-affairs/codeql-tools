@@ -52,6 +52,8 @@ def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
             #rm "${WORKSPACE}/codeql.tgz"
 
             echo "CodeQL installed"
+            realpath codeql.tgz
+
         fi
     '''
 
@@ -191,6 +193,6 @@ def extract(String gzippedTarballPath, String destinationPath) {
         }
     } catch (Exception e) {
         currentBuild.result = 'FAILURE'
-        error sprintf("Error: %s", e)
+        error sprintf("Unable to extract CodeQL: %s", e)
     }
 }
