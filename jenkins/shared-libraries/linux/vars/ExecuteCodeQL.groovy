@@ -17,6 +17,9 @@ def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
     if(!env.ENABLE_DEBUG) {
         env.ENABLE_DEBUG = false
     }
+    if(!env.ENABLE_CODEQL_DEBUG) {
+        env.ENABLE_CODEQL_DEBUG = false
+    }
     env.GITHUB_TOKEN = token
     if(installCodeQL == true || installCodeQL == "true") {
         env.INSTALL_CODEQL = true
@@ -92,7 +95,7 @@ def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
         fi
         echo "Database analyzed"
 
-        if [ "$ENABLE_DEBUG" = true ]; then
+        if [ "$ENABLE_CODEQL_DEBUG" = true ]; then
             echo "Checking for failed extractions"
             if [ "$INSTALL_CODEQL" = true ]; then
                 ./codeql/codeql bqrs decode "$DATABASE_PATH/results/codeql/$LANGUAGE-queries/Diagnostics/ExtractionErrors.bqrs"
