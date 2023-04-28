@@ -40,21 +40,7 @@ def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
     env.REPO = repo
     env.SARIF_FILE = sprintf("%s-%s.sarif", repo, language)
 
-    // delete /tmp/codeql in groovy
-    new File("/tmp/codeql").deleteDir()
-
-    println "Retrieving latest CodeQL version"
-    def version = getLatestCodeQLVersion(env.TOKEN)
-
-    def url = sprintf("https://github.com/github/codeql-action/releases/download/%s/codeql-bundle-linux64.tar.gz", version)
-    def downloadPath = "/tmp/codeql.tgz"
-    println "Downloading CodeQL version ${version} from ${url} at ${downloadPath}"
-    downloadFile(url, downloadPath)
-
-    println "Extracting CodeQL bundle"
-    extract("codeql.tgz", "/tmp")
-
-    def dir = new File("/tmp/codeql").absolutePath
+    def dir = new File("/tmp").absolutePath
     println "Current directory is ${dir}"
     // List all files in current directory
     println "Listing files in current directory"
@@ -67,6 +53,34 @@ def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
     } else {
       println "The specified path is not a directory or does not exist."
     }
+
+//     // delete /tmp/codeql in groovy
+//     new File("/tmp/codeql").deleteDir()
+//
+//     println "Retrieving latest CodeQL version"
+//     def version = getLatestCodeQLVersion(env.TOKEN)
+//
+//     def url = sprintf("https://github.com/github/codeql-action/releases/download/%s/codeql-bundle-linux64.tar.gz", version)
+//     def downloadPath = "/tmp/codeql.tgz"
+//     println "Downloading CodeQL version ${version} from ${url} at ${downloadPath}"
+//     downloadFile(url, downloadPath)
+//
+//     println "Extracting CodeQL bundle"
+//     extract("codeql.tgz", "/tmp")
+//
+//     def dir = new File("/tmp/codeql").absolutePath
+//     println "Current directory is ${dir}"
+//     // List all files in current directory
+//     println "Listing files in current directory"
+//     def path = Paths.get(dir)
+//
+//     if (Files.exists(path) && Files.isDirectory(path)) {
+//       Files.list(path).each { filePath ->
+//         println filePath.toString()
+//       }
+//     } else {
+//       println "The specified path is not a directory or does not exist."
+//     }
 }
 
 def getLatestCodeQLVersion(token) {
