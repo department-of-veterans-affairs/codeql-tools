@@ -75,9 +75,9 @@ def call(Org, Repo, Branch, Language, BuildCommand, Token, InstallCodeQL) {
 
         Write-Output "Analyzing database"
         if("\$Env:INSTALL_CODEQL" -eq "true") {
-            .\\codeql\\codeql database analyze --download "\$Env:DATABASE_PATH" --sarif-category "\$Env:LANGUAGE" --format sarif-latest --output "\$Env:SARIF_FILE" "codeql/\$Env:LANGUAGE-queries:codeql-suites/\$Env:LANGUAGE-security-extended.qls"
+            .\\codeql\\codeql database analyze --download "\$Env:DATABASE_PATH" --sarif-category "\$Env:LANGUAGE" --format sarif-latest --output "\$Env:SARIF_FILE" "codeql/\$Env:LANGUAGE-queries:codeql-suites/\$Env:LANGUAGE-security-and-quality.qls"
         } else {
-            codeql database analyze --download "\$Env:DATABASE_PATH" --sarif-category "\$Env:LANGUAGE" --format sarif-latest --output "\$Env:SARIF_FILE" "codeql/\$Env:LANGUAGE-queries:codeql-suites/\$Env:LANGUAGE-security-extended.qls"
+            codeql database analyze --download "\$Env:DATABASE_PATH" --sarif-category "\$Env:LANGUAGE" --format sarif-latest --output "\$Env:SARIF_FILE" "codeql/\$Env:LANGUAGE-queries:codeql-suites/\$Env:LANGUAGE-security-and-quality.qls"
         }
         Write-Output "Database analyzed"
 

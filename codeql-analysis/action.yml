@@ -24,7 +24,7 @@ runs:
       uses: github/codeql-action/init@v2
       with:
         languages: ${{ inputs.language }}
-        queries: security-extended
+        queries: security-and-quality
 
     - name: Parse Build Steps
       id: build-steps
