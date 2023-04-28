@@ -37,27 +37,13 @@ def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
     println "Retrieving latest CodeQL version"
     def version = getLatestCodeQLVersion(env.TOKEN)
 
-//     def url = sprintf("https://github.com/github/codeql-action/releases/download/%s/codeql-bundle-linux64.tar.gz", version)
-//     def downloadPath = sprintf("%s/codeql.tgz", env.WORKSPACE)
-//     println "Downloading CodeQL version ${version} from ${url} at ${downloadPath}"
-//     downloadFile(url, "/home/jenkins/tmp/codeql.tgz")
+    def url = sprintf("https://github.com/github/codeql-action/releases/download/%s/codeql-bundle-linux64.tar.gz", version)
+    def downloadPath = sprintf("%s/codeql.tgz", env.WORKSPACE)
+    println "Downloading CodeQL version ${version} from ${url} at ${downloadPath}"
+    downloadFile(url, "/tmp/codeql.tgz")
 
-    def dir = new File("${WORKSPACE}").absolutePath
-    println "Current directory is ${dir}"
-    // List all files in current directory
-    println "Listing files in current directory"
-    def path = Paths.get(dir)
-
-    if (Files.exists(path) && Files.isDirectory(path)) {
-      Files.list(path).each { filePath ->
-        println filePath.toString()
-      }
-    } else {
-      println "The specified path is not a directory or does not exist."
-    }
-
-//     println "Extracting CodeQL bundle"
-//     extract("codeql.tgz", "/tmp/codeql")
+    println "Extracting CodeQL bundle"
+    extract("codeql.tgz", "/tmp/codeql")
 }
 
 def getLatestCodeQLVersion(token) {
