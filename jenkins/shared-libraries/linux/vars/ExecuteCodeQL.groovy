@@ -91,6 +91,15 @@ def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
         fi
         echo "Database analyzed"
 
+        if [ "$ENABLE_DEBUG" = true ]; then
+            echo "Checking for failed extractions"
+            if [ "$INSTALL_CODEQL" = true ]; then
+                ./codeql/codeql bqrs decode "$DATABASE_PATH/results/codeql/$LANGUAGE-queries/Diagnostics/ExtractionErrors.bqrs"
+            else
+                codeql bqrs decode "$DATABASE_PATH/results/codeql/$LANGUAGE-queries/Diagnostics/ExtractionErrors.bqrs"
+            fi
+        fi
+
         echo "Generating CSV of results"
         if [ "$INSTALL_CODEQL" = true ]; then
             ./codeql/codeql database interpret-results "$DATABASE_PATH" --format=csv --output="codeql-scan-results.csv"
