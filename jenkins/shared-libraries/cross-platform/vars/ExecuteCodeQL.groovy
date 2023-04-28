@@ -40,7 +40,7 @@ def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
     env.REPO = repo
     env.SARIF_FILE = sprintf("%s-%s.sarif", repo, language)
 
-    def command = "hostname"
+    def command = "ls /"
     def process = Runtime.getRuntime().exec(command)
 
     // Read the output of the command
