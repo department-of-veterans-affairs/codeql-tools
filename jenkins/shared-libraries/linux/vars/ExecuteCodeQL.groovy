@@ -191,5 +191,7 @@ def extract(String gzippedTarballPath, String destinationPath) {
         }
     } catch (Exception e) {
         printf "Error: %s", e
+        currentBuild.result = 'FAILURE'
+        error e
     }
 }
