@@ -85,8 +85,8 @@ def downloadFile(fileUrl, filePath) {
 
 def extract(String gzippedTarballPath, String destinationPath) {
     try {
-        def gzipPath = Paths.get(gzippedTarballPath.replaceAll(" ", "\\ ")).normalize().toString()
-        def destPath = Paths.get(destinationPath.replaceAll(" ", "\\ ")).normalize().toString()
+        def gzipPath = Paths.get(gzippedTarballPath).normalize().toString()
+        def destPath = Paths.get(destinationPath).normalize().toString()
 
         println("Verify paths exist for ${gzipPath} and ${destPath}")
         def tarballFile = Paths.get(gzipPath)
