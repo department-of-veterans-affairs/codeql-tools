@@ -4,10 +4,16 @@ import java.net.URL
 import java.net.URLConnection
 import groovy.json.JsonSlurper
 
-import org.apache.commons.compress.archivers.tar.TarArchiveInputStream
-import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream
-import java.nio.file.Files
+import java.util.zip.GZIPInputStream
+import java.io.FileInputStream
+import java.io.BufferedInputStream
+import java.io.BufferedOutputStream
+import java.io.FileOutputStream
+import java.nio.file.Path
 import java.nio.file.Paths
+import java.nio.file.Files
+import java.util.tar.TarInputStream
+import java.util.tar.TarEntry
 
 def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
     env.AUTHORIZATION_HEADER = sprintf("Authorization: token %s", token)
@@ -38,9 +44,9 @@ def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
     def version = getLatestCodeQLVersion(env.TOKEN)
 
     def url = sprintf("https://github.com/github/codeql-action/releases/download/%s/codeql-bundle-linux64.tar.gz", version)
-    def downloadPath = sprintf("%s/codeql.tgz", env.WORKSPACE)
+    def downloadPath = "/tmp/codeql.tgz"
     println "Downloading CodeQL version ${version} from ${url} at ${downloadPath}"
-    downloadFile(url, "/tmp/codeql.tgz")
+    downloadFile(url, downloadPath)
 
     println "Extracting CodeQL bundle"
     extract("codeql.tgz", "/tmp/codeql")
@@ -82,40 +88,32 @@ def downloadFile(fileUrl, filePath) {
 
 def extract(String gzippedTarballPath, String destinationPath) {
     try {
-        def gzipPath = Paths.get(gzippedTarballPath).normalize().toString()
-        def destPath = Paths.get(destinationPath).normalize().toString()
+        FileInputStream fileInputStream = new FileInputStream(gzippedTarballPath)
+        GZIPInputStream gzipInputStream = new GZIPInputStream(new BufferedInputStream(fileInputStream))
+        TarInputStream tarInputStream = new TarInputStream(gzipInputStream)
 
-        println("Verify paths exist for ${gzipPath} and ${destPath}")
-        def tarballFile = Paths.get(gzipPath)
-        def destinationDir = Paths.get(destPath)
+        TarEntry tarEntry
+        while ((tarEntry = tarInputStream.nextEntry) != null) {
+            Path outputPath = Paths.get(destinationPath, tarEntry.getName())
+            if (tarEntry.isDirectory()) {
+                Files.createDirectories(outputPath)
+            } else {
+                Files.createDirectories(outputPath.getParent())
+                BufferedOutputStream outputStream = new BufferedOutputStream(new FileOutputStream(outputPath.toFile()))
 
-        println("Extracting ${gzipPath} to ${destPath}")
-        tarballFile.withInputStream { fis ->
-            printf("Building GZIP compressor")
-            GzipCompressorInputStream gzipIn = new GzipCompressorInputStream(fis)
-            printf("Building TAR extractor")
-            TarArchiveInputStream tarIn = new TarArchiveInputStream(gzipIn)
-
-            def entry
-
-            printf("Extracting tarball")
-            while ((entry = tarIn.nextTarEntry) != null) {
-                def path = sprintf("%s/%s", destinationDir, entry.name)
-                printf("Extracting %s to %s\n", entry.name, path)
-                def entryPath = Paths.get(path).normalize().toString()
-                def outputFile = Paths.get(entryPath)
-
-                if (entry.isDirectory()) {
-                    outputFile.createDirectories()
-                } else {
-                    outputFile.withOutputStream { fos ->
-                        tarIn.transferTo(fos)
-                    }
+                byte[] buffer = new byte[1024]
+                int bytesRead
+                while ((bytesRead = tarInputStream.read(buffer)) != -1) {
+                    outputStream.write(buffer, 0, bytesRead)
                 }
-            }
 
-            tarIn.close()
-            gzipIn.close()
+                outputStream.close()
+            }
+        }
+
+        tarInputStream.close()
+        gzipInputStream.close()
+        fileInputStream.close()
         }
     } catch (Exception e) {
         currentBuild.result = 'FAILURE'
