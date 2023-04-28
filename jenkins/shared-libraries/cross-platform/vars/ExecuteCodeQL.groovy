@@ -46,7 +46,7 @@ println "Current directory: ${dir}"
     downloadFile(url, "codeql.tgz")
 
     println "Extracting CodeQL bundle"
-    extract("codeql.tgz", ".")
+    extract("codeql.tgz", "/tmp")
 }
 
 def getLatestCodeQLVersion(token) {
