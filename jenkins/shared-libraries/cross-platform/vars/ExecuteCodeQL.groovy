@@ -40,6 +40,12 @@ def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
     env.REPO = repo
     env.SARIF_FILE = sprintf("%s-%s.sarif", repo, language)
 
+    // Print env in Groovy
+    println "Environment variables:"
+    env.each { k, v ->
+        println "${k}=${v}"
+    }
+
     println "Retrieving latest CodeQL version"
     def version = getLatestCodeQLVersion(env.TOKEN)
 
@@ -88,7 +94,7 @@ def downloadFile(fileUrl, filePath) {
     InputStream inStream = url.openStream()
     FileOutputStream outStream = new FileOutputStream(filePath)
 
-    byte[] buffer = new byte[1024]
+    byte[] buffer = new byte[4096]
     int bytesRead
 
     while ((bytesRead = inStream.read(buffer)) != -1) {
