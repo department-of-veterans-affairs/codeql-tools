@@ -1,7 +1,5 @@
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream
 import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream
-import java.nio.*
-import java.nio.file.*
 
 def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
     env.AUTHORIZATION_HEADER = sprintf("Authorization: token %s", token)
@@ -160,8 +158,8 @@ def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
 
 def extract(String gzippedTarballPath, String destinationPath) {
     try {
-        def gzipPath = Paths.get(gzippedTarballPath).normalize()
-        def destPath = Paths.get(destinationPath).normalize()
+        def gzipPath = java.io.file.Paths.get(gzippedTarballPath).normalize()
+        def destPath = java.io.file.Paths.get(destinationPath).normalize()
 
         println("Extracting ${gzipPath} to ${destPath}")
         def tarballFile = new File(gzipPath)
