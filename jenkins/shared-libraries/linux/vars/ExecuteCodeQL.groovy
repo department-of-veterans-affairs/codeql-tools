@@ -1,6 +1,6 @@
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream
 import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream
-import java.io.*
+import java.nio.file.*
 
 def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
     env.AUTHORIZATION_HEADER = sprintf("Authorization: token %s", token)
@@ -159,21 +159,21 @@ def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
 
 def extract(String gzippedTarballPath, String destinationPath) {
     try {
-        def gzipPath = java.nio.file.Paths.get(gzippedTarballPath).normalize()
-        def destPath = java.nio.file.Paths.get(destinationPath).normalize()
+        def gzipPath = Paths.get(gzippedTarballPath).normalize()
+        def destPath = Paths.get(destinationPath).normalize()
 
         println("Extracting ${gzipPath} to ${destPath}")
-        def tarballFile = new File(gzipPath)
-        def destinationDir = new File(destPath)
+        def tarballFile = Paths.get(gzipPath)
+        def destinationDir = Paths.get(destPath)
 
        println("1")
         if (!tarballFile.exists()) {
-            error "Error: Tarball file not found at ${gzippedTarballPath}"
+            error "Error: Tarball file not found at ${gzipPath}"
         }
         println("2")
 
-        if (!destinationDir.exists()) {
-            destinationDir.mkdirs()
+        if (!Files.exists(destPath) {
+            destinationDir.createDirectories()
         }
 
         tarballFile.withInputStream { fis ->
@@ -183,10 +183,10 @@ def extract(String gzippedTarballPath, String destinationPath) {
             def entry
 
             while ((entry = tarIn.nextTarEntry) != null) {
-                def outputFile = new File(destinationDir, entry.name)
+                def outputFile = Paths.get(destinationDir, entry.name)
 
                 if (entry.isDirectory()) {
-                    outputFile.mkdirs()
+                    outputFile.createDirectories()
                 } else {
                     outputFile.withOutputStream { fos ->
                         tarIn.transferTo(fos)
