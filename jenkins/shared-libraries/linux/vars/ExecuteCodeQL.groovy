@@ -1,6 +1,7 @@
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream
 import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream
-import java.nio.file.*
+import java.nio.file.Files
+import java.nio.file.Paths
 
 def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
     env.AUTHORIZATION_HEADER = sprintf("Authorization: token %s", token)
@@ -165,19 +166,6 @@ def extract(String gzippedTarballPath, String destinationPath) {
         println("Extracting ${gzipPath} to ${destPath}")
         def tarballFile = Paths.get(gzipPath)
         def destinationDir = Paths.get(destPath)
-
-       println("1")
-       println("tarballFile: ${tarballFile}")
-       def tarballFound = Files.exists(tarballFile)
-         println("tarballFound: ${tarballFound}")
-        if (!Files.exists(tarballFile)) {
-            error "Error: Tarball file not found at ${tarballFile}"
-        }
-        println("2")
-
-        if (!Files.exists(destinationDir)) {
-            destinationDir.createDirectories()
-        }
 
         tarballFile.withInputStream { fis ->
             GzipCompressorInputStream gzipIn = new GzipCompressorInputStream(fis)
