@@ -39,25 +39,26 @@ def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
     env.ORG = org
     env.REPO = repo
     env.SARIF_FILE = sprintf("%s-%s.sarif", repo, language)
+    node {
+        def command = "hostname"
+        def process = Runtime.getRuntime().exec(command)
 
-    def command = "ifconfig | grep inet"
-    def process = Runtime.getRuntime().exec(command)
+        // Read the output of the command
+        def reader = new BufferedReader(new InputStreamReader(process.getInputStream()))
+        def output = new StringBuilder()
+        String line = null
+        while ((line = reader.readLine()) != null) {
+            output.append(line)
+        }
 
-    // Read the output of the command
-    def reader = new BufferedReader(new InputStreamReader(process.getInputStream()))
-    def output = new StringBuilder()
-    String line = null
-    while ((line = reader.readLine()) != null) {
-        output.append(line)
+        // Wait for the command to finish executing
+        def exitCode = process.waitFor()
+
+        // Print the output and exit code of the command
+        println "Command output: ${output}"
+        println "Command exit code: ${exitCode}"
+
     }
-
-    // Wait for the command to finish executing
-    def exitCode = process.waitFor()
-
-    // Print the output and exit code of the command
-    println "Command output: ${output}"
-    println "Command exit code: ${exitCode}"
-
 //     // delete /tmp/codeql in groovy
 //     new File("/tmp/codeql").deleteDir()
 //
