@@ -92,7 +92,7 @@ def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
         fi
         echo "Database analyzed"
 
-        if [ "$ENABLE_DEBUG" = true ]; then
+        if [ "$ENABLE_CODEQL_DEBUG" = true ]; then
             echo "Checking for failed extractions"
             if [ "$INSTALL_CODEQL" = true ]; then
                 ./codeql/codeql bqrs decode "$DATABASE_PATH/results/codeql/$LANGUAGE-queries/Diagnostics/ExtractionErrors.bqrs"

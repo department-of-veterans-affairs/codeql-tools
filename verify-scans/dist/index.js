@@ -65029,6 +65029,8 @@ const main = async () => {
                 ignoredLanguages = codeqlConfig.excluded_languages.map(language => language.name.toLowerCase())
             }
 
+            core.info(`[${repository.name}]: Retrieving .github/emass.json file`)
+            const emassConfig = await getFile(octokit, repository.owner.login, repository.name, '.github/emass.json')
 
             core.info(`[${repository.name}]: Retrieving supported CodeQL languages`)
             const requiredLanguages = await listLanguages(octokit, repository.owner.login, repository.name, ignoredLanguages)
@@ -65048,7 +65050,9 @@ const main = async () => {
                     if (!codeQLVersions.includes(version)) {
                         core.info(`[${repository.name}]: Outdated CodeQL CLI version found: ${version}`)
                         outdatedCLI.push(repository.name)
-                        // TODO: Should we send email or should we open an issue or should we just log it
+                        const body = await generateOutOfComplianceCLIEmailBody(config.out_of_compliance_cli_email_template, repository.html_url)
+                        await sendEmail(mailer, config.gmail_from, [emassConfig.systemOwnerEmail, config.gmail_from], 'GitHub Repository Code Scanning Software Is Out Of Date', body)
+                        await createIssue(octokit, repository.owner.login, repository.name, 'GitHub Repository Code Scanning Software Is Out Of Date', body)
                         break
                     }
                 }
@@ -65074,13 +65078,9 @@ const main = async () => {
             }
 
             core.warning(`[${repository.name}]: Missing analyses or databases identified: ${JSON.stringify(missing[repository.name])}`)
-            const emassConfig = await getFile(octokit, repository.owner.login, repository.name, '.github/emass.json')
-
             const uniqueMissingLanguages = [...new Set([...missingAnalyses, ...missingDatabases])]
             const repoURL = `https://github.com/${repository.owner.login}/${repository.name}`
 
-
-            // TODO: Validate EMASS ID is valid
             if (!emassConfig || !emassConfig.systemOwnerEmail) {
                 core.warning(`[${repository.name}]: No .github/emass.json file found`)
                 emassMissing.push(repository.name)
@@ -65166,6 +65166,10 @@ const parseInput = () => {
             required: true,
             trimWhitespace: true
         })
+        const out_of_compliance_cli_email_template = core.getInput('out_of_compliance_cli_email_template', {
+            required: true,
+            trimWhitespace: true
+        })
         const verify_scans_app_id = Number(core.getInput('ghas_verify_scans_app_id', {
             required: true,
             trimWhitespace: true
@@ -65192,6 +65196,7 @@ const parseInput = () => {
             missing_info_issue_template: missing_info_issue_template,
             non_compliant_email_template: non_compliant_email_template,
             org: org,
+            out_of_compliance_cli_email_template: out_of_compliance_cli_email_template,
             verify_scans_app_id: verify_scans_app_id,
             verify_scans_private_key: verify_scans_private_key,
             verify_scans_installation_id: verify_scans_installation_id
@@ -65398,6 +65403,10 @@ const generateNonCompliantEmailBody = (template, systemID, systemName, repositor
         .replaceAll('<LANGUAGES_PLACEHOLDER>', languageTemplate)
 }
 
+const generateOutOfComplianceCLIEmailBody = (template, repository) => {
+    return template.replaceAll('<REPOSITORY_URL_PLACEHOLDER>', repository)
+}
+
 const installApp = async (octokit, installationID, repositoryID) => {
     try {
         await octokit.request('PUT /user/installations/{installation_id}/repositories/{repository_id}', {
@@ -65462,7 +65471,7 @@ const getLatestCodeQLVersions = async (client) => {
         const {data: versions} = await client.request('GET https://api.github.com/repos/{owner}/{repo}/releases', {
             owner: 'github',
             repo: 'codeql-cli-binaries',
-            per_page: 5
+            per_page: 2
         })
 
         return versions.map(version => version.tag_name.split('v')[1])
