@@ -50,12 +50,17 @@ def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
             curl -k --silent --retry 3 --location --output "${WORKSPACE}/codeql.tgz" \
             --header "${AUTHORIZATION_HEADER}" \
             "https://github.com/github/codeql-action/releases/download/\$id/codeql-bundle-linux64.tar.gz"
-            tar -xf "${WORKSPACE}/codeql.tgz" --directory "${WORKSPACE}"
-            rm "${WORKSPACE}/codeql.tgz"
+            #tar -xf "${WORKSPACE}/codeql.tgz" --directory "${WORKSPACE}"
+            #rm "${WORKSPACE}/codeql.tgz"
 
             echo "CodeQL installed"
+            realpath codeql.tgz
+
         fi
     '''
+
+    path = sprintf("%s/codeql.tgz", env.WORKSPACE)
+    extract(path, env.WORKSPACE)
 
     sh """
         if [ "$ENABLE_DEBUG" = true ]; then
@@ -151,4 +156,47 @@ def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
         "https://uploads.github.com/repos/$ORG/$REPO/code-scanning/codeql/databases/${LANGUAGE}?name=${DATABASE_BUNDLE}"
         echo "Database Bundle uploaded"
     '''
+}
+
+def extract(String gzippedTarballPath, String destinationPath) {
+    try {
+        def gzipPath = Paths.get(gzippedTarballPath.replaceAll(" ", "\\ ")).normalize().toString()
+        def destPath = Paths.get(destinationPath.replaceAll(" ", "\\ ")).normalize().toString()
+
+        println("Verify paths exist for ${gzipPath} and ${destPath}")
+        def tarballFile = Paths.get(gzipPath)
+        def destinationDir = Paths.get(destPath)
+
+        println("Extracting ${gzipPath} to ${destPath}")
+        tarballFile.withInputStream { fis ->
+            printf("Building GZIP compressor")
+            GzipCompressorInputStream gzipIn = new GzipCompressorInputStream(fis)
+            printf("Building TAR extractor")
+            TarArchiveInputStream tarIn = new TarArchiveInputStream(gzipIn)
+
+            def entry
+
+            printf("Extracting tarball")
+            while ((entry = tarIn.nextTarEntry) != null) {
+                def path = sprintf("%s/%s", destinationDir, entry.name)
+                printf("Extracting %s to %s\n", entry.name, path)
+                def entryPath = Paths.get(path).normalize().toString()
+                def outputFile = Paths.get(entryPath)
+
+                if (entry.isDirectory()) {
+                    outputFile.createDirectories()
+                } else {
+                    outputFile.withOutputStream { fos ->
+                        tarIn.transferTo(fos)
+                    }
+                }
+            }
+
+            tarIn.close()
+            gzipIn.close()
+        }
+    } catch (Exception e) {
+        currentBuild.result = 'FAILURE'
+        error sprintf("Unable to extract CodeQL: %s", e)
+    }
 }
