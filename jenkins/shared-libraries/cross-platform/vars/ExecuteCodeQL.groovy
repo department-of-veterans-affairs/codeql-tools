@@ -41,9 +41,8 @@ def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
     env.SARIF_FILE = sprintf("%s-%s.sarif", repo, language)
 
     // Print env in Groovy
-    println "Environment variables:"
-    println env.toString()
-    sh 'env'
+    def tmpdir = System.getProperty("java.io.tmpdir");
+    println "Temp dir is ${tmpdir}"
 
     println "Retrieving latest CodeQL version"
     def version = getLatestCodeQLVersion(env.TOKEN)
