@@ -166,18 +166,18 @@ def extract(String gzippedTarballPath, String destinationPath) {
         def tarballFile = Paths.get(gzipPath)
         def destinationDir = Paths.get(destPath)
 
-       println("1")
-       println("tarballFile: ${tarballFile}")
-       def tarballFound = Files.exists(tarballFile)
-         println("tarballFound: ${tarballFound}")
-        if (!Files.exists(tarballFile)) {
-            error "Error: Tarball file not found at ${tarballFile}"
-        }
-        println("2")
-
-        if (!Files.exists(destinationDir)) {
-            destinationDir.createDirectories()
-        }
+//        println("1")
+//        println("tarballFile: ${tarballFile}")
+//        def tarballFound = Files.exists(tarballFile)
+//          println("tarballFound: ${tarballFound}")
+//         if (!Files.exists(tarballFile)) {
+//             error "Error: Tarball file not found at ${tarballFile}"
+//         }
+//         println("2")
+//
+//         if (!Files.exists(destinationDir)) {
+//             destinationDir.createDirectories()
+//         }
 
         tarballFile.withInputStream { fis ->
             GzipCompressorInputStream gzipIn = new GzipCompressorInputStream(fis)
