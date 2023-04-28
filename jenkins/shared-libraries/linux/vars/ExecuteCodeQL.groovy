@@ -183,7 +183,8 @@ def extract(String gzippedTarballPath, String destinationPath) {
             def entry
 
             while ((entry = tarIn.nextTarEntry) != null) {
-                def outputFile = Paths.get(destinationDir, entry.name)
+                def entryPath = Paths.get(sprintf("%s/%s", destinationDir, entry.name)).normalize()
+                def outputFile = Paths.get(entryPath)
 
                 if (entry.isDirectory()) {
                     outputFile.createDirectories()
