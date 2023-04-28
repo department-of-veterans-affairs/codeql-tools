@@ -40,19 +40,23 @@ def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
     env.REPO = repo
     env.SARIF_FILE = sprintf("%s-%s.sarif", repo, language)
 
-    def dir = new File("/tmp").absolutePath
-    println "Current directory is ${dir}"
-    // List all files in current directory
-    println "Listing files in current directory"
-    def path = Paths.get(dir)
+    def command = "hostname"
+    def process = Runtime.getRuntime().exec(command)
 
-    if (Files.exists(path) && Files.isDirectory(path)) {
-      Files.list(path).each { filePath ->
-        println filePath.toString()
-      }
-    } else {
-      println "The specified path is not a directory or does not exist."
+    // Read the output of the command
+    def reader = new BufferedReader(new InputStreamReader(process.getInputStream()))
+    def output = new StringBuilder()
+    String line = null
+    while ((line = reader.readLine()) != null) {
+        output.append(line)
     }
+
+    // Wait for the command to finish executing
+    def exitCode = process.waitFor()
+
+    // Print the output and exit code of the command
+    println "Command output: ${output}"
+    println "Command exit code: ${exitCode}"
 
 //     // delete /tmp/codeql in groovy
 //     new File("/tmp/codeql").deleteDir()
