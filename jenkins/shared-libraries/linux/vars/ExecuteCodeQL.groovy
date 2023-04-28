@@ -48,12 +48,15 @@ def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
             curl -k --silent --retry 3 --location --output "${WORKSPACE}/codeql.tgz" \
             --header "${AUTHORIZATION_HEADER}" \
             "https://github.com/github/codeql-action/releases/download/\$id/codeql-bundle-linux64.tar.gz"
-            tar -xf "${WORKSPACE}/codeql.tgz" --directory "${WORKSPACE}"
-            rm "${WORKSPACE}/codeql.tgz"
+            #tar -xf "${WORKSPACE}/codeql.tgz" --directory "${WORKSPACE}"
+            #rm "${WORKSPACE}/codeql.tgz"
 
             echo "CodeQL installed"
         fi
     '''
+
+    path = sprintf("%s/codeql.tgz", env.WORKSPACE)
+    extract(path, env.WORKSPACE)
 
     sh """
         if [ "$ENABLE_DEBUG" = true ]; then
@@ -152,36 +155,41 @@ def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
 }
 
 def extract(String gzippedTarballPath, String destinationPath) {
-    def tarballFile = new File(gzippedTarballPath)
-    def destinationDir = new File(destinationPath)
+    try {
+        println("Extracting ${gzippedTarballPath} to ${destinationPath}")
+        def tarballFile = new File(gzippedTarballPath)
+        def destinationDir = new File(destinationPath)
 
-    if (!tarballFile.exists()) {
-        error "Error: Tarball file not found at ${gzippedTarballPath}"
-    }
-
-    if (!destinationDir.exists()) {
-        destinationDir.mkdirs()
-    }
-
-    tarballFile.withInputStream { fis ->
-        GzipCompressorInputStream gzipIn = new GzipCompressorInputStream(fis)
-        TarArchiveInputStream tarIn = new TarArchiveInputStream(gzipIn)
-
-        def entry
-
-        while ((entry = tarIn.nextTarEntry) != null) {
-            def outputFile = new File(destinationDir, entry.name)
-
-            if (entry.isDirectory()) {
-                outputFile.mkdirs()
-            } else {
-                outputFile.withOutputStream { fos ->
-                    tarIn.transferTo(fos)
-                }
-            }
+        if (!tarballFile.exists()) {
+            error "Error: Tarball file not found at ${gzippedTarballPath}"
         }
 
-        tarIn.close()
-        gzipIn.close()
+        if (!destinationDir.exists()) {
+            destinationDir.mkdirs()
+        }
+
+        tarballFile.withInputStream { fis ->
+            GzipCompressorInputStream gzipIn = new GzipCompressorInputStream(fis)
+            TarArchiveInputStream tarIn = new TarArchiveInputStream(gzipIn)
+
+            def entry
+
+            while ((entry = tarIn.nextTarEntry) != null) {
+                def outputFile = new File(destinationDir, entry.name)
+
+                if (entry.isDirectory()) {
+                    outputFile.mkdirs()
+                } else {
+                    outputFile.withOutputStream { fos ->
+                        tarIn.transferTo(fos)
+                    }
+                }
+            }
+
+            tarIn.close()
+            gzipIn.close()
+        }
+    } catch (Exception e) {
+        printf "Error: %s", e
     }
 }
