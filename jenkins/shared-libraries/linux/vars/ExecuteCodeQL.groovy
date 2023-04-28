@@ -158,8 +158,8 @@ def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
 
 def extract(String gzippedTarballPath, String destinationPath) {
     try {
-        def gzipPath = java.io.file.Paths.get(gzippedTarballPath).normalize()
-        def destPath = java.io.file.Paths.get(destinationPath).normalize()
+        def gzipPath = java.nio.file.Paths.get(gzippedTarballPath).normalize()
+        def destPath = java.nio.file.Paths.get(destinationPath).normalize()
 
         println("Extracting ${gzipPath} to ${destPath}")
         def tarballFile = new File(gzipPath)
