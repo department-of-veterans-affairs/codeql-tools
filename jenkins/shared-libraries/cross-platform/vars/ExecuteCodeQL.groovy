@@ -45,7 +45,16 @@ def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
     def dir = new File('.').absolutePath
     println "Current directory is ${dir}"
     // List all files in current directory
-    Files.list(Paths.get(dir)).forEach { println it }
+    println "Listing files in current directory"
+    def path = Paths.get(dir)
+
+    if (Files.exists(path) && Files.isDirectory(path)) {
+      Files.list(path).each { filePath ->
+        println filePath.toString()
+      }
+    } else {
+      println "The specified path is not a directory or does not exist."
+    }
 
     println "Extracting CodeQL bundle"
     extract("codeql.tgz", "/tmp/codeql")
