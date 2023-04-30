@@ -46,17 +46,31 @@ def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
             echo "Installing CodeQL"
 
             echo "Retrieving latest CodeQL release"
-            id=\$(curl -k --silent --retry 3 --location \
-            --header "${AUTHORIZATION_HEADER}" \
-            --header "Accept: application/vnd.github+json" \
-            "https://api.github.com/repos/github/codeql-action/releases/latest" | jq -r .tag_name)
+            if [ "${ENABLE_TLS_NO_VERIFY}" = true ]; then
+                id=\$(curl --insecure --silent --retry 3 --location \
+                --header "${AUTHORIZATION_HEADER}" \
+                --header "Accept: application/vnd.github+json" \
+                "https://api.github.com/repos/github/codeql-action/releases/latest" | jq -r .tag_name)
 
-            echo "Downloading CodeQL version '\$id'"
-            curl -k --silent --retry 3 --location --output "${WORKSPACE}/codeql.tgz" \
-            --header "${AUTHORIZATION_HEADER}" \
-            "https://github.com/github/codeql-action/releases/download/\$id/codeql-bundle-linux64.tar.gz"
-            tar -xf "${WORKSPACE}/codeql.tgz" --directory "${WORKSPACE}"
-            rm "${WORKSPACE}/codeql.tgz"
+                echo "Downloading CodeQL version '\$id'"
+                curl --insecure --silent --retry 3 --location --output "${WORKSPACE}/codeql.tgz" \
+                --header "${AUTHORIZATION_HEADER}" \
+                "https://github.com/github/codeql-action/releases/download/\$id/codeql-bundle-linux64.tar.gz"
+                tar -xf "${WORKSPACE}/codeql.tgz" --directory "${WORKSPACE}"
+                rm "${WORKSPACE}/codeql.tgz"
+            else
+                id=\$(curl --silent --retry 3 --location \
+                --header "${AUTHORIZATION_HEADER}" \
+                --header "Accept: application/vnd.github+json" \
+                "https://api.github.com/repos/github/codeql-action/releases/latest" | jq -r .tag_name)
+
+                echo "Downloading CodeQL version '\$id'"
+                curl --silent --retry 3 --location --output "${WORKSPACE}/codeql.tgz" \
+                --header "${AUTHORIZATION_HEADER}" \
+                "https://github.com/github/codeql-action/releases/download/\$id/codeql-bundle-linux64.tar.gz"
+                tar -xf "${WORKSPACE}/codeql.tgz" --directory "${WORKSPACE}"
+                rm "${WORKSPACE}/codeql.tgz"
+            fi
 
             echo "CodeQL installed"
         fi
@@ -131,11 +145,19 @@ def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
 
         echo "Uploading Database Bundle"
         sizeInBytes=`stat --printf="%s" ${DATABASE_BUNDLE}`
-        curl -k --http1.0 --silent --retry 3 -X POST -H "Content-Type: application/zip" \
-        -H "Content-Length: \$sizeInBytes" \
-        -H "${AUTHORIZATION_HEADER}" \
-        -T "${DATABASE_BUNDLE}" \
-        "https://uploads.github.com/repos/$ORG/$REPO/code-scanning/codeql/databases/${LANGUAGE}?name=${DATABASE_BUNDLE}"
+        if [ "${ENABLE_TLS_NO_VERIFY}" = true ]; then
+            curl --insecure --http1.0 --silent --retry 3 -X POST -H "Content-Type: application/zip" \
+            -H "Content-Length: \$sizeInBytes" \
+            -H "${AUTHORIZATION_HEADER}" \
+            -T "${DATABASE_BUNDLE}" \
+            "https://uploads.github.com/repos/$ORG/$REPO/code-scanning/codeql/databases/${LANGUAGE}?name=${DATABASE_BUNDLE}"
+        else
+            curl --http1.0 --silent --retry 3 -X POST -H "Content-Type: application/zip" \
+            -H "Content-Length: \$sizeInBytes" \
+            -H "${AUTHORIZATION_HEADER}" \
+            -T "${DATABASE_BUNDLE}" \
+            "https://uploads.github.com/repos/$ORG/$REPO/code-scanning/codeql/databases/${LANGUAGE}?name=${DATABASE_BUNDLE}"
+        fi
         echo "Database Bundle uploaded"
     '''
 }
