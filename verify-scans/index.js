@@ -387,10 +387,12 @@ const listCodeQLAnalyses = async (octokit, owner, repo, branch, range) => {
             languages: languages,
             versions: versions
         }
-    } catch
-        (e) {
+    } catch (e) {
         if (e.status === 404) {
-            return []
+            return {
+                languages: [],
+                versions: []
+            }
         }
         throw new Error(`Error listing CodeQL analyses for ${owner}/${repo} on branch ${branch}: ${e.message}`)
     }
