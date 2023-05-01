@@ -18,7 +18,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        verions:
+        version:
           - node-14
           - node-16
           - node-18
@@ -36,7 +36,7 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v3
       - name: Docker Login
-        run: docker login -u ${{ github.actor }} -p ${{ secrets.GITHUB_TOKEN }} ghcr.io
+        run: echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
       - name: Publish Images
         run: |
           npm run docker:build:${{ matrix.version }}
