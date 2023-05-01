@@ -8,6 +8,8 @@ on:
   schedule:
     - cron: '16 15 * * 5'
 
+concurrency: ${{ github.workflow }}-${{ github.ref }}
+
 jobs:
   analyze:
     name: Analyze
