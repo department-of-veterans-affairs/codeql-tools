@@ -12,7 +12,7 @@ ENV PATH="/usr/local/codeql:${PATH}"
 
 FROM base as codeql
 
-COPY install-codeql.sh /tmp/install-codeql.sh
+COPY scripts/install-codeql.sh /tmp/install-codeql.sh
 RUN /tmp/install-codeql.sh && \
     rm /tmp/install-codeql.sh && \
     chmod -R a+rx /usr/local/codeql

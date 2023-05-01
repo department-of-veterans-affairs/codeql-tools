@@ -1,3 +1,7 @@
+#!/bin/bash
+
+set -euo pipefail
+
 id=$(curl --silent --retry 3 --location \
 --header "Accept: application/vnd.github+json" \
 "https://api.github.com/repos/github/codeql-action/releases/latest" | jq -r .tag_name)
