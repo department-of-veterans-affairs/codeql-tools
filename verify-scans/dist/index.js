@@ -65255,6 +65255,11 @@ const listLanguages = async (octokit, owner, repo, ignoredLanguages) => {
         })
 
         return Object.keys(languages).map(language => language.toLowerCase())
+            .map(language => {
+                if(language === 'kotlin') {
+                    return 'java'
+                }
+            })
             .filter(language => supportedCodeQLLanguages.includes(language))
             .filter(language => !ignoredLanguages.includes(language))
     } catch (e) {
