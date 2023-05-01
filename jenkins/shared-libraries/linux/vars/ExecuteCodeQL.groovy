@@ -145,7 +145,9 @@ def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
             codeql database bundle "${DATABASE_PATH}" --output "${DATABASE_BUNDLE}"
         fi
         echo "Database Bundle generated"
+    """
 
+    sh '''
         echo "Uploading Database Bundle"
         sizeInBytes=`stat --printf="%s" ${DATABASE_BUNDLE}`
         if [ "${ENABLE_TLS_NO_VERIFY}" = true ]; then
@@ -162,5 +164,5 @@ def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
             "https://uploads.github.com/repos/$ORG/$REPO/code-scanning/codeql/databases/${LANGUAGE}?name=${DATABASE_BUNDLE}"
         fi
         echo "Database Bundle uploaded"
-    """
+    '''
 }
