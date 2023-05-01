@@ -30,6 +30,7 @@ def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
     env.ORG = org
     env.REPO = repo
     env.SARIF_FILE = sprintf("%s-%s.sarif", repo, language)
+    env.QL_PACKS = sprintf("codeql/%s-queries:codeql-suites/%s-security-and-quality.qls", language, language)
 
     sh '''
         if [ "${ENABLE_DEBUG}" = true ]; then
@@ -95,9 +96,9 @@ def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
 
         echo "Analyzing database"
         if [ "${INSTALL_CODEQL}" = true ]; then
-            ./codeql/codeql database analyze "${DATABASE_PATH}" --no-download --sarif-category "${LANGUAGE}" --format sarif-latest --output "${SARIF_FILE}" "codeql/${LANGUAGE}-queries:codeql-suites/${LANGUAGE}-security-and-quality.qls"
+            ./codeql/codeql database analyze "${DATABASE_PATH}" --no-download --sarif-category "${LANGUAGE}" --format sarif-latest --output "${SARIF_FILE}" "${QL_PACKS}"
         else
-            codeql database analyze "${DATABASE_PATH}" --no-download --sarif-category "${LANGUAGE}" --format sarif-latest --output "${SARIF_FILE}" "codeql/${LANGUAGE}-queries:codeql-suites/${LANGUAGE}-security-and-quality.qls"
+            codeql database analyze "${DATABASE_PATH}" --no-download --sarif-category "${LANGUAGE}" --format sarif-latest --output "${SARIF_FILE}" "${QL_PACKS}"
         fi
         echo "Database analyzed"
 
@@ -112,9 +113,9 @@ def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
 
         echo "Generating CSV of results"
         if [ "${INSTALL_CODEQL}" = true ]; then
-            ./codeql/codeql database interpret-results "${DATABASE_PATH}" --format=csv --output="codeql-scan-results.csv"
+            ./codeql/codeql database interpret-results "${DATABASE_PATH}" --format=csv --output="codeql-scan-results.csv" "${QL_PACKS}"
         else
-            codeql database interpret-results "${DATABASE_PATH}" --format=csv --output="codeql-scan-results.csv"
+            codeql database interpret-results "${DATABASE_PATH}" --format=csv --output="codeql-scan-results.csv" "${QL_PACKS}"
         fi
         echo "CSV of results generated"
 
