@@ -1,0 +1,43 @@
+name: Publish Images
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'images/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  build:
+    name: Publish Images
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        verions:
+          - node-14
+          - node-16
+          - node-18
+          - go-14
+          - go-15
+          - go-16
+          - go-17
+          - go-18
+          - go-19
+          - go-20
+          - java-8
+          - java-11
+          - java-17
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+      - name: Docker Login
+        run: docker login -u ${{ github.actor }} -p ${{ secrets.GITHUB_TOKEN }} ghcr.io
+      - name: Publish Images
+        run: |
+          npm run docker:build:${{ matrix.version }}
+          npm run docker:publish:${{ matrix.version }}
