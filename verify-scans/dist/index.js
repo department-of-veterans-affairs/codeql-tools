@@ -65315,7 +65315,7 @@ const listCodeQLAnalyses = async (octokit, owner, repo, branch, range) => {
                 done()
             }
 
-            return analyses.filter(analysis => !analysis.key.startsWith('dynamic'))
+            return analyses.filter(analysis => !analysis.analysis_key.startsWith('dynamic'))
         })
 
         // Find the most recent analysis for each language
