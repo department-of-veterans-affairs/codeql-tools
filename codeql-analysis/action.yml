@@ -69,6 +69,7 @@ runs:
         fi
       env:
         path: ${{ runner.temp }}/codeql_databases/${{ inputs.language }}
+        qlpacks: 'codeql/${{ inputs.language }}-queries:codeql-suites/${{ inputs.language }}-security-and-quality'
         temp: ${{ runner.temp }}
 
     - name: Generate CodeQL Results CSV

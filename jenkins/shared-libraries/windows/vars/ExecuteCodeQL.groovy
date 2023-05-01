@@ -23,6 +23,7 @@ def call(Org, Repo, Branch, Language, BuildCommand, Token, InstallCodeQL) {
     env.REPO = Repo
     env.SARIF_FILE = sprintf("%s-%s.sarif", Repo, Language)
     env.UPLOAD_URL = sprintf("https://uploads.github.com/repos/%s/%s/code-scanning/codeql/databases/%s?name=%s", Org, Repo, Language, env.DATABASE_BUNDLE)
+    env.QL_PACKS = sprintf("codeql/%s-queries:codeql-suites/%s-security-and-quality.qls", language, language)
 
     powershell """
         if("\$Env:INSTALL_CODEQL" -eq "false") {
@@ -75,17 +76,17 @@ def call(Org, Repo, Branch, Language, BuildCommand, Token, InstallCodeQL) {
 
         Write-Output "Analyzing database"
         if("\$Env:INSTALL_CODEQL" -eq "true") {
-            .\\codeql\\codeql database analyze --download "\$Env:DATABASE_PATH" --sarif-category "\$Env:LANGUAGE" --format sarif-latest --output "\$Env:SARIF_FILE" "codeql/\$Env:LANGUAGE-queries:codeql-suites/\$Env:LANGUAGE-security-and-quality.qls"
+            .\\codeql\\codeql database analyze --download "\$Env:DATABASE_PATH" --sarif-category "\$Env:LANGUAGE" --format sarif-latest --output "\$Env:SARIF_FILE" "\$Env:QL_PACKS"
         } else {
-            codeql database analyze --download "\$Env:DATABASE_PATH" --sarif-category "\$Env:LANGUAGE" --format sarif-latest --output "\$Env:SARIF_FILE" "codeql/\$Env:LANGUAGE-queries:codeql-suites/\$Env:LANGUAGE-security-and-quality.qls"
+            codeql database analyze --download "\$Env:DATABASE_PATH" --sarif-category "\$Env:LANGUAGE" --format sarif-latest --output "\$Env:SARIF_FILE" "\$Env:QL_PACKS"
         }
         Write-Output "Database analyzed"
 
         Write-Output "Generating CSV of results"
         if("\$Env:INSTALL_CODEQL" -eq "true") {
-            .\\codeql\\codeql database interpret-results "\$Env:DATABASE_PATH" --format=csv --output="codeql-scan-results.csv"
+            .\\codeql\\codeql database interpret-results "\$Env:DATABASE_PATH" --format=csv --output="codeql-scan-results.csv" "\$Env:QL_PACKS"
         } else {
-            codeql database interpret-results "\$Env:DATABASE_PATH" --format=csv --output="codeql-scan-results.csv"
+            codeql database interpret-results "\$Env:DATABASE_PATH" --format=csv --output="codeql-scan-results.csv" "\$Env:QL_PACKS"
         }
         Write-Output "CSV of results generated"
 
