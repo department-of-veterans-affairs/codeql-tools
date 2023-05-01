@@ -162,5 +162,5 @@ def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
             "https://uploads.github.com/repos/$ORG/$REPO/code-scanning/codeql/databases/${LANGUAGE}?name=${DATABASE_BUNDLE}"
         fi
         echo "Database Bundle uploaded"
-    '''
+    """
 }
