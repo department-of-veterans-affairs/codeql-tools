@@ -369,8 +369,10 @@ const listCodeQLAnalyses = async (octokit, owner, repo, branch, range) => {
         for (const analysis of analyses) {
             versions.push(analysis.tool.version)
             const environment = JSON.parse(analysis.environment)
-            const language = environment.language || analysis.category
-            core.info(`Found analysis for ${language}`)
+            let language = environment.language || analysis.category
+            if(language === 'kotlin') {
+                language = 'java'
+            }
             if (!languages.includes(language)) {
                 languages.push(language)
             }
