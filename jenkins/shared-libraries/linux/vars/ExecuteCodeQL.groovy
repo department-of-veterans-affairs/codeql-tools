@@ -75,7 +75,9 @@ def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
 
             echo "CodeQL installed"
         fi
+    '''
 
+    sh """
         echo "Initializing database"
         if [ -z "${BUILD_COMMAND}" ]; then
             echo "No build command, using default"
