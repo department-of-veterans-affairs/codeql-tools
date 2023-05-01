@@ -1,11 +1,14 @@
-FROM openjdk:17 as base
+FROM eclipse-temurin:17 as base
 
 RUN apt-get update && apt-get install -y \
     curl \
     git \
+    gradle \
     jq \
+    maven \
     tar \
     && rm -rf /var/lib/apt/lists/*
+RUN useradd -ms /bin/bash codeql
 
 ENV PATH="/usr/local/codeql:${PATH}"
 
@@ -19,3 +22,7 @@ RUN /tmp/install-codeql.sh && \
 FROM base as agent
 LABEL org.opencontainers.image.source=https://github.com/department-of-veterans-affairs/codeql-tools
 COPY --from=codeql /usr/local/codeql /usr/local/codeql
+USER codeql
+WORKDIR /home/codeql
+USER codeql
+WORKDIR /home/codeql

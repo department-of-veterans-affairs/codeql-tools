@@ -1,6 +1,6 @@
 {
   "name": "codeql-tools",
-  "version": "0.0.1-beta",
+  "version": "1.0.0",
   "description": "A collection of tools for managing the enablement of GitHub Advanced Security CodeQL",
   "main": "index.js",
   "scripts": {
@@ -22,7 +22,7 @@
     "docker:build:go-19": "docker build -t ghcr.io/department-of-veterans-affairs/codeql:go-19 images/go-19",
     "docker:build:go-20": "docker build -t ghcr.io/department-of-veterans-affairs/codeql:go-20 images/go-20",
     "docker:build:java-8": "docker build -t ghcr.io/department-of-veterans-affairs/codeql:java-8 images/java-8",
-    "docker:build:java-11": "docker build -t ghcr.io/department-of-veterans-affairs/codeql:java-11 images/java11-",
+    "docker:build:java-11": "docker build -t ghcr.io/department-of-veterans-affairs/codeql:java-11 images/java-11",
     "docker:build:java-17": "docker build -t ghcr.io/department-of-veterans-affairs/codeql:java-17 images/java-17",
     "docker:publish": "npm run docker:publish:node-14 && npm run docker:publish:node-16 && npm run docker:publish:node-18 && npm run docker:publish:go-14 && npm run docker:publish:go-15 && npm run docker:publish:go-16 && npm run docker:publish:go-17 && npm run docker:publish:go-18 && npm run docker:publish:go-19 && npm run docker:publish:go-20 && npm run docker:publish:java-8 && npm run docker:publish:java-11 && npm run docker:publish:java-17",
     "docker:publish:node-14": "docker push ghcr.io/department-of-veterans-affairs/codeql:node-14",
