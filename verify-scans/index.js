@@ -259,6 +259,10 @@ const getFile = async (octokit, owner, repo, path) => {
             repo: repo,
             path: path
         })
+
+        const data = Buffer.from(response.data.content, 'base64').toString()
+        console.log(data)
+
         return JSON.parse(Buffer.from(response.data.content, 'base64').toString())
     } catch (error) {
         if (error.status === 404) {
