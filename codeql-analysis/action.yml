@@ -38,7 +38,7 @@ runs:
           exit 4
         fi
 
-    - name: Build Source
+    - name: Validate emass.json
       if: steps.build-steps.outputs.result != '' && runner.os == 'Windows'
       shell: powershell
       run: |
