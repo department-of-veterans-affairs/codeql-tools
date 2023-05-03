@@ -47912,6 +47912,7 @@ axiosRetry(axios, {
 
 const {createCodeQLGitHubClient, createGitHubAppClient, createGitHubClient} = __nccwpck_require__(6794)
 
+const ENABLE_DEBUG = process.env.ACTIONS_STEP_DEBUG && process.env.ACTIONS_STEP_DEBUG.toLowerCase() === 'true'
 const main = async () => {
     // TODO: Flag failures in upload/download
     const invalidSystemIDs = []
@@ -48080,6 +48081,11 @@ const getFileJSON = async (octokit, owner, repo, path) => {
             repo: repo,
             path: path
         })
+
+        if(ENABLE_DEBUG) {
+            core.info(`[TRACE] reusableWorkflowInUse: ${Buffer.from(response.data.content, 'base64').toString()}`)
+        }
+
         return JSON.parse(Buffer.from(response.data.content, 'base64').toString())
     } catch (e) {
         if (e.status === 404) {
@@ -48097,6 +48103,11 @@ const getFileArray = async (octokit, owner, repo, path) => {
             path: path
         })
         const content = Buffer.from(response.content, 'base64').toString().trim()
+
+        if(ENABLE_DEBUG) {
+            core.info(`[TRACE] getFileArray: ${content}`)
+        }
+
         return content.split('\n').map(line => Number(line.trim()))
     } catch (e) {
         if (e.status === 404) {
