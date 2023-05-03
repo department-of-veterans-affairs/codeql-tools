@@ -15,6 +15,7 @@ axiosRetry(axios, {
     retries: 3
 })
 
+const ENABLE_DEBUG = process.env.ACTIONS_STEP_DEBUG && process.env.ACTIONS_STEP_DEBUG.toLowerCase() === 'true'
 const SOURCE_REPO = 'department-of-veterans-affairs/codeql-tools'
 
 const main = async () => {
@@ -260,6 +261,10 @@ const getFile = async (octokit, owner, repo, path) => {
             path: path
         })
 
+        if(ENABLE_DEBUG) {
+            core.info(`[TRACE] reusableWorkflowInUse: ${Buffer.from(response.data.content, 'base64').toString()}`)
+        }
+
         return JSON.parse(Buffer.from(response.data.content, 'base64').toString())
     } catch (error) {
         if (error.status === 404) {
@@ -276,6 +281,11 @@ const getRawFile = async (octokit, owner, repo, path) => {
             repo: repo,
             path: path
         })
+
+        if(ENABLE_DEBUG) {
+            core.info(`[TRACE] reusableWorkflowInUse: ${Buffer.from(response.data.content, 'base64').toString()}`)
+        }
+
         return Buffer.from(response.data.content, 'base64').toString()
     } catch (error) {
         if (error.status === 404) {

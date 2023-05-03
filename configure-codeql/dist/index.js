@@ -43445,6 +43445,7 @@ const core = __nccwpck_require__(5344)
 
 const {createGitHubClient, createGitHubAppClient, supportedCodeQLLanguages} = __nccwpck_require__(6794)
 
+const ENABLE_DEBUG = process.env.ACTIONS_STEP_DEBUG && process.env.ACTIONS_STEP_DEBUG.toLowerCase() === 'true'
 const PULL_REQUEST_TITLE = 'Action Required: Configure CodeQL'
 const SOURCE_BRANCH_NAME = 'ghas-enforcement-codeql'
 const SOURCE_REPO = 'department-of-veterans-affairs/codeql-tools'
@@ -43749,7 +43750,7 @@ const generateEMASSJson = () => {
         systemID: 0,
         systemName: '<system_name>',
         systemOwnerName: '<full_name>',
-        systemOwnerEmail: '<email>',
+        systemOwnerEmail: '<email>'
     }
 
     return JSON.stringify(emass, null, 2)
@@ -43879,6 +43880,10 @@ const reusableWorkflowInUse = async (octokit, owner, repo, branch, path) => {
             ref: branch
         })
         const decodedContent = Buffer.from(workflow.content, 'base64').toString('utf-8')
+
+        if(ENABLE_DEBUG) {
+            core.info(`[TRACE] reusableWorkflowInUse: ${decodedContent}`)
+        }
 
         return decodedContent.includes(SOURCE_REPO)
     } catch (e) {
