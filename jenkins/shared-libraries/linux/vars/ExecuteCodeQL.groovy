@@ -41,6 +41,20 @@ def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
 
         cd "${WORKSPACE}"
 
+        json_file=".github/emass.json"
+
+        echo "Validating emass.json"
+        if [ ! -f "$json_file" ]; then
+          echo "Error: emass.json not found, please refer to the OIS documentation on creating the emass.json file"
+          exit 1
+        fi
+
+        output=\$(jq '.' "$json_file" 2> /dev/null)
+        if [ $? -ne 0 ]; then
+          echo "Error: malformed emass.json file, please refer to the OIS documentation on creating the emass.json file"
+          exit 4
+        fi
+
         if [ "${INSTALL_CODEQL}" = false ]; then
             echo "Skipping installation of CodeQL"
         else
