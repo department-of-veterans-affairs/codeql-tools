@@ -27,7 +27,7 @@ tree
 
 echo "Staging log file"
 rm -f "reports/actions/${LOG_DIRECTORY}/logs.txt"
-mv ${FILENAME} "reports/actions/${LOG_DIRECTORY}/logs.txt"
+mv "${FILENAME}" "reports/actions/${LOG_DIRECTORY}/logs.txt"
 
 echo "Staging logs"
 git config --global user.name "github-actions[bot]"
