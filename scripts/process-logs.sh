@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+set -euo pipefail
+
 echo "Retrieving latest Configure CodeQL workflow run ID..."
 id=$(curl -L \
        -H "Accept: application/vnd.github+json" \
