@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
 set -euo pipefail
+set -x
 
 echo "Retrieving latest Configure CodeQL workflow run ID..."
 id=$(curl -L \
@@ -21,6 +22,8 @@ curl -L \
 
 echo "Unzipping logs"
 unzip logs.zip
+
+tree
 
 echo "Staging log file"
 rm -f "reports/actions/${LOG_DIRECTORY}/logs.txt"
