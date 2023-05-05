@@ -461,6 +461,7 @@ const refExists = async (octokit, owner, repo, ref) => {
 
 const createRef = async (octokit, owner, repo, ref, sha) => {
     try {
+        core.info(`creating ref ${ref} at sha ${sha}`)
         await octokit.request('POST /repos/{owner}/{repo}/git/refs', {
             owner: owner,
             repo: repo,
