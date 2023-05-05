@@ -119,10 +119,10 @@ const main = async () => {
                     const branchExists = await refExists(emassOrganizationApp, config.emass_org, emassRepoName, analysis.ref)
                     if (!branchExists) {
                         core.info(`[${repository.name}]: Branch does not exist, creating branch ${branch}`)
-                        await createRef(emassOrganizationApp, config.emass_org, emassRepoName, defaultBranchSHA, analysis.ref)
+                        await createRef(adminClient, config.emass_org, emassRepoName, defaultBranchSHA, analysis.ref)
 
                         core.info(`[${repository.name}]: Setting branch ${branch} as default branch`)
-                        await setDefaultBranch(emassOrganizationApp, config.emass_org, emassRepoName, branch)
+                        await setDefaultBranch(adminClient, config.emass_org, emassRepoName, branch)
                     }
 
                     core.info(`[${repository.name}]: Uploading SARIF analysis ${_analysis}`)
@@ -461,7 +461,6 @@ const refExists = async (octokit, owner, repo, ref) => {
 
 const createRef = async (octokit, owner, repo, ref, sha) => {
     try {
-        core.info(`creating ref ${ref} at ${sha}`)
         await octokit.request('POST /repos/{owner}/{repo}/git/refs', {
             owner: owner,
             repo: repo,
