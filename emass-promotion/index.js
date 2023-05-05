@@ -114,6 +114,17 @@ const main = async () => {
                     core.info(`[${repository.name}]: Retrieving default branch`)
                     const defaultBranchSHA = await getDefaultBranchSHA(emassOrganizationApp, config.emass_org, emassRepoName)
 
+                    const branch = analysis.ref.split('refs/heads/')[1]
+                    core.info(`[${repository.name}]: Checking if branch ${analysis.ref} exists`)
+                    const branchExists = await refExists(emassOrganizationApp, config.emass_org, emassRepoName, analysis.ref)
+                    if (!branchExists) {
+                        core.info(`[${repository.name}]: Branch does not exist, creating branch ${analysis.ref}`)
+                        await createRef(emassOrganizationApp, config.emass_org, emassRepoName, defaultBranchSHA, analysis.ref)
+
+                        core.info(`[${repository.name}]: Setting branch ${branch} as default branch`)
+                        await setDefaultBranch(emassOrganizationApp, config.emass_org, emassRepoName, branch)
+                    }
+
                     core.info(`[${repository.name}]: Uploading SARIF analysis ${_analysis}`)
                     await uploadAnalysis(emassOrganizationApp, config.emass_org, emassRepoName, defaultBranchSHA, analysis.ref, sarif)
                 }
@@ -425,8 +436,51 @@ const createRepo = async (octokit, org, repo) => {
             has_wiki: false,
             auto_init: true
         })
+
+
     } catch (e) {
         throw new Error(`Error creating repo: ${e.message}`)
+    }
+}
+
+const refExists = async (octokit, owner, repo, ref) => {
+    try {
+        await octokit.request('GET /repos/{owner}/{repo}/git/ref/{ref}', {
+            owner: owner,
+            repo: repo,
+            ref: ref
+        })
+        return true
+    } catch (e) {
+        if (e.status === 404) {
+            return false
+        }
+        throw new Error(`Error checking if ref exists: ${e.message}`)
+    }
+}
+
+const createRef = async (octokit, owner, repo, ref, sha) => {
+    try {
+        await octokit.request('POST /repos/{owner}/{repo}/git/refs', {
+            owner: owner,
+            repo: repo,
+            ref: ref,
+            sha: sha
+        })
+    } catch (e) {
+        throw new Error(`Error creating ref: ${e.message}`)
+    }
+}
+
+const setDefaultBranch = async (octokit, owner, repo, branch) => {
+    try {
+        await octokit.repos.update({
+            owner: owner,
+            repo: repo,
+            default_branch: branch
+        })
+    } catch (e) {
+        throw new Error(`Error setting default branch: ${e.message}`)
     }
 }
 
