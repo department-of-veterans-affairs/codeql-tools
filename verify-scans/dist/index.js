@@ -65049,8 +65049,9 @@ const main = async () => {
                 core.info(`[${repository.name}]: Validating CodeQL CLI version`)
                 for(const version of analyses.versions) {
                     if (!codeQLVersions.includes(version)) {
-                        core.info(`[${repository.name}]: Outdated CodeQL CLI version found: ${version}`)
+                        core.warning(`[${repository.name}]: Outdated CodeQL CLI version found: ${version}`)
                         outdatedCLI.push(repository.name)
+                        core.info(`[${repository.name}]: Sending outdated CodeQL CLI email to SWA and System Owner`)
                         const body = await generateOutOfComplianceCLIEmailBody(config.out_of_compliance_cli_email_template, repository.html_url)
                         await sendEmail(mailer, config.gmail_from, [emassConfig.systemOwnerEmail, config.gmail_from], 'GitHub Repository Code Scanning Software Is Out Of Date', body)
                         await createIssue(octokit, repository.owner.login, repository.name, 'GitHub Repository Code Scanning Software Is Out Of Date', body)
