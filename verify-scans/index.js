@@ -21,7 +21,7 @@ const SOURCE_REPO = 'department-of-veterans-affairs/codeql-tools'
 const main = async () => {
     // TODO: Flag failures in upload/download
     const skippedIgnored = []
-    const missing = {}
+    const missingData = {}
     const emassMissing = []
     const notified = []
     const outdatedCLI = []
@@ -58,7 +58,7 @@ const main = async () => {
             core.info(`[${repository.name}]: Retrieving .emass-repo-ignore file`)
             const emassIgnore = await getRawFile(octokit, repository.owner.login, repository.name, '.emass-repo-ignore')
             if (emassIgnore) {
-                core.info(`[${repository.name}]: Found .emass-repo-ignore file, skipping repository`)
+                core.info(`[${repository.name}]: [skipped-ignored] Found .emass-repo-ignore file, skipping repository`)
                 skippedIgnored.push(repository.name)
                 return
             }
@@ -94,7 +94,7 @@ const main = async () => {
                 core.info(`[${repository.name}]: Validating CodeQL CLI version`)
                 for(const version of analyses.versions) {
                     if (!codeQLVersions.includes(version)) {
-                        core.warning(`[${repository.name}]: Outdated CodeQL CLI version found: ${version}`)
+                        core.warning(`[${repository.name}]: [out-of-date-cli] Outdated CodeQL CLI version found: ${version}`)
                         outdatedCLI.push(repository.name)
                         core.info(`[${repository.name}]: Sending outdated CodeQL CLI email to SWA and System Owner`)
                         const body = await generateOutOfComplianceCLIEmailBody(config.out_of_compliance_cli_email_template, repository.html_url)
@@ -119,17 +119,17 @@ const main = async () => {
                 return
             }
 
-            missing[repository.name] = {
+            missingData[repository.name] = {
                 missingAnalyses: missingAnalyses,
                 missingDatabases: missingDatabases
             }
 
-            core.warning(`[${repository.name}]: Missing analyses or databases identified: ${JSON.stringify(missing[repository.name])}`)
+            core.warning(`[${repository.name}]: [missing-data] Missing analyses or databases identified: ${JSON.stringify(missingData[repository.name])}`)
             const uniqueMissingLanguages = [...new Set([...missingAnalyses, ...missingDatabases])]
             const repoURL = `https://github.com/${repository.owner.login}/${repository.name}`
 
             if (!emassConfig || !emassConfig.systemOwnerEmail) {
-                core.warning(`[${repository.name}]: No .github/emass.json file found`)
+                core.warning(`[${repository.name}]: [missing-configuration] No .github/emass.json file found`)
                 emassMissing.push(repository.name)
 
                 core.info(`[${repository.name}]: Sending missing EMASS information email to SWA`)
@@ -151,6 +151,7 @@ const main = async () => {
 
             core.info(`[${repository.name}]: Sending email to system owner`)
             await sendEmail(mailer, config.gmail_from, emassConfig.systemOwnerEmail, 'GitHub Repository Code Scanning Not Enabled', body)
+            core.info(`[${repository.name}]: [system-owner-notified] Successfully sent email`)
             notified.push(repository.name)
 
             core.info(`[${repository.name}]: Finished processing repository`)

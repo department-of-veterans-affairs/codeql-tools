@@ -47953,13 +47953,13 @@ const main = async () => {
             core.info(`[${repository.name}]: Processing repository`)
             const emassConfig = await getFileJSON(octokit, repository.owner.login, repository.name, '.github/emass.json')
             if (!emassConfig) {
-                core.warning(`[${repository.name}]: Skipping repository as it does not contain an emass.json file`)
+                core.warning(`[${repository.name}]: [emass-json-not-found] Skipping repository as it does not contain an emass.json file`)
                 emassFileNotFound.push(repository.name)
                 return
             }
 
             if (!systemIDs.includes(emassConfig.systemID)) {
-                core.warning(`[${repository.name}]: Skipping repository as it contains an invalid System ID`)
+                core.warning(`[${repository.name}]: [invalid-system-id] Skipping repository as it contains an invalid System ID`)
                 invalidSystemIDs.push(repository.name)
                 return
             }
@@ -47977,7 +47977,7 @@ const main = async () => {
             const codeqlDatabases = await listCodeQLDatabases(emassPromotionInstallation, repository.owner.login, repository.name, config.days_to_scan)
 
             if (codeqlDatabases.length === 0) {
-                core.warning(`[${repository.name}]: Skipping repository as it does not contain any new CodeQL databases`)
+                core.warning(`[${repository.name}]: [skipped-database-not-found] Skipping repository as it does not contain any new CodeQL databases`)
                 skippedDatabaseNotFound.push(repository.name)
             } else {
                 for (const database of codeqlDatabases) {
@@ -47996,7 +47996,7 @@ const main = async () => {
             core.info(`[${repository.name}]: Retrieving recent CodeQL analysis runs`)
             const codeqlAnalysisRuns = await listCodeQLAnalyses(octokit, repository.owner.login, repository.name, repository.default_branch, config.days_to_scan)
             if (codeqlAnalysisRuns.count === 0) {
-                core.warning(`[${repository.name}]: Skipping repository as it does not contain any new SARIF analyses`)
+                core.warning(`[${repository.name}]: [skipped-sarif-not-found] Skipping repository as it does not contain any new SARIF analyses`)
                 skippedSarifNotFound.push(repository.name)
             } else {
                 for (const _analysis of Object.keys(codeqlAnalysisRuns.analyses)) {
@@ -48022,6 +48022,7 @@ const main = async () => {
                     await uploadAnalysis(emassOrganizationApp, config.emass_org, emassRepoName, defaultBranchSHA, analysis.ref, sarif)
                 }
             }
+            core.info(`[${repository.name}]: [successful-upload] Finished configuring repository`)
             successfulUploads.push(repository.name)
 
             core.info(`[${repository.name}]: Finished processing repository`)
