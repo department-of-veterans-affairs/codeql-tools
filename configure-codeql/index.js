@@ -39,7 +39,7 @@ const main = async () => {
         try {
             core.info(`[${repository.name}]: Processing repository`)
             if (verifyScansInstalledRepositories.includes(repository.name)) {
-                core.info(`[${repository.name}]: Skipping repository as it is has already been configured via the Configure CodeQL GitHub App Pull Request`)
+                core.info(`[${repository.name}]: [skipped-already-configured] Skipping repository as it is has already been configured via the Configure CodeQL GitHub App Pull Request`)
                 skippedAlreadyConfigured.push(repository.name)
                 return
             }
@@ -58,6 +58,8 @@ const main = async () => {
                     if (reusableWorkflowUsed) {
                         core.info(`[${repository.name}]: Repository has Code Scanning enabled and reusable workflow in use, installing 'verify-scans' GitHub App`)
                         await installVerifyScansApp(adminClient, config.verify_scans_installationID, repository.id)
+
+                        core.info(`[${repository.name}]: [repo-already-configured] Successfully installed 'verify-scans' repository`)
                         installedVerifyScansAppRepoAlreadyConfigured.push(repository.name)
                         return
                     } else {
@@ -69,7 +71,7 @@ const main = async () => {
             core.info(`[${repository.name}]: Retrieving repository languages`)
             const languages = await retrieveSupportedCodeQLLanguages(octokit, repository.owner.login, repository.name)
             if (languages.length === 0) {
-                core.warning(`[${repository.name}]: Skipping repository as it does not contain any supported languages`)
+                core.warning(`[${repository.name}]: [skipped-no-supported-languages] Skipping repository as it does not contain any supported languages`)
                 skippedNoSupportedLanguages.push(repository.name)
                 return
             }
@@ -116,10 +118,12 @@ const main = async () => {
 
             core.info(`[${repository.name}]: Installing 'verify-scans' GitHub App`)
             await installVerifyScansApp(adminClient, config.verify_scans_installationID, repository.id)
+
+            core.info(`[${repository.name}]: [installed-verify-scans-application] Successfully installed 'verify-scans' repository`)
             installedVerifyScansApp.push(repository.name)
             core.info(`[${repository.name}]: Finished processing repository`)
         } catch (e) {
-            core.error(`[${repository.name}]: Failed to process repository: ${e}`)
+            core.error(`[${repository.name}]: [configuration-failed] Failed to process repository: ${e}`)
             configFailed[repository.name] = e.message
         }
     })
