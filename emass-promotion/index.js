@@ -118,7 +118,7 @@ const main = async () => {
                     core.info(`[${repository.name}]: Checking if branch ${analysis.ref} exists`)
                     const branchExists = await refExists(emassOrganizationApp, config.emass_org, emassRepoName, analysis.ref)
                     if (!branchExists) {
-                        core.info(`[${repository.name}]: Branch does not exist, creating branch ${analysis.ref}`)
+                        core.info(`[${repository.name}]: Branch does not exist, creating branch ${branch}`)
                         await createRef(emassOrganizationApp, config.emass_org, emassRepoName, defaultBranchSHA, analysis.ref)
 
                         core.info(`[${repository.name}]: Setting branch ${branch} as default branch`)
@@ -133,7 +133,7 @@ const main = async () => {
 
             core.info(`[${repository.name}]: Finished processing repository`)
         } catch (error) {
-            core.error(`[${repository.name}]: Error processing repository: ${error}`)
+            core.error(`[${repository.name}]: failed processing repository: ${error}`)
         }
     })
 
@@ -231,7 +231,7 @@ const getFileArray = async (octokit, owner, repo, path) => {
         if (e.status === 404) {
             return null
         }
-        throw new Error(`Error retrieving ${path} for ${owner}/${repo}: ${e.message}`)
+        throw new Error(`failed retrieving ${path} for ${owner}/${repo}: ${e.message}`)
     }
 }
 
@@ -249,7 +249,7 @@ const listCodeQLDatabases = async (octokit, owner, repo, range) => {
         if (e.status === 404) {
             return []
         }
-        throw new Error(`Error retrieving CodeQL databases for ${owner}/${repo}: ${e.message}`)
+        throw new Error(`failed retrieving CodeQL databases for ${owner}/${repo}: ${e.message}`)
     }
 }
 
@@ -275,7 +275,7 @@ const downloadCodeQLDatabase = async (token, url, path) => {
 
         fs.writeFileSync(path, response.data)
     } catch (e) {
-        throw new Error(`Error downloading CodeQL database: ${e.message}`)
+        throw new Error(`failed downloading CodeQL database: ${e.message}`)
     }
 }
 
@@ -297,7 +297,7 @@ const uploadCodeQLDatabase = async (octokit, token, owner, repo, language, path,
             }
         )
     } catch (e) {
-        throw new Error(`Error uploading CodeQL database: ${e.message}`)
+        throw new Error(`failed uploading CodeQL database: ${e.message}`)
     }
 }
 
@@ -359,7 +359,7 @@ const listCodeQLAnalyses = async (octokit, owner, repo, branch, range) => {
         if (e.status === 404) {
             return []
         }
-        throw new Error(`Error retrieving CodeQL analyses for ${owner}/${repo}: ${e.message}`)
+        throw new Error(`failed retrieving CodeQL analyses for ${owner}/${repo}: ${e.message}`)
     }
 }
 
@@ -377,7 +377,7 @@ const downloadAndEncodeAnalysis = async (octokit, owner, repo, id) => {
         const compressedSarif = await gzip(JSON.stringify(sarif))
         return Buffer.from(compressedSarif).toString('base64')
     } catch (e) {
-        throw new Error(`Error downloading and encoding CodeQL analysis: ${e.message}`)
+        throw new Error(`failed downloading and encoding CodeQL analysis: ${e.message}`)
     }
 }
 
@@ -391,7 +391,7 @@ const uploadAnalysis = async (octokit, owner, repo, sha, ref, sarif) => {
             sarif: sarif
         })
     } catch (e) {
-        throw new Error(`Error uploading CodeQL analysis: ${e.message}`)
+        throw new Error(`failed uploading CodeQL analysis: ${e.message}`)
     }
 }
 
@@ -406,7 +406,7 @@ const repoExists = async (octokit, owner, repo) => {
         if (e.status === 404) {
             return false
         }
-        throw new Error(`Error checking if repo exists: ${e.message}`)
+        throw new Error(`failed checking if repo exists: ${e.message}`)
     }
 }
 
@@ -421,7 +421,7 @@ const getDefaultBranchSHA = async (octokit, owner, repo, branch) => {
 
         return commits[0].sha
     } catch (e) {
-        throw new Error(`Error retrieving default branch SHA: ${e.message}`)
+        throw new Error(`failed retrieving default branch SHA: ${e.message}`)
     }
 }
 
@@ -439,7 +439,7 @@ const createRepo = async (octokit, org, repo) => {
 
 
     } catch (e) {
-        throw new Error(`Error creating repo: ${e.message}`)
+        throw new Error(`failed creating repo: ${e.message}`)
     }
 }
 
@@ -455,12 +455,13 @@ const refExists = async (octokit, owner, repo, ref) => {
         if (e.status === 404) {
             return false
         }
-        throw new Error(`Error checking if ref exists: ${e.message}`)
+        throw new Error(`failed checking if ref exists: ${e.message}`)
     }
 }
 
 const createRef = async (octokit, owner, repo, ref, sha) => {
     try {
+        core.info(`creating ref ${ref} at ${sha}`)
         await octokit.request('POST /repos/{owner}/{repo}/git/refs', {
             owner: owner,
             repo: repo,
@@ -468,7 +469,7 @@ const createRef = async (octokit, owner, repo, ref, sha) => {
             sha: sha
         })
     } catch (e) {
-        throw new Error(`Error creating ref: ${e.message}`)
+        throw new Error(`failed creating ref: ${e.message}`)
     }
 }
 
@@ -480,7 +481,7 @@ const setDefaultBranch = async (octokit, owner, repo, branch) => {
             default_branch: branch
         })
     } catch (e) {
-        throw new Error(`Error setting default branch: ${e.message}`)
+        throw new Error(`failed setting default branch: ${e.message}`)
     }
 }
 
@@ -488,7 +489,7 @@ const deleteLocalFile = async (path) => {
     try {
         fs.unlinkSync(path)
     } catch (e) {
-        throw new Error(`Error deleting local file: ${e.message}`)
+        throw new Error(`failed deleting local file: ${e.message}`)
     }
 }
 
