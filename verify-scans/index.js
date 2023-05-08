@@ -512,7 +512,7 @@ const createIssue = async (octokit, owner, repo, title, body, labels) => {
             repo: repo,
             title: title,
             body: body,
-            labels: ['ghas-non-compliant'].concat(labels)
+            labels: labels ? ['ghas-non-compliant'].concat(labels) : ['ghas-non-compliant']
         })
     } catch (e) {
         throw new Error(`Failed to create issue: ${e.message}`)
