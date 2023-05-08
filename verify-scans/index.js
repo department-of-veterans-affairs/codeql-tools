@@ -140,7 +140,7 @@ const main = async () => {
                 if (!emassMissingIssueExists) {
                     core.info(`[${repository.name}]: Creating missing EMASS information issue`)
                     const issueBody = generateMissingEMASSInfoIssue(config.missing_info_issue_template, repoURL, uniqueMissingLanguages)
-                    await createIssue(octokit, repository.owner.login, repository.name, 'Error: GitHub Repository Not Mapped To eMASS System', issueBody)
+                    await createIssue(octokit, repository.owner.login, repository.name, 'Error: GitHub Repository Not Mapped To eMASS System', issueBody, ['out-of-date-codeql-cli'])
                 }
 
                 return
@@ -505,14 +505,14 @@ const issueExists = async (octokit, owner, repo, label) => {
     }
 }
 
-const createIssue = async (octokit, owner, repo, title, body) => {
+const createIssue = async (octokit, owner, repo, title, body, labels) => {
     try {
         await octokit.issues.create({
             owner: owner,
             repo: repo,
             title: title,
             body: body,
-            labels: ['ghas-non-compliant']
+            labels: ['ghas-non-compliant'].concat(labels)
         })
     } catch (e) {
         throw new Error(`Failed to create issue: ${e.message}`)
