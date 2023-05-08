@@ -92,7 +92,7 @@ const main = async () => {
                 }
 
                 core.info(`[${repository.name}]: Validating CodeQL CLI version`)
-                for(const version of analyses.versions) {
+                for (const version of analyses.versions) {
                     if (!codeQLVersions.includes(version)) {
                         core.warning(`[${repository.name}]: [out-of-date-cli] Outdated CodeQL CLI version found: ${version}`)
                         outdatedCLI.push(repository.name)
@@ -263,7 +263,7 @@ const getFile = async (octokit, owner, repo, path) => {
             path: path
         })
 
-        if(ENABLE_DEBUG) {
+        if (ENABLE_DEBUG) {
             core.info(`[TRACE] reusableWorkflowInUse: ${Buffer.from(response.data.content, 'base64').toString()}`)
         }
 
@@ -284,7 +284,7 @@ const getRawFile = async (octokit, owner, repo, path) => {
             path: path
         })
 
-        if(ENABLE_DEBUG) {
+        if (ENABLE_DEBUG) {
             core.info(`[TRACE] reusableWorkflowInUse: ${Buffer.from(response.data.content, 'base64').toString()}`)
         }
 
@@ -299,8 +299,6 @@ const getRawFile = async (octokit, owner, repo, path) => {
 
 const missingLanguages = (requiredLanguages, languages) => {
     try {
-        console.log(requiredLanguages)
-        console.log(languages)
         return requiredLanguages.filter(language => !languages.includes(language))
     } catch (e) {
         throw new Error(`Failed to calculate missing languages: ${e.message}`)
@@ -316,9 +314,10 @@ const listLanguages = async (octokit, owner, repo, ignoredLanguages) => {
 
         return Object.keys(languages).map(language => language.toLowerCase())
             .map(language => {
-                if(language === 'kotlin') {
+                if (language === 'kotlin') {
                     return 'java'
                 }
+                return language
             })
             .filter(language => supportedCodeQLLanguages.includes(language))
             .filter(language => !ignoredLanguages.includes(language))
@@ -390,7 +389,7 @@ const listCodeQLAnalyses = async (octokit, owner, repo, branch, range) => {
             versions.push(analysis.tool.version)
             const environment = JSON.parse(analysis.environment)
             let language = environment.language || analysis.category
-            if(language === 'kotlin') {
+            if (language === 'kotlin') {
                 language = 'java'
             }
             if (!languages.includes(language)) {
