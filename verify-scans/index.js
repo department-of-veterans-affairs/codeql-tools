@@ -56,7 +56,7 @@ const main = async () => {
     await verifyScansApp.eachRepository(async ({octokit, repository}) => {
         try {
             core.info(`[${repository.name}]: Retrieving .emass-repo-ignore file`)
-            const emassIgnore = await getRawFile(octokit, repository.owner.login, repository.name, '.emass-repo-ignore')
+            const emassIgnore = await getRawFile(octokit, repository.owner.login, repository.name, '.github/.emass-repo-ignore')
             if (emassIgnore) {
                 core.info(`[${repository.name}]: [skipped-ignored] Found .emass-repo-ignore file, skipping repository`)
                 skippedIgnored.push(repository.name)
