@@ -3,37 +3,43 @@
 set -euo pipefail
 set -x
 
-echo "Retrieving latest Configure CodeQL workflow run ID..."
-id=$(curl -L \
-       -H "Accept: application/vnd.github+json" \
-       -H "Authorization: Bearer ${ADMIN_TOKEN}"\
-       -H "X-GitHub-Api-Version: 2022-11-28" \
-        "https://api.github.com/repos/${REPO}/actions/workflows/${ACTION_FILENAME}/runs?per_page=1" | jq '.workflow_runs[0].id')
+workflows=()
+workflows["configure-codeql"]="1_Configure CodeQL.txt"
+workflows["verify-scans"]="1_Verify Scans.txt"
+workflows["emass-promotion"]="1_Promote CodeQL Assets.txt"
 
-echo "Retrieving logs for run ID ${id}..."
-curl -L \
-  -H "Accept: application/vnd.github+json" \
-  -H "Authorization: Bearer ${ADMIN_TOKEN}"\
-  -H "X-GitHub-Api-Version: 2022-11-28" \
-  --retry 3 \
-  --output logs.zip \
-  --location \
-  "https://api.github.com/repos/${REPO}/actions/runs/${id}/logs"
+for key in "${!workflows[@]}"; do
+  echo "Retrieving latest ${key} workflow run ID..."
+  id=$(curl -L \
+    -H "Accept: application/vnd.github+json" \
+    -H "Authorization: Bearer ${ADMIN_TOKEN}" \
+    -H "X-GitHub-Api-Version: 2022-11-28" \
+    "https://api.github.com/repos/${REPO}/actions/workflows/${key}.yml/runs?per_page=1" | jq '.workflow_runs[0].id')
 
-echo "Unzipping logs"
-unzip logs.zip
+  echo "Retrieving logs for ${key} run ID ${id}..."
+  curl -L \
+    -H "Accept: application/vnd.github+json" \
+    -H "Authorization: Bearer ${ADMIN_TOKEN}" \
+    -H "X-GitHub-Api-Version: 2022-11-28" \
+    --retry 3 \
+    --output logs.zip \
+    --location \
+    "https://api.github.com/repos/${REPO}/actions/runs/${id}/logs"
 
-tree
+  echo "Unzipping logs"
+  unzip logs.zip
 
-echo "Staging log file"
-rm -f "reports/actions/${LOG_DIRECTORY}/logs.txt"
-mv "${FILENAME}" "reports/actions/${LOG_DIRECTORY}/logs.txt"
+  tree
 
-echo "Staging logs"
-git config --global user.name "github-actions[bot]"
-git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
-git add "reports/actions/${LOG_DIRECTORY}/logs.txt"
-git commit -m "adding latest ${LOG_DIRECTORY} workflow logs"
+  echo "Staging log file"
+  rm -f "reports/actions/${key}/logs.txt"
+  mv "${workflows[key]}" "reports/actions/${key}/logs.txt"
+  echo "Staging logs"
+  git config --global user.name "github-actions[bot]"
+  git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+  git add "reports/actions/${key}/logs.txt"
+  git commit -m "adding latest ${key} workflow logs"
+done
 
 echo "Pushing logs"
 git push
