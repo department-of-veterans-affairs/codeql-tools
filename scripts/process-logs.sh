@@ -36,7 +36,6 @@ for key in "${!workflows[@]}"; do
   echo "Moving log file"
   rm -f "reports/actions/${key}/logs.txt"
   mv "${workflows[$key]}" "reports/actions/${key}/logs.txt"
-  git clean -ffd
 
   git_status_output=$(git status --porcelain)
   if echo "$git_status_output" | grep -qE "^(A|M)"; then
@@ -45,6 +44,7 @@ for key in "${!workflows[@]}"; do
     git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
     git status
     git add "reports/actions/${key}/logs.txt"
+    git clean -ffd
     git commit -m "adding latest ${key} workflow logs"
   else
     echo "No changes to commit"
