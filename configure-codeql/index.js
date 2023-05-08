@@ -121,7 +121,7 @@ const main = async () => {
 
             core.info(`[${repository.name}]: [installed-verify-scans-application] Successfully installed 'verify-scans' repository`)
             installedVerifyScansApp.push(repository.name)
-            core.info(`[${repository.name}]: Finished processing repository`)
+            core.info(`[${repository.name}]: Repository successfully configured`)
         } catch (e) {
             core.error(`[${repository.name}]: [configuration-failed] Failed to process repository: ${e}`)
             configFailed[repository.name] = e.message
