@@ -10,14 +10,17 @@ workflows["emass-promotion"]="1_Promote CodeQL Assets.txt"
 
 for key in "${!workflows[@]}"; do
   echo "Retrieving latest ${key} workflow run ID..."
-  id=$(curl -L \
-    -H "Accept: application/vnd.github+json" \
-    -H "Authorization: Bearer ${ADMIN_TOKEN}" \
-    -H "X-GitHub-Api-Version: 2022-11-28" \
-    "https://api.github.com/repos/${REPO}/actions/workflows/${key}.yml/runs?per_page=1" | jq '.workflow_runs[0].id')
+  id=$(
+    curl \
+      -H "Accept: application/vnd.github+json" \
+      -H "Authorization: Bearer ${ADMIN_TOKEN}" \
+      -H "X-GitHub-Api-Version: 2022-11-28" \
+      --silent --location ]
+    "https://api.github.com/repos/${REPO}/actions/workflows/${key}.yml/runs?per_page=1" | jq '.workflow_runs[0].id'
+  )
 
   echo "Retrieving logs for ${key} run ID ${id}..."
-  curl -L \
+  curl \
     -H "Accept: application/vnd.github+json" \
     -H "Authorization: Bearer ${ADMIN_TOKEN}" \
     -H "X-GitHub-Api-Version: 2022-11-28" \
