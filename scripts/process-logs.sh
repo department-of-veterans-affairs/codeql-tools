@@ -8,7 +8,7 @@ workflows["configure-codeql"]="1_Configure CodeQL.txt"
 workflows["verify-scans"]="1_Verify Scans.txt"
 workflows["emass-promotion"]="1_Promote CodeQL Assets.txt"
 
-for [[ key in "${!workflows[@]}" ]]; do
+for key in "${!workflows[@]}"; do
   echo "Retrieving latest ${key} workflow run ID..."
   id=$(
     curl \
