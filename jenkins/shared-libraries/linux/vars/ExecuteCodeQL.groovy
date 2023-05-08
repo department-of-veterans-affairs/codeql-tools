@@ -43,9 +43,6 @@ def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
 
         json_file=".github/emass.json"
 
-        echo $PATH
-        jq --help
-
         echo "Validating emass.json"
         if [ ! -f "$json_file" ]; then
           echo "Error: emass.json not found, please refer to the OIS documentation on creating the emass.json file"
@@ -71,7 +68,7 @@ def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
                 "https://api.github.com/repos/github/codeql-action/releases/latest" | jq -r .tag_name)
 
                 echo "Downloading CodeQL version '\$id'"
-                curl --insecure --silent --retry 3 --location --output "${WORKSPACE}/codeql.tgz" \
+                curl --insecure --retry 3 --location --output "${WORKSPACE}/codeql.tgz" \
                 --header "${AUTHORIZATION_HEADER}" \
                 "https://github.com/github/codeql-action/releases/download/\$id/codeql-bundle-linux64.tar.gz"
                 tar -xf "${WORKSPACE}/codeql.tgz" --directory "${WORKSPACE}"
