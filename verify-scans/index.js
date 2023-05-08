@@ -72,11 +72,9 @@ const main = async () => {
             let codeqlConfig
             let ignoredLanguages = []
             const _codeqlConfigRaw = await getRawFile(octokit, repository.owner.login, repository.name, '.github/codeql-config.yml')
-            console.log(_codeqlConfigRaw)
-            const _codeqlConfig = yaml.load(_codeqlConfigRaw)
-            if (_codeqlConfig) {
+            if (_codeqlConfigRaw) {
                 core.info(`[${repository.name}]: Found codeql-config.yml file, parsing file`)
-                codeqlConfig = yaml.load(_codeqlConfig)
+                codeqlConfig = yaml.load(_codeqlConfigRaw)
 
                 core.info(`[${repository.name}]: Parsing ignored languages`)
                 ignoredLanguages = codeqlConfig.excluded_languages.map(language => language.name.toLowerCase())
