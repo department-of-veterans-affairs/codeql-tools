@@ -48120,7 +48120,7 @@ const getFileArray = async (octokit, owner, repo, path) => {
             core.info(`[TRACE] getFileArray: ${content}`)
         }
 
-        return content.split('\n').map(line => Number(line.trim()))
+        return content.split('\n').filter(line => !line.includes('#')).map(line => Number(line.trim()))
     } catch (e) {
         if (e.status === 404) {
             return null

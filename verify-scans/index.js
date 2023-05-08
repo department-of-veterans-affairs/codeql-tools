@@ -151,10 +151,10 @@ const main = async () => {
 
             core.info(`[${repository.name}]: Sending email to system owner`)
             await sendEmail(mailer, config.gmail_from, emassConfig.systemOwnerEmail, 'GitHub Repository Code Scanning Not Enabled', body)
-            core.info(`[${repository.name}]: [system-owner-notified] Successfully sent email`)
+            core.warning(`[${repository.name}]: [system-owner-notified] Successfully sent email to system owner`)
             notified.push(repository.name)
 
-            core.info(`[${repository.name}]: Finished processing repository`)
+            core.info(`[${repository.name}]: Successfully processed repository`)
         } catch (error) {
             core.error(`[${repository.name}]: Error processing repository: ${error}`)
         }
