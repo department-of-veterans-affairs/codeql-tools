@@ -65052,7 +65052,7 @@ const main = async () => {
                         core.warning(`[${repository.name}]: [out-of-date-cli] Outdated CodeQL CLI version found: ${version}`)
                         outdatedCLI.push(repository.name)
                         core.info(`[${repository.name}]: Sending outdated CodeQL CLI email to SWA and System Owner`)
-                        const body = await generateOutOfComplianceCLIEmailBody(config.out_of_compliance_cli_email_template, repository.html_url, version)
+                        const body = await generateOutOfComplianceCLIEmailBody(config.out_of_compliance_cli_email_template, repository.name, repository.html_url, version)
                         await sendEmail(mailer, config.gmail_from, [emassConfig.systemOwnerEmail, config.gmail_from], 'GitHub Repository Code Scanning Software Is Out Of Date', body)
                         await createIssue(octokit, repository.owner.login, repository.name, 'GitHub Repository Code Scanning Software Is Out Of Date', body)
                         break
@@ -65095,7 +65095,7 @@ const main = async () => {
                 if (!emassMissingIssueExists) {
                     core.info(`[${repository.name}]: Creating missing EMASS information issue`)
                     const issueBody = generateMissingEMASSInfoIssue(config.missing_info_issue_template, repoURL, uniqueMissingLanguages)
-                    await createIssue(octokit, repository.owner.login, repository.name, 'Error: GitHub Repository Not Mapped To eMASS System', issueBody)
+                    await createIssue(octokit, repository.owner.login, repository.name, 'Error: GitHub Repository Not Mapped To eMASS System', issueBody, ['out-of-date-codeql-cli'])
                 }
 
                 return
@@ -65427,9 +65427,10 @@ const generateNonCompliantEmailBody = (template, systemID, systemName, repositor
         .replaceAll('<LANGUAGES_PLACEHOLDER>', languageTemplate)
 }
 
-const generateOutOfComplianceCLIEmailBody = (template, repository, version) => {
+const generateOutOfComplianceCLIEmailBody = (template, repositoryName, repositoryURL, version) => {
     return template
-        .replaceAll('<REPOSITORY_URL_PLACEHOLDER>', repository)
+        .replaceAll('<REPOSITORY_URL_PLACEHOLDER>', repositoryURL)
+        .replaceAll('<REPOSITORY_NAME_PLACEHOLDER>', repositoryName)
         .replaceAll('<CODEQL_VERSION_PLACEHOLDER>', version)
 }
 
@@ -65459,14 +65460,14 @@ const issueExists = async (octokit, owner, repo, label) => {
     }
 }
 
-const createIssue = async (octokit, owner, repo, title, body) => {
+const createIssue = async (octokit, owner, repo, title, body, labels) => {
     try {
         await octokit.issues.create({
             owner: owner,
             repo: repo,
             title: title,
             body: body,
-            labels: ['ghas-non-compliant']
+            labels: ['ghas-non-compliant'].concat(labels)
         })
     } catch (e) {
         throw new Error(`Failed to create issue: ${e.message}`)
