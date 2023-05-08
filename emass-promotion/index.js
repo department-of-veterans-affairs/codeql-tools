@@ -469,6 +469,9 @@ const createRef = async (octokit, owner, repo, ref, sha) => {
             sha: sha
         })
     } catch (e) {
+        if (e.message.includes('exists')) {
+            return
+        }
         throw new Error(`failed creating ref: ${e.message}`)
     }
 }
