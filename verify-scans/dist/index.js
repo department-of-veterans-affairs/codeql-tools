@@ -65341,13 +65341,13 @@ const listCodeQLAnalyses = async (octokit, owner, repo, branch, range) => {
         const languages = []
         const versions = []
         for (const analysis of analyses) {
-            versions.push(analysis.tool.version)
             const environment = JSON.parse(analysis.environment)
             let language = environment.language || analysis.category
             if (language === 'kotlin') {
                 language = 'java'
             }
             if (!languages.includes(language)) {
+                versions.push(analysis.tool.version)
                 languages.push(language)
             }
         }
