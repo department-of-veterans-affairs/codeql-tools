@@ -42,8 +42,8 @@ for key in "${!workflows[@]}"; do
     echo "Staging logs"
     git config --global user.name "github-actions[bot]"
     git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
-    git status
     git add "reports/actions/${key}/logs.txt"
+    git status
     git commit -m "adding latest ${key} workflow logs"
   else
     echo "No changes to commit"
