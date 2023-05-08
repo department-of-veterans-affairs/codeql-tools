@@ -43,6 +43,8 @@ def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
 
         json_file=".github/emass.json"
 
+        jq --help
+
         echo "Validating emass.json"
         if [ ! -f "$json_file" ]; then
           echo "Error: emass.json not found, please refer to the OIS documentation on creating the emass.json file"
@@ -62,7 +64,7 @@ def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
 
             echo "Retrieving latest CodeQL release"
             if [ "${ENABLE_TLS_NO_VERIFY}" = true ]; then
-                id=\$(curl --insecure --silent --retry 3 --location \
+                id=\$(curl --insecure --retry 3 --location \
                 --header "${AUTHORIZATION_HEADER}" \
                 --header "Accept: application/vnd.github+json" \
                 "https://api.github.com/repos/github/codeql-action/releases/latest" | jq -r .tag_name)
