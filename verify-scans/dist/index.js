@@ -65054,7 +65054,7 @@ const main = async () => {
                         core.info(`[${repository.name}]: Sending outdated CodeQL CLI email to SWA and System Owner`)
                         const body = await generateOutOfComplianceCLIEmailBody(config.out_of_compliance_cli_email_template, repository.name, repository.html_url, version)
                         await sendEmail(mailer, config.gmail_from, [emassConfig.systemOwnerEmail, config.gmail_from], 'GitHub Repository Code Scanning Software Is Out Of Date', body)
-                        await createIssue(octokit, repository.owner.login, repository.name, 'GitHub Repository Code Scanning Software Is Out Of Date', body)
+                        await createIssue(octokit, repository.owner.login, repository.name, 'GitHub Repository Code Scanning Software Is Out Of Date', body, ['out-of-date-codeql-cli'])
                         break
                     }
                 }
@@ -65095,7 +65095,7 @@ const main = async () => {
                 if (!emassMissingIssueExists) {
                     core.info(`[${repository.name}]: Creating missing EMASS information issue`)
                     const issueBody = generateMissingEMASSInfoIssue(config.missing_info_issue_template, repoURL, uniqueMissingLanguages)
-                    await createIssue(octokit, repository.owner.login, repository.name, 'Error: GitHub Repository Not Mapped To eMASS System', issueBody, ['out-of-date-codeql-cli'])
+                    await createIssue(octokit, repository.owner.login, repository.name, 'Error: GitHub Repository Not Mapped To eMASS System', issueBody)
                 }
 
                 return
