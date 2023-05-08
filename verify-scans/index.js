@@ -159,7 +159,7 @@ const main = async () => {
             core.warning(`[${repository.name}]: [system-owner-notified] Successfully sent email to system owner`)
             notified.push(repository.name)
 
-            core.info(`[${repository.name}]: Successfully processed repository`)
+            core.info(`[${repository.name}]: [successfully-processed] Successfully processed repository`)
         } catch (error) {
             core.error(`[${repository.name}]: Error processing repository: ${error}`)
         }

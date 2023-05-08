@@ -48025,7 +48025,7 @@ const main = async () => {
             core.info(`[${repository.name}]: [successful-upload] Finished configuring repository`)
             successfulUploads.push(repository.name)
 
-            core.info(`[${repository.name}]: Finished processing repository`)
+            core.info(`[${repository.name}]: [successfully-processed] Successfully processed repository`)
         } catch (error) {
             core.error(`[${repository.name}]: failed processing repository: ${error}`)
         }
