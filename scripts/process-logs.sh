@@ -3,7 +3,7 @@
 set -euo pipefail
 set -x
 
-workflows=()
+decalre -A workflows
 workflows["configure-codeql"]="1_Configure CodeQL.txt"
 workflows["verify-scans"]="1_Verify Scans.txt"
 workflows["emass-promotion"]="1_Promote CodeQL Assets.txt"
