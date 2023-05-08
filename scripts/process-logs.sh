@@ -33,7 +33,7 @@ for key in "${!workflows[@]}"; do
 
   echo "Staging log file"
   rm -f "reports/actions/${key}/logs.txt"
-  mv "${workflows[key]}" "reports/actions/${key}/logs.txt"
+  mv "${workflows[$key]}" "reports/actions/${key}/logs.txt"
   echo "Staging logs"
   git config --global user.name "github-actions[bot]"
   git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
