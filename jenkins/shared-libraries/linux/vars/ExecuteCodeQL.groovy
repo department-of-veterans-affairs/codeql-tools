@@ -43,6 +43,7 @@ def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
 
         json_file=".github/emass.json"
 
+        env | grep PATH
         jq --help
 
         echo "Validating emass.json"
