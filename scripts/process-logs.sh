@@ -29,15 +29,22 @@ for key in "${!workflows[@]}"; do
   echo "Unzipping logs"
   unzip logs.zip
 
-  echo "Staging log file"
+  echo "Moving log file"
   rm -f "reports/actions/${key}/logs.txt"
   mv "${workflows[$key]}" "reports/actions/${key}/logs.txt"
-  echo "Staging logs"
-  git config --global user.name "github-actions[bot]"
-  git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
-  git status
-  git add "reports/actions/${key}/logs.txt"
-  git commit -m "adding latest ${key} workflow logs"
+  git clean -ffd
+
+  git_status_output=$(git status --porcelain)
+  if echo "$git_status_output" | grep -qE "^(A|M)"; then
+    echo "Staging logs"
+    git config --global user.name "github-actions[bot]"
+    git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+    git status
+    git add "reports/actions/${key}/logs.txt"
+    git commit -m "adding latest ${key} workflow logs"
+  else
+    echo "No changes to commit"
+  fi
 done
 
 echo "Pushing logs"
