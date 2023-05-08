@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 
 set -euo pipefail
-set -x
 
 declare -A workflows
 workflows["configure-codeql"]="1_Configure CodeQL.txt"
@@ -47,7 +46,7 @@ for key in "${!workflows[@]}"; do
     git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
     git add "reports/actions/${key}/logs.txt"
     git status
-    git commit -m "adding latest ${key} workflow logs"
+    git commit -m "Adding latest ${key} workflow logs"
   else
     echo "No changes to commit"
   fi
