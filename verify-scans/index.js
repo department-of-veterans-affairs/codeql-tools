@@ -63,6 +63,11 @@ const main = async () => {
                 return
             }
 
+            core.info(`[${repository.name}]: Retrieving open issues`)
+            const issues = await listOpenIssues(octokit, repository.owner.login, repository.name, ['ghas-non-compliant', 'out-of-date-codeql-cli'])
+            core.info(`[${repository.name}]: Found ${issues.length} open issues, closing open issues`)
+            await closeIssues(octokit, repository.owner.login, repository.name, issues)
+
             core.info(`[${repository.name}]: Retrieving codeql-config.yml file`)
             let codeqlConfig
             let ignoredLanguages = []
@@ -549,6 +554,36 @@ const getLatestCodeQLVersions = async (client) => {
         return versions.map(version => version.tag_name.split('v')[1])
     } catch (e) {
         throw new Error(`Failed to get latest CodeQL version: ${e.message}`)
+    }
+}
+
+const listOpenIssues = async (octokit, owner, repo, label) => {
+    try {
+        const {data: issues} = await octokit.issues.listForRepo({
+            owner: owner,
+            repo: repo,
+            state: 'open',
+            labels: label
+        })
+
+        return issues
+    } catch (e) {
+        throw new Error(`Failed to list issues: ${e.message}`)
+    }
+}
+
+const closeIssues = async (octokit, owner, repo, issues) => {
+    try {
+        for (const issue of issues) {
+            await octokit.issues.update({
+                owner: owner,
+                repo: repo,
+                issue_number: issue.number,
+                state: 'closed'
+            })
+        }
+    } catch (e) {
+        throw new Error(`Failed to close issues: ${e.message}`)
     }
 }
 
