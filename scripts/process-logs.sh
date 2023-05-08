@@ -8,7 +8,7 @@ workflows["configure-codeql"]="1_Configure CodeQL.txt"
 workflows["verify-scans"]="1_Verify Scans.txt"
 workflows["emass-promotion"]="1_Promote CodeQL Assets.txt"
 
-for key in "${!workflows[@]}"; do
+for [[ key in "${!workflows[@]}" ]]; do
   echo "Retrieving latest ${key} workflow run ID..."
   id=$(
     curl \
@@ -38,18 +38,17 @@ for key in "${!workflows[@]}"; do
   rm -f "reports/actions/${key}/logs.txt"
   mv "${workflows[$key]}" "reports/actions/${key}/logs.txt"
 
-  git_status_output=$(git status --porcelain)
-  if echo "$git_status_output" | grep -qE "^(A|M)"; then
+  if [[ `git status --porcelain` ]]; then
     echo "Staging logs"
     git config --global user.name "github-actions[bot]"
     git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
     git status
     git add "reports/actions/${key}/logs.txt"
-    git clean -ffd
     git commit -m "adding latest ${key} workflow logs"
   else
     echo "No changes to commit"
   fi
+  git clean -ffd
 done
 
 echo "Pushing logs"
