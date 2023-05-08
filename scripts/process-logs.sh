@@ -29,14 +29,13 @@ for key in "${!workflows[@]}"; do
   echo "Unzipping logs"
   unzip logs.zip
 
-  tree
-
   echo "Staging log file"
   rm -f "reports/actions/${key}/logs.txt"
   mv "${workflows[$key]}" "reports/actions/${key}/logs.txt"
   echo "Staging logs"
   git config --global user.name "github-actions[bot]"
   git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+  git status
   git add "reports/actions/${key}/logs.txt"
   git commit -m "adding latest ${key} workflow logs"
 done
