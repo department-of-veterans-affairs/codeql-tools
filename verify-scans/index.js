@@ -64,7 +64,7 @@ const main = async () => {
             }
 
             core.info(`[${repository.name}]: Retrieving open issues`)
-            const issues = await listOpenIssues(octokit, repository.owner.login, repository.name, ['ghas-non-compliant', 'out-of-date-codeql-cli'])
+            const issues = await listOpenIssues(octokit, repository.owner.login, repository.name, ['ghas-non-compliant'])
             core.info(`[${repository.name}]: Found ${issues.length} open issues, closing open issues`)
             await closeIssues(octokit, repository.owner.login, repository.name, issues)
 
