@@ -15,8 +15,9 @@ for key in "${!workflows[@]}"; do
       -H "Accept: application/vnd.github+json" \
       -H "Authorization: Bearer ${ADMIN_TOKEN}" \
       -H "X-GitHub-Api-Version: 2022-11-28" \
-      --silent --location ]
-    "https://api.github.com/repos/${REPO}/actions/workflows/${key}.yml/runs?per_page=1" | jq '.workflow_runs[0].id'
+      --silent \
+      --location \
+      "https://api.github.com/repos/${REPO}/actions/workflows/${key}.yml/runs?per_page=1" | jq '.workflow_runs[0].id'
   )
 
   echo "Retrieving logs for ${key} run ID ${id}..."
