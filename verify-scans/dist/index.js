@@ -65254,6 +65254,8 @@ const getRawFile = async (octokit, owner, repo, path) => {
 
 const missingLanguages = (requiredLanguages, languages) => {
     try {
+        console.log(requiredLanguages)
+        console.log(languages)
         return requiredLanguages.filter(language => !languages.includes(language))
     } catch (e) {
         throw new Error(`Failed to calculate missing languages: ${e.message}`)
