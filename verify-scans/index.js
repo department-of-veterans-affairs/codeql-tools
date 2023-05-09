@@ -139,7 +139,7 @@ const main = async () => {
 
                 core.info(`[${repository.name}]: Sending missing EMASS information email to SWA`)
                 const body = generateMissingEMASSInfoEmail(config.missing_info_email_template, repoURL, uniqueMissingLanguages)
-                await sendEmail(mailer, config.gmail_from, config.gmail_from, 'Error: GitHub Repository Not Mapped To eMASS System ', body)
+                await sendEmail(mailer, config.gmail_from, [emassConfig.systemOwnerEmail, config.gmail_from], 'Error: GitHub Repository Not Mapped To eMASS System ', body)
 
                 const emassMissingIssueExists = await issueExists(octokit, repository.owner.login, repository.name, 'ghas-non-compliant')
                 if (!emassMissingIssueExists) {
@@ -155,7 +155,7 @@ const main = async () => {
             const body = generateNonCompliantEmailBody(config.non_compliant_email_template, emassConfig.systemID, emassConfig.systemName, repoURL, uniqueMissingLanguages)
 
             core.info(`[${repository.name}]: Sending email to system owner`)
-            await sendEmail(mailer, config.gmail_from, emassConfig.systemOwnerEmail, 'GitHub Repository Code Scanning Not Enabled', body)
+            await sendEmail(mailer, config.gmail_from, [emassConfig.systemOwnerEmail, config.gmail_from], 'GitHub Repository Code Scanning Not Enabled', body)
             core.warning(`[${repository.name}]: [system-owner-notified] Successfully sent email to system owner`)
             notified.push(repository.name)
 
