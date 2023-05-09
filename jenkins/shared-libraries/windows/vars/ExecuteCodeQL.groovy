@@ -19,6 +19,9 @@ def call(Org, Repo, Branch, Language, BuildCommand, Token, InstallCodeQL) {
         env.INSTALL_CODEQL = false
     }
     env.LANGUAGE = Language
+    if(env.LANGUAGE == "swift") {
+        env.CODEQL_ENABLE_EXPERIMENTAL_FEATURES_SWIFT = true
+    }
     env.ORG = Org
     env.REPO = Repo
     env.SARIF_FILE = sprintf("%s-%s.sarif", Repo, Language)
