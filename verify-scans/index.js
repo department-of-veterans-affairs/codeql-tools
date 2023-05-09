@@ -93,7 +93,7 @@ const main = async () => {
                         core.warning(`[${repository.name}]: [out-of-date-cli] Outdated CodeQL CLI version found: ${version}`)
                         core.info(`[${repository.name}]: Sending outdated CodeQL CLI email to SWA and System Owner`)
                         const body = await generateOutOfComplianceCLIEmailBody(config.out_of_compliance_cli_email_template, repository.name, repository.html_url, version)
-                        await sendEmail(mailer, config.gmail_from, [emassConfig.systemOwnerEmail, config.gmail_from], 'GitHub Repository Code Scanning Software Is Out Of Date', body)
+                        await sendEmail(mailer, config.gmail_from, [emassConfig.systemOwnerEmail, config.secondary_email], 'GitHub Repository Code Scanning Software Is Out Of Date', body)
                         await createIssue(octokit, repository.owner.login, repository.name, 'GitHub Repository Code Scanning Software Is Out Of Date', body, ['out-of-date-codeql-cli'])
                         break
                     }
@@ -128,7 +128,7 @@ const main = async () => {
                 core.warning(`[${repository.name}]: [missing-configuration] No .github/emass.json file found`)
                 core.info(`[${repository.name}]: Sending missing EMASS information email to SWA`)
                 const body = generateMissingEMASSInfoEmail(config.missing_info_email_template, repoURL, uniqueMissingLanguages)
-                await sendEmail(mailer, config.gmail_from, [emassConfig.systemOwnerEmail, config.gmail_from], 'Error: GitHub Repository Not Mapped To eMASS System ', body)
+                await sendEmail(mailer, config.gmail_from, [emassConfig.systemOwnerEmail, config.secondary_email], 'Error: GitHub Repository Not Mapped To eMASS System ', body)
 
                 const emassMissingIssueExists = await issueExists(octokit, repository.owner.login, repository.name, 'ghas-non-compliant')
                 if (!emassMissingIssueExists) {
@@ -144,7 +144,7 @@ const main = async () => {
             const body = generateNonCompliantEmailBody(config.non_compliant_email_template, emassConfig.systemID, emassConfig.systemName, repoURL, uniqueMissingLanguages)
 
             core.warning(`[${repository.name}]: Sending email to system owner`)
-            await sendEmail(mailer, config.gmail_from, [emassConfig.systemOwnerEmail, config.gmail_from], 'GitHub Repository Code Scanning Not Enabled', body)
+            await sendEmail(mailer, config.gmail_from, [emassConfig.systemOwnerEmail, config.secondary_email], 'GitHub Repository Code Scanning Not Enabled', body)
             core.info(`[${repository.name}]: [system-owner-notified] Successfully sent email to system owner`)
         } catch (error) {
             core.error(`[${repository.name}]: Error processing repository: ${error}`)
@@ -208,6 +208,9 @@ const parseInput = () => {
             required: true,
             trimWhitespace: true
         })
+        const secondary_email = core.getInput('secondary_email', {
+            required: true,
+        })
         const verify_scans_app_id = Number(core.getInput('ghas_verify_scans_app_id', {
             required: true,
             trimWhitespace: true
@@ -235,6 +238,7 @@ const parseInput = () => {
             non_compliant_email_template: non_compliant_email_template,
             org: org,
             out_of_compliance_cli_email_template: out_of_compliance_cli_email_template,
+            secondary_email: secondary_email,
             verify_scans_app_id: verify_scans_app_id,
             verify_scans_private_key: verify_scans_private_key,
             verify_scans_installation_id: verify_scans_installation_id
