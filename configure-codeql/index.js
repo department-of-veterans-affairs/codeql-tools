@@ -2,7 +2,6 @@
 // TODO: Add licensing and license headers
 // TODO: Add function documentation
 // TODO: Add pull request body template
-// TODO: add error arrays for all error types for reporting
 // TODO: Replace all calls with actual endpoint for clarity (dont use the embedded function)
 
 const yaml = require('js-yaml')
@@ -16,12 +15,6 @@ const SOURCE_BRANCH_NAME = 'ghas-enforcement-codeql'
 const SOURCE_REPO = 'department-of-veterans-affairs/codeql-tools'
 
 const main = async () => {
-    const skippedAlreadyConfigured = []
-    const skippedNoSupportedLanguages = []
-    const installedVerifyScansApp = []
-    const installedVerifyScansAppRepoAlreadyConfigured = []
-    const configFailed = {}
-
     core.info('Parsing Actions input')
     const config = parseInput()
 
@@ -40,7 +33,6 @@ const main = async () => {
             core.info(`[${repository.name}]: Processing repository`)
             if (verifyScansInstalledRepositories.includes(repository.name)) {
                 core.info(`[${repository.name}]: [skipped-already-configured] Skipping repository as it is has already been configured via the Configure CodeQL GitHub App Pull Request`)
-                skippedAlreadyConfigured.push(repository.name)
                 return
             }
 
@@ -60,7 +52,6 @@ const main = async () => {
                         await installVerifyScansApp(adminClient, config.verify_scans_installationID, repository.id)
 
                         core.info(`[${repository.name}]: [repo-already-configured] Successfully installed 'verify-scans' repository`)
-                        installedVerifyScansAppRepoAlreadyConfigured.push(repository.name)
                         return
                     } else {
                         core.info(`[${repository.name}]: Repository has Code Scanning enabled, but is not using the reusable workflow, executing configuration`)
@@ -72,7 +63,6 @@ const main = async () => {
             const languages = await retrieveSupportedCodeQLLanguages(octokit, repository.owner.login, repository.name)
             if (languages.length === 0) {
                 core.warning(`[${repository.name}]: [skipped-no-supported-languages] Skipping repository as it does not contain any supported languages`)
-                skippedNoSupportedLanguages.push(repository.name)
                 return
             }
 
@@ -120,16 +110,13 @@ const main = async () => {
             await installVerifyScansApp(adminClient, config.verify_scans_installationID, repository.id)
 
             core.info(`[${repository.name}]: [installed-verify-scans-application] Successfully installed 'verify-scans' repository`)
-            installedVerifyScansApp.push(repository.name)
             core.info(`[${repository.name}]: [successfully-configured] Repository successfully configured`)
         } catch (e) {
             core.error(`[${repository.name}]: [configuration-failed] Failed to process repository: ${e}`)
-            configFailed[repository.name] = e.message
         }
     })
 
     core.info('Finished processing all repositories, generating summary')
-    // TODO: Create shared utility function to generate markdown summary report
 }
 
 const parseInput = () => {
