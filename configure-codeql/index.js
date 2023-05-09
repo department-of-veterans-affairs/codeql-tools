@@ -36,6 +36,13 @@ const main = async () => {
                 return
             }
 
+            core.info(`[${repository.name}]: Retrieving .emass-repo-ignore file`)
+            const emassIgnore = await getRawFile(octokit, repository.owner.login, repository.name, '.github/.emass-repo-ignore')
+            if (emassIgnore) {
+                core.info(`[${repository.name}]: [skipped-ignored] Found .emass-repo-ignore file, skipping repository`)
+                return
+            }
+
             core.info(`[${repository.name}]: Checking if repository has Code Scanning enabled`)
             // TODO: Figure out what app permission grants the `security_event` permission
             const codeScanningConfig = await codeScanningEnabled(adminClient, repository.owner.login, repository.name)
@@ -447,6 +454,27 @@ const reusableWorkflowInUse = async (octokit, owner, repo, branch, path) => {
             return false
         }
         throw e
+    }
+}
+
+const getRawFile = async (octokit, owner, repo, path) => {
+    try {
+        const response = await octokit.repos.getContent({
+            owner: owner,
+            repo: repo,
+            path: path
+        })
+
+        if (ENABLE_DEBUG) {
+            core.info(`[TRACE] reusableWorkflowInUse: ${Buffer.from(response.data.content, 'base64').toString()}`)
+        }
+
+        return Buffer.from(response.data.content, 'base64').toString()
+    } catch (error) {
+        if (error.status === 404) {
+            return null
+        }
+        throw error
     }
 }
 
