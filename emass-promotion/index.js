@@ -21,13 +21,6 @@ const {createCodeQLGitHubClient, createGitHubAppClient, createGitHubClient} = re
 
 const ENABLE_DEBUG = process.env.ACTIONS_STEP_DEBUG && process.env.ACTIONS_STEP_DEBUG.toLowerCase() === 'true'
 const main = async () => {
-    // TODO: Flag failures in upload/download
-    const invalidSystemIDs = []
-    const emassFileNotFound = []
-    const skippedDatabaseNotFound = []
-    const skippedSarifNotFound = []
-    const successfulUploads = []
-
     core.info('Parsing Actions input')
     const config = parseInput()
 
@@ -61,13 +54,11 @@ const main = async () => {
             const emassConfig = await getFileJSON(octokit, repository.owner.login, repository.name, '.github/emass.json')
             if (!emassConfig) {
                 core.warning(`[${repository.name}]: [emass-json-not-found] Skipping repository as it does not contain an emass.json file`)
-                emassFileNotFound.push(repository.name)
                 return
             }
 
             if (!systemIDs.includes(emassConfig.systemID)) {
                 core.warning(`[${repository.name}]: [invalid-system-id] Skipping repository as it contains an invalid System ID`)
-                invalidSystemIDs.push(repository.name)
                 return
             }
 
@@ -85,7 +76,6 @@ const main = async () => {
 
             if (codeqlDatabases.length === 0) {
                 core.warning(`[${repository.name}]: [skipped-database-not-found] Skipping repository as it does not contain any new CodeQL databases`)
-                skippedDatabaseNotFound.push(repository.name)
             } else {
                 for (const database of codeqlDatabases) {
                     // TODO: Generate app token for each database download
@@ -104,7 +94,6 @@ const main = async () => {
             const codeqlAnalysisRuns = await listCodeQLAnalyses(octokit, repository.owner.login, repository.name, repository.default_branch, config.days_to_scan)
             if (codeqlAnalysisRuns.count === 0) {
                 core.warning(`[${repository.name}]: [skipped-sarif-not-found] Skipping repository as it does not contain any new SARIF analyses`)
-                skippedSarifNotFound.push(repository.name)
             } else {
                 for (const _analysis of Object.keys(codeqlAnalysisRuns.analyses)) {
                     const analysis = codeqlAnalysisRuns.analyses[_analysis]
@@ -130,8 +119,6 @@ const main = async () => {
                 }
             }
             core.info(`[${repository.name}]: [successful-upload] Finished configuring repository`)
-            successfulUploads.push(repository.name)
-
             core.info(`[${repository.name}]: [successfully-processed] Successfully processed repository`)
         } catch (error) {
             core.error(`[${repository.name}]: failed processing repository: ${error}`)
@@ -139,7 +126,6 @@ const main = async () => {
     })
 
     core.info('Finished processing all repositories, generating summary')
-    // TODO: Create shared utility function to generate markdown summary report
 }
 
 const parseInput = () => {

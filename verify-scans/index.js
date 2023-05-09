@@ -16,16 +16,8 @@ axiosRetry(axios, {
 })
 
 const ENABLE_DEBUG = process.env.ACTIONS_STEP_DEBUG && process.env.ACTIONS_STEP_DEBUG.toLowerCase() === 'true'
-const SOURCE_REPO = 'department-of-veterans-affairs/codeql-tools'
 
 const main = async () => {
-    // TODO: Flag failures in upload/download
-    const skippedIgnored = []
-    const missingData = {}
-    const emassMissing = []
-    const notified = []
-    const outdatedCLI = []
-
     core.info('Parsing Actions input')
     const config = parseInput()
 
@@ -59,7 +51,6 @@ const main = async () => {
             const emassIgnore = await getRawFile(octokit, repository.owner.login, repository.name, '.github/.emass-repo-ignore')
             if (emassIgnore) {
                 core.info(`[${repository.name}]: [skipped-ignored] Found .emass-repo-ignore file, skipping repository`)
-                skippedIgnored.push(repository.name)
                 return
             }
 
@@ -100,7 +91,6 @@ const main = async () => {
                 for (const version of analyses.versions) {
                     if (!codeQLVersions.includes(version)) {
                         core.warning(`[${repository.name}]: [out-of-date-cli] Outdated CodeQL CLI version found: ${version}`)
-                        outdatedCLI.push(repository.name)
                         core.info(`[${repository.name}]: Sending outdated CodeQL CLI email to SWA and System Owner`)
                         const body = await generateOutOfComplianceCLIEmailBody(config.out_of_compliance_cli_email_template, repository.name, repository.html_url, version)
                         await sendEmail(mailer, config.gmail_from, [emassConfig.systemOwnerEmail, config.gmail_from], 'GitHub Repository Code Scanning Software Is Out Of Date', body)
@@ -121,22 +111,21 @@ const main = async () => {
 
             if (missingAnalyses.length === 0 && missingDatabases.length === 0) {
                 core.info(`[${repository.name}]: No missing analyses or databases found`)
+                core.info(`[${repository.name}]: [successfully-processed] Successfully processed repository`)
                 return
             }
 
-            missingData[repository.name] = {
+            const missingData = {
                 missingAnalyses: missingAnalyses,
                 missingDatabases: missingDatabases
             }
 
-            core.warning(`[${repository.name}]: [missing-data] Missing analyses or databases identified: ${JSON.stringify(missingData[repository.name])}`)
+            core.warning(`[${repository.name}]: [missing-data] Missing analyses or databases identified: ${JSON.stringify(missingData)}`)
             const uniqueMissingLanguages = [...new Set([...missingAnalyses, ...missingDatabases])]
             const repoURL = `https://github.com/${repository.owner.login}/${repository.name}`
 
             if (!emassConfig || !emassConfig.systemOwnerEmail) {
                 core.warning(`[${repository.name}]: [missing-configuration] No .github/emass.json file found`)
-                emassMissing.push(repository.name)
-
                 core.info(`[${repository.name}]: Sending missing EMASS information email to SWA`)
                 const body = generateMissingEMASSInfoEmail(config.missing_info_email_template, repoURL, uniqueMissingLanguages)
                 await sendEmail(mailer, config.gmail_from, [emassConfig.systemOwnerEmail, config.gmail_from], 'Error: GitHub Repository Not Mapped To eMASS System ', body)
@@ -154,19 +143,15 @@ const main = async () => {
             core.info(`[${repository.name}]: Generating Non-Compliant repository email body`)
             const body = generateNonCompliantEmailBody(config.non_compliant_email_template, emassConfig.systemID, emassConfig.systemName, repoURL, uniqueMissingLanguages)
 
-            core.info(`[${repository.name}]: Sending email to system owner`)
+            core.warning(`[${repository.name}]: Sending email to system owner`)
             await sendEmail(mailer, config.gmail_from, [emassConfig.systemOwnerEmail, config.gmail_from], 'GitHub Repository Code Scanning Not Enabled', body)
-            core.warning(`[${repository.name}]: [system-owner-notified] Successfully sent email to system owner`)
-            notified.push(repository.name)
-
-            core.info(`[${repository.name}]: [successfully-processed] Successfully processed repository`)
+            core.info(`[${repository.name}]: [system-owner-notified] Successfully sent email to system owner`)
         } catch (error) {
             core.error(`[${repository.name}]: Error processing repository: ${error}`)
         }
     })
 
     core.info('Finished processing all repositories, generating summary')
-    // TODO: Create shared utility function to generate markdown summary report
 }
 
 const parseInput = () => {
@@ -521,25 +506,6 @@ const createIssue = async (octokit, owner, repo, title, body, labels) => {
         })
     } catch (e) {
         throw new Error(`Failed to create issue: ${e.message}`)
-    }
-}
-
-const reusableWorkflowInUse = async (octokit, owner, repo, branch, path) => {
-    try {
-        const {data: workflow} = await octokit.repos.getContent({
-            owner: owner,
-            repo: repo,
-            path: path,
-            ref: branch
-        })
-        const decodedContent = Buffer.from(workflow.content, 'base64').toString('utf-8')
-
-        return decodedContent.includes(SOURCE_REPO)
-    } catch (e) {
-        if (e.status === 404) {
-            return false
-        }
-        throw e
     }
 }
 
