@@ -128,7 +128,7 @@ const main = async () => {
                 core.warning(`[${repository.name}]: [missing-configuration] No .github/emass.json file found`)
                 core.info(`[${repository.name}]: Sending missing EMASS information email to SWA`)
                 const body = generateMissingEMASSInfoEmail(config.missing_info_email_template, repoURL, uniqueMissingLanguages)
-                await sendEmail(mailer, config.gmail_from, config.secondary_email, [emassConfig.systemOwnerEmail, config.secondary_email], 'Error: GitHub Repository Not Mapped To eMASS System ', body)
+                await sendEmail(mailer, config.gmail_from, config.secondary_email, [config.secondary_email], 'Error: GitHub Repository Not Mapped To eMASS System ', body)
 
                 const emassMissingIssueExists = await issueExists(octokit, repository.owner.login, repository.name, 'ghas-non-compliant')
                 if (!emassMissingIssueExists) {
