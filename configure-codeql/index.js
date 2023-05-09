@@ -265,6 +265,7 @@ const analysisTemplate = {
         "analyze": {
             "name": "Analyze",
             "runs-on": "ubuntu-latest",
+            "concurrency": "${{ github.workflow }}-${{ matrix.language }}-${{ github.ref }}",
             "permissions": {
                 "actions": "read",
                 "contents": "read",
