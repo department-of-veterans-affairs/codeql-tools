@@ -107,11 +107,12 @@ runs:
       shell: bash
       run: |
         if [[ ! -v codeql ]]; then
-          $(realpath /opt/hostedtoolcache/CodeQL/*/x64/codeql/codeql | head -n 1) database interpret-results $path --format=csv --output="$temp/codeql-scan-results.csv"
+          $(realpath /opt/hostedtoolcache/CodeQL/*/x64/codeql/codeql | head -n 1) database interpret-results $path --format=csv --output="$temp/codeql-scan-results-$language.csv"
         else
-          codeql database interpret-results $path --format=csv --output="$temp/codeql-scan-results.csv"
+          codeql database interpret-results $path --format=csv --output="$temp/codeql-scan-results-$language.csv"
         fi
       env:
+        language: ${{ inputs.language }}
         path: ${{ runner.temp }}/codeql_databases/${{ inputs.language }}
         qlpacks: 'codeql/${{ inputs.language }}-queries:codeql-suites/${{ inputs.language }}-security-and-quality'
         temp: ${{ runner.temp }}
@@ -123,7 +124,7 @@ runs:
         $Language = "$Env:language"
         $Path = "$Env:path"
         $Temp = "$Env:temp"
-        $CSVPath = "$Temp\codeql-scan-results.csv"
+        $CSVPath = "$Temp\codeql-scan-results-$Env:language.csv"
         if (Get-Command codeql -errorAction SilentlyContinue) {
           codeql database interpret-results $Path --format=csv --output="$CSVPath"
         } else {
@@ -131,14 +132,15 @@ runs:
           Invoke-Expression "$CodeQLCommand database interpret-results $Path --format=csv --output='$CSVPath'"
         }
       env:
+        language: ${{ inputs.language }}
         path: ${{ runner.temp }}/codeql_databases/${{ inputs.language }}
         temp: ${{ runner.temp }}
 
     - name: Upload Artifact
       uses: actions/upload-artifact@v3
       with:
-        name: codeql-scan-results
-        path: ${{ runner.temp }}/codeql-scan-results.csv
+        name: codeql-scan-results-${{ inputs.language }}
+        path: ${{ runner.temp }}/codeql-scan-results-${{ inputs.language }}.csv
 
     - name: Upload CodeQL Database
       if: inputs.upload_db == 'true'

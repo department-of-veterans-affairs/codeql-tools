@@ -132,9 +132,9 @@ def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
 
         echo "Generating CSV of results"
         if [ "${INSTALL_CODEQL}" = true ]; then
-            ./codeql/codeql database interpret-results "${DATABASE_PATH}" --format=csv --output="codeql-scan-results.csv" "${QL_PACKS}"
+            ./codeql/codeql database interpret-results "${DATABASE_PATH}" --format=csv --output="codeql-scan-results-${LANGUAGE}.csv" "${QL_PACKS}"
         else
-            codeql database interpret-results "${DATABASE_PATH}" --format=csv --output="codeql-scan-results.csv" "${QL_PACKS}"
+            codeql database interpret-results "${DATABASE_PATH}" --format=csv --output="codeql-scan-results-${LANGUAGE}.csv" "${QL_PACKS}"
         fi
         echo "CSV of results generated"
 

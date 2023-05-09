@@ -101,9 +101,9 @@ def call(Org, Repo, Branch, Language, BuildCommand, Token, InstallCodeQL) {
 
         Write-Output "Generating CSV of results"
         if("\$Env:INSTALL_CODEQL" -eq "true") {
-            .\\codeql\\codeql database interpret-results "\$Env:DATABASE_PATH" --format=csv --output="codeql-scan-results.csv" "\$Env:QL_PACKS"
+            .\\codeql\\codeql database interpret-results "\$Env:DATABASE_PATH" --format=csv --output="codeql-scan-results-\$Env:LANGUAGE.csv" "\$Env:QL_PACKS"
         } else {
-            codeql database interpret-results "\$Env:DATABASE_PATH" --format=csv --output="codeql-scan-results.csv" "\$Env:QL_PACKS"
+            codeql database interpret-results "\$Env:DATABASE_PATH" --format=csv --output="codeql-scan-results-\$Env:LANGUAGE.csv" "\$Env:QL_PACKS"
         }
         Write-Output "CSV of results generated"
 
