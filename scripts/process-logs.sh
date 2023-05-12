@@ -16,6 +16,7 @@ for key in "${!workflows[@]}"; do
       -H "X-GitHub-Api-Version: 2022-11-28" \
       --silent \
       --location \
+      --retry 5 \
       "https://api.github.com/repos/${REPO}/actions/workflows/${key}.yml/runs?per_page=1" | jq '.workflow_runs[0].id'
   )
 
@@ -25,7 +26,7 @@ for key in "${!workflows[@]}"; do
     -H "Authorization: Bearer ${ADMIN_TOKEN}" \
     -H "X-GitHub-Api-Version: 2022-11-28" \
     --silent \
-    --retry 3 \
+    --retry 5 \
     --output logs.zip \
     --location \
     "https://api.github.com/repos/${REPO}/actions/runs/${id}/logs"
