@@ -45,6 +45,9 @@ const main = async () => {
     core.info('Retrieving latest CodeQL CLI versions')
     const codeQLVersions = await getLatestCodeQLVersions(adminClient)
 
+    core.info(`Retrieving System ID list`)
+    const systemIDs = await getFileArray(adminClient, config.org, '.github-internal', '.emass-system-include')
+
     await verifyScansApp.eachRepository(async ({octokit, repository}) => {
         try {
             core.info(`[${repository.name}]: Retrieving .emass-repo-ignore file`)
@@ -125,8 +128,8 @@ const main = async () => {
             const uniqueMissingLanguages = [...new Set([...missingAnalyses, ...missingDatabases])]
             const repoURL = `https://github.com/${repository.owner.login}/${repository.name}`
 
-            if (!emassConfig || !emassConfig.systemOwnerEmail) {
-                core.warning(`[${repository.name}]: [missing-configuration] No .github/emass.json file found`)
+            if (!emassConfig || !emassConfig.systemOwnerEmail || !emassConfig.systemID || !systemIDs.includes(emassConfig.systemID)) {
+                core.warning(`[${repository.name}]: [missing-configuration] .github/emass.json not found, or missing/incorrect eMASS data`)
                 core.info(`[${repository.name}]: [generating-email] Sending missing EMASS information email to SWA`)
                 const body = generateMissingEMASSInfoEmail(config.missing_info_email_template, repoURL, uniqueMissingLanguages)
                 await sendEmail(mailer, config.gmail_from, config.secondary_email, [config.secondary_email], 'Error: GitHub Repository Not Mapped To eMASS System ', body)
@@ -248,6 +251,28 @@ const parseInput = () => {
     } catch (e) {
         core.setFailed(`Failed to parse input: ${e.message}`)
         process.exit(1)
+    }
+}
+
+const getFileArray = async (octokit, owner, repo, path) => {
+    try {
+        const {data: response} = await octokit.repos.getContent({
+            owner: owner,
+            repo: repo,
+            path: path
+        })
+        const content = Buffer.from(response.content, 'base64').toString().trim()
+
+        if(ENABLE_DEBUG) {
+            core.info(`[TRACE] getFileArray: ${content}`)
+        }
+
+        return content.split('\n').filter(line => !line.includes('#')).map(line => Number(line.trim()))
+    } catch (e) {
+        if (e.status === 404) {
+            return null
+        }
+        throw new Error(`failed retrieving ${path} for ${owner}/${repo}: ${e.message}`)
     }
 }
 
