@@ -47957,8 +47957,6 @@ const main = async () => {
                 return
             }
 
-            console.log(systemIDs)
-
             if (!systemIDs.includes(emassConfig.systemID)) {
                 core.warning(`[${repository.name}]: [invalid-system-id] Skipping repository as it contains an invalid System ID`)
                 return
