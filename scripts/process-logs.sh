@@ -39,18 +39,18 @@ for key in "${!workflows[@]}"; do
   rm -f "reports/actions/${key}/logs.txt"
   mv "${workflows[$key]}" "reports/actions/${key}/logs.txt"
   git status
-
-  if [[ `git status --porcelain` ]]; then
-    echo "Staging logs"
-    git config --global user.name "github-actions[bot]"
-    git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
-    git add "reports/actions/${key}/logs.txt"
-    git status
-    git commit -m "Adding latest ${key} workflow logs"
-  else
-    echo "No changes to commit"
-  fi
 done
+
+if [[ `git status --porcelain` ]]; then
+  echo "Staging logs"
+  git config --global user.name "github-actions[bot]"
+  git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+  git add "reports/actions/${key}/logs.txt"
+  git status
+  git commit -m "Adding latest ${key} workflow logs"
+else
+  echo "No changes to commit"
+fi
 
 echo "Pushing logs"
 git push
