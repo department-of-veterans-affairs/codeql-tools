@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
 set -euo pipefail
+set -x
 
 declare -A workflows
 workflows["configure-codeql"]="1_Configure CodeQL.txt"
@@ -36,7 +37,7 @@ for key in "${!workflows[@]}"; do
 
   echo "Moving log file"
   git status
-  rm -f "reports/actions/${key}/logs.txt"
+  rm -f "reports/actions/${key}/logs.md"
   mv "${workflows[$key]}" "reports/actions/${key}/logs.md"
   sed -i '1s/^/```shell\n/' "reports/actions/${key}/logs.md"
   echo "\`\`\`" >> "reports/actions/${key}/logs.md"
