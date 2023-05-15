@@ -54,7 +54,5 @@ for key in "${!workflows[@]}"; do
   git clean -ffd
 done
 
-
-
 echo "Pushing logs"
 git push
