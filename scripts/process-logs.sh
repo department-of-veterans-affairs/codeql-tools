@@ -40,6 +40,7 @@ for key in "${!workflows[@]}"; do
   rm -f "reports/actions/${key}/logs.txt"
   mv "${workflows[$key]}" "reports/actions/${key}/logs.txt"
   git status
+  git clean -ffd
 
   if [[ `git status --porcelain` ]]; then
     echo "Staging logs"
@@ -53,7 +54,6 @@ for key in "${!workflows[@]}"; do
     echo "No changes to commit"
   fi
 
-  git clean -ffd
 done
 
 echo "Pushing logs"
