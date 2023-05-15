@@ -38,7 +38,7 @@ for key in "${!workflows[@]}"; do
   git status
   rm -f "reports/actions/${key}/logs.txt"
   mv "${workflows[$key]}" "reports/actions/${key}/logs.md"
-  sed -i '1s/^/```shell\n/'
+  sed -i '1s/^/```shell\n/' "reports/actions/${key}/logs.md"
   echo "\`\`\`" >> "reports/actions/${key}/logs.md"
   git clean -ffd
 
