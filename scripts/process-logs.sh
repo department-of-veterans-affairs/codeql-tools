@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 
 set -euo pipefail
-set -x
 
 declare -A workflows
 workflows["configure-codeql"]="1_Configure CodeQL.txt"
@@ -38,15 +37,16 @@ for key in "${!workflows[@]}"; do
   echo "Moving log file"
   git status
   rm -f "reports/actions/${key}/logs.txt"
-  mv "${workflows[$key]}" "reports/actions/${key}/logs.txt"
-  git status
+  mv "${workflows[$key]}" "reports/actions/${key}/logs.md"
+  sed -i '1s/^/```shell\n/'
+  echo "\`\`\`" >> "reports/actions/${key}/logs.md"
   git clean -ffd
 
   if [[ `git status --porcelain` ]]; then
     echo "Staging logs"
     git config --global user.name "github-actions[bot]"
     git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
-    git add "reports/actions/${key}/logs.txt"
+    git add "reports/actions/${key}/logs.md"
     git commit -m "Adding latest ${key} workflow logs"
     git status
     tree
