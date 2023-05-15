@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
 set -euo pipefail
+set -x
 
 declare -A workflows
 workflows["configure-codeql"]="1_Configure CodeQL.txt"
