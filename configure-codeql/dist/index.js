@@ -43763,7 +43763,7 @@ const getDefaultRefSHA = async (octokit, owner, repo, branch) => {
         const {data: ref} = await octokit.git.getRef({
             owner: owner,
             repo: repo,
-            ref: `refs/heads/${branch}`
+            ref: `heads/${branch}`
         })
 
         return ref.object.sha
