@@ -4,11 +4,15 @@ inputs:
   build_step_name:
     description: Name of the build step to invoke
     required: false
+  config:
+    description: Path to the CodeQL configuration file
+    required: false
+    default: ''
   language:
     description: Language to analyze
     required: true
   path:
-    description: Path to the CodeQL database
+    description: The path to the working directory
     required: false
     default: '.'
   token:
@@ -70,8 +74,8 @@ runs:
           Add-Content -Path $env:GITHUB_ENV -Value "CODEQL_ENABLE_EXPERIMENTAL_FEATURES_SWIFT=true"
     - name: Initialize CodeQL
       uses: github/codeql-action/init@v2
-      working-directory: ${{ inputs.path }}
       with:
+        config: ${{ inputs.config }}
         languages: ${{ inputs.language }}
         queries: security-and-quality
 
@@ -110,7 +114,6 @@ runs:
 
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v2
-      working-directory: ${{ inputs.path }}
       with:
         category: ois-${{ inputs.language }}
 
