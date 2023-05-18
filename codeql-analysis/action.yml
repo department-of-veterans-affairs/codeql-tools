@@ -1,6 +1,10 @@
 name: CodeQL
 description: GitHub Advanced Security Code Scanning with CodeQL
 inputs:
+  path:
+    description: Path to the CodeQL database
+    required: false
+    default: '.'
   build_step_name:
     description: Name of the build step to invoke
     required: false
@@ -68,6 +72,7 @@ runs:
       uses: github/codeql-action/init@v2
       with:
         languages: ${{ inputs.language }}
+        source-root: ${{ inputs.path }}
         queries: security-and-quality
 
     - name: Parse Build Steps
@@ -83,6 +88,7 @@ runs:
       shell: bash
       run: |
         eval "$build_steps"
+      working-directory: ${{ inputs.path }}
       env:
         build_steps: ${{ steps.build-steps.outputs.result }}
 
@@ -92,12 +98,15 @@ runs:
       run: |
         $BuildSteps = "$Env:build_steps"
         Invoke-Expression "$BuildSteps"
+      working-directory: ${{ inputs.path }}
       env:
         build_steps: ${{ steps.build-steps.outputs.result }}
 
     - name: Auto-Build Source
       if: steps.build-steps.outputs.result == ''
       uses: github/codeql-action/autobuild@v2
+      with:
+        working-directory: ${{ inputs.path }}
 
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v2
