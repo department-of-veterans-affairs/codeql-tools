@@ -47943,7 +47943,7 @@ const main = async () => {
             }
 
             core.info(`[${repository.name}]: Retrieving .emass-repo-ignore file`)
-            const emassIgnore = await getRawFile(octokit, repository.owner.login, repository.name, '.github/.emass-repo-ignore')
+            const emassIgnore = await exists(octokit, repository.owner.login, repository.name, '.github/.emass-repo-ignore')
             if (emassIgnore) {
                 core.info(`[${repository.name}]: [skipped-ignored] Found .emass-repo-ignore file, skipping repository`)
                 return
@@ -48097,6 +48097,23 @@ const getFileJSON = async (octokit, owner, repo, path) => {
             return null
         }
         throw new Error(`Error retrieving ${path} for ${owner}/${repo}: ${e.message}`)
+    }
+}
+
+const exists = async (octokit, owner, repo, path) => {
+    try {
+        await octokit.repos.getContent({
+            owner: owner,
+            repo: repo,
+            path: path
+        })
+
+        return true
+    } catch (e) {
+        if (e.status === 404) {
+            return false
+        }
+        throw new Error(`Failed to check if file exists: ${e.message}`)
     }
 }
 
