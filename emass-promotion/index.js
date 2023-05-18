@@ -45,7 +45,6 @@ const main = async () => {
     await emassPromotionApp.eachRepository(async ({octokit, repository}) => {
         try {
             if (repository.owner.login !== config.org) {
-                core.info(`[${repository.name}]: Skipping repository as it is not in the ${config.org} organization`)
                 return
             }
 
