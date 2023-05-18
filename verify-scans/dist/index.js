@@ -65383,7 +65383,7 @@ const listCodeQLAnalyses = async (octokit, owner, repo, branch, range) => {
             if (!analysis.category.toLowerCase().startsWith('ois-')) {
                 continue
             }
-            let language = analysis.category.split('-')[1]
+            let language = analysis.category.split('-')[1].split('-')[0]
             if (language === 'kotlin') {
                 language = 'java'
             }
