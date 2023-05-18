@@ -48,6 +48,7 @@ const main = async () => {
     core.info(`Retrieving System ID list`)
     const systemIDs = await getFileArray(adminClient, config.org, '.github-internal', '.emass-system-include')
 
+    console.log(systemIDs)
     await verifyScansApp.eachRepository(async ({octokit, repository}) => {
         try {
             core.info(`[${repository.name}]: Retrieving .emass-repo-ignore file`)
@@ -128,7 +129,6 @@ const main = async () => {
             const uniqueMissingLanguages = [...new Set([...missingAnalyses, ...missingDatabases])]
             const repoURL = `https://github.com/${repository.owner.login}/${repository.name}`
 
-            console.log(systemIDs)
             if (!emassConfig || !emassConfig.systemOwnerEmail || !emassConfig.systemID || !systemIDs.includes(emassConfig.systemID)) {
                 core.warning(`[${repository.name}]: [missing-configuration] .github/emass.json not found, or missing/incorrect eMASS data`)
                 core.info(`[${repository.name}]: [generating-email] Sending 'Error: GitHub Repository Not Mapped To eMASS System' email to OIS and system owner`)
