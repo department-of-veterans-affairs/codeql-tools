@@ -65036,6 +65036,21 @@ const main = async () => {
             core.info(`[${repository.name}]: Retrieving supported CodeQL languages`)
             const requiredLanguages = await listLanguages(octokit, repository.owner.login, repository.name, ignoredLanguages)
 
+            if (!emassConfig || !emassConfig.systemOwnerEmail || !emassConfig.systemID || !systemIDs.includes(emassConfig.systemID)) {
+                core.warning(`[${repository.name}]: [missing-configuration] .github/emass.json not found, or missing/incorrect eMASS data`)
+                core.info(`[${repository.name}]: [generating-email] Sending 'Error: GitHub Repository Not Mapped To eMASS System' email to OIS and system owner`)
+                const body = generateMissingEMASSInfoEmail(config.missing_info_email_template, repository.html_url, requiredLanguages)
+                const emails = emassConfig && emassConfig.systemOwnerEmail ? [emassConfig.systemOwnerEmail, config.secondary_email] : [config.secondary_email]
+                await sendEmail(mailer, config.gmail_from, config.secondary_email, emails, 'Error: GitHub Repository Not Mapped To eMASS System', body)
+
+                const emassMissingIssueExists = await issueExists(octokit, repository.owner.login, repository.name, 'ghas-non-compliant')
+                if (!emassMissingIssueExists) {
+                    core.info(`[${repository.name}]: Creating missing EMASS information issue`)
+                    const issueBody = generateMissingEMASSInfoIssue(config.missing_info_issue_template, repository.html_url, requiredLanguages)
+                    await createIssue(octokit, repository.owner.login, repository.name, 'Error: GitHub Repository Not Mapped To eMASS System', issueBody)
+                }
+            }
+
             core.info(`[${repository.name}]: Retrieving existing CodeQL analyses`)
             const analyses = await listCodeQLAnalyses(octokit, repository.owner.login, repository.name, repository.default_branch, config.days_to_scan)
             if (analyses.languages.length > 0) {
@@ -65082,27 +65097,9 @@ const main = async () => {
 
             core.warning(`[${repository.name}]: [missing-data] Missing analyses or databases identified: ${JSON.stringify(missingData)}`)
             const uniqueMissingLanguages = [...new Set([...missingAnalyses, ...missingDatabases])]
-            const repoURL = `https://github.com/${repository.owner.login}/${repository.name}`
-
-            if (!emassConfig || !emassConfig.systemOwnerEmail || !emassConfig.systemID || !systemIDs.includes(emassConfig.systemID)) {
-                core.warning(`[${repository.name}]: [missing-configuration] .github/emass.json not found, or missing/incorrect eMASS data`)
-                core.info(`[${repository.name}]: [generating-email] Sending 'Error: GitHub Repository Not Mapped To eMASS System' email to OIS and system owner`)
-                const body = generateMissingEMASSInfoEmail(config.missing_info_email_template, repoURL, uniqueMissingLanguages)
-                const emails = emassConfig && emassConfig.systemOwnerEmail ? [emassConfig.systemOwnerEmail, config.secondary_email] : [config.secondary_email]
-                await sendEmail(mailer, config.gmail_from, config.secondary_email, emails, 'Error: GitHub Repository Not Mapped To eMASS System', body)
-
-                const emassMissingIssueExists = await issueExists(octokit, repository.owner.login, repository.name, 'ghas-non-compliant')
-                if (!emassMissingIssueExists) {
-                    core.info(`[${repository.name}]: Creating missing EMASS information issue`)
-                    const issueBody = generateMissingEMASSInfoIssue(config.missing_info_issue_template, repoURL, uniqueMissingLanguages)
-                    await createIssue(octokit, repository.owner.login, repository.name, 'Error: GitHub Repository Not Mapped To eMASS System', issueBody)
-                }
-
-                return
-            }
 
             core.info(`[${repository.name}]: Generating Non-Compliant repository email body`)
-            const body = generateNonCompliantEmailBody(config.non_compliant_email_template, emassConfig.systemID, emassConfig.systemName, repoURL, uniqueMissingLanguages)
+            const body = generateNonCompliantEmailBody(config.non_compliant_email_template, emassConfig.systemID, emassConfig.systemName, repository.html_url, uniqueMissingLanguages)
 
             core.warning(`[${repository.name}]: [generating-email] Sending 'GitHub Repository Code Scanning Not Enabled' email to system owner`)
             const emails = emassConfig && emassConfig.systemOwnerEmail ? [emassConfig.systemOwnerEmail, config.secondary_email] : [config.secondary_email]
