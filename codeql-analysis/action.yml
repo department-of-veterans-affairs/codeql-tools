@@ -1,16 +1,20 @@
 name: CodeQL
 description: GitHub Advanced Security Code Scanning with CodeQL
 inputs:
+  build_step_name:
+    description: Name of the build step to invoke
+    required: false
+  label:
+    description: Category label to handle deduplication
+    required: false
+    default: 'default'
+  language:
+    description: Language to analyze
+    required: true
   path:
     description: Path to the CodeQL database
     required: false
     default: '.'
-  build_step_name:
-    description: Name of the build step to invoke
-    required: false
-  language:
-    description: Language to analyze
-    required: true
   token:
     description: GitHub token
     required: true
@@ -110,6 +114,8 @@ runs:
 
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v2
+      with:
+        category: ois-${{ inputs.language }}-${{ inputs.label }}
 
     - name: Generate CodeQL Results CSV
       if: runner.os == 'Linux'
