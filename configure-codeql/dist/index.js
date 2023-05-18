@@ -43521,7 +43521,7 @@ const main = async () => {
                 core.info(`[${repository.name}]: Creating '${SOURCE_BRANCH_NAME}' branch`)
                 await createRef(octokit, repository.owner.login, repository.name, sha, SOURCE_BRANCH_NAME)
             } else {
-                core.warning(`[${repository.name}]: Skipping branch creation as branch already exists`)
+                core.info(`[${repository.name}]: Skipping branch creation as branch already exists`)
             }
 
             core.info(`[${repository.name}]: Checking if '.github/workflows/codeql-analysis.yml' exists`)
