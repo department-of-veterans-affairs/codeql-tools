@@ -72,8 +72,8 @@ const main = async () => {
             const emassRepoName = `${emassConfig.systemID}-${repository.name}`
 
             core.info(`[${repository.name}]: Validating EMASS repository exists`)
-            const exists = await repoExists(emassOrganizationApp, config.emass_org, emassRepoName)
-            if (!exists) {
+            const repositoryExists = await repoExists(emassOrganizationApp, config.emass_org, emassRepoName)
+            if (!repositoryExists) {
                 core.info(`[${repository.name}]: Repository does not exist, creating EMASS repository '${emassRepoName}'`)
                 await createRepo(emassOrganizationApp, config.emass_org, emassRepoName)
             }
