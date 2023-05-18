@@ -43534,7 +43534,7 @@ const main = async () => {
                 const workflowSHA = await getFileRefSHA(octokit, repository.owner.login, repository.name, SOURCE_BRANCH_NAME, '.github/workflows/codeql-analysis.yml')
 
                 core.info(`[${repository.name}]: Updating '.github/workflows/codeql-analysis.yml'`)
-                await updateFile(octokit, repository.owner.login, repository.name, SOURCE_BRANCH_NAME, '.github/workflows/codeql-analysis.yml', 'Update CodeQL workflow', workflow, sha)
+                await updateFile(octokit, repository.owner.login, repository.name, SOURCE_BRANCH_NAME, '.github/workflows/codeql-analysis.yml', 'Update CodeQL workflow', workflow, workflowSHA)
             }
 
             core.info(`[${repository.name}]: Checking if '.github/emass.json' exists`)
