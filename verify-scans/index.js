@@ -10,6 +10,7 @@ const axios = require('axios')
 const axiosRetry = require('axios-retry')
 const nodemailer = require('nodemailer')
 const {createGitHubAppClient, supportedCodeQLLanguages, createGitHubClient} = require('../lib/utils')
+const {file} = require("../upload-database/dist");
 
 axiosRetry(axios, {
     retries: 3
@@ -51,7 +52,7 @@ const main = async () => {
     await verifyScansApp.eachRepository(async ({octokit, repository}) => {
         try {
             core.info(`[${repository.name}]: Retrieving .emass-repo-ignore file`)
-            const emassIgnore = await getRawFile(octokit, repository.owner.login, repository.name, '.github/.emass-repo-ignore')
+            const emassIgnore = await exists(octokit, repository.owner.login, repository.name, '.github/.emass-repo-ignore')
             if (emassIgnore) {
                 core.info(`[${repository.name}]: [skipped-ignored] Found .emass-repo-ignore file, skipping repository`)
                 return
@@ -252,6 +253,23 @@ const parseInput = () => {
     } catch (e) {
         core.setFailed(`Failed to parse input: ${e.message}`)
         process.exit(1)
+    }
+}
+
+const exists = async (octokit, owner, repo, path) => {
+    try {
+        await octokit.repos.getContent({
+            owner: owner,
+            repo: repo,
+            path: path
+        })
+
+        return true
+    } catch (e) {
+        if (e.status === 404) {
+            return false
+        }
+        throw new Error(`Failed to check if file exists: ${e.message}`)
     }
 }
 

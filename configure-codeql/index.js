@@ -31,9 +31,8 @@ const main = async () => {
     await configureCodeQLApp.eachRepository(async ({octokit, repository}) => {
         try {
             core.info(`[${repository.name}]: Retrieving .emass-repo-ignore file`)
-            const emassIgnore = await getRawFile(octokit, repository.owner.login, repository.name, '.github/.emass-repo-ignore')
-            console.log(emassIgnore)
-            if (emassIgnore) {
+            const emassIgnore = await exists(octokit, repository.owner.login, repository.name, '.github/.emass-repo-ignore')
+            if (emassIgnore !== null) {
                 core.info(`[${repository.name}]: [skipped-ignored] Found .emass-repo-ignore file, skipping repository`)
                 return
             }
@@ -458,24 +457,20 @@ const reusableWorkflowInUse = async (octokit, owner, repo, branch, path) => {
     }
 }
 
-const getRawFile = async (octokit, owner, repo, path) => {
+const exists = async (octokit, owner, repo, path) => {
     try {
-        const response = await octokit.repos.getContent({
+        await octokit.repos.getContent({
             owner: owner,
             repo: repo,
             path: path
         })
 
-        if (ENABLE_DEBUG) {
-            core.info(`[TRACE] reusableWorkflowInUse: ${Buffer.from(response.data.content, 'base64').toString()}`)
+        return true
+    } catch (e) {
+        if (e.status === 404) {
+            return false
         }
-
-        return Buffer.from(response.data.content, 'base64').toString()
-    } catch (error) {
-        if (error.status === 404) {
-            return null
-        }
-        throw error
+        throw new Error(`Failed to check if file exists: ${e.message}`)
     }
 }
 
