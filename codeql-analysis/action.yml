@@ -4,10 +4,6 @@ inputs:
   build_step_name:
     description: Name of the build step to invoke
     required: false
-  label:
-    description: Category label to handle deduplication
-    required: false
-    default: 'default'
   language:
     description: Language to analyze
     required: true
@@ -74,9 +70,9 @@ runs:
           Add-Content -Path $env:GITHUB_ENV -Value "CODEQL_ENABLE_EXPERIMENTAL_FEATURES_SWIFT=true"
     - name: Initialize CodeQL
       uses: github/codeql-action/init@v2
+      working-directory: ${{ inputs.path }}
       with:
         languages: ${{ inputs.language }}
-        source-root: ${{ inputs.path }}
         queries: security-and-quality
 
     - name: Parse Build Steps
@@ -114,8 +110,9 @@ runs:
 
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v2
+      working-directory: ${{ inputs.path }}
       with:
-        category: ois-${{ inputs.language }}-${{ inputs.label }}
+        category: ois-${{ inputs.language }}
 
     - name: Generate CodeQL Results CSV
       if: runner.os == 'Linux'
