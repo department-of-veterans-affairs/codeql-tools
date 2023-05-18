@@ -95,7 +95,11 @@ const main = async () => {
                 core.info(`[${repository.name}]: Creating '.github/workflows/codeql-analysis.yml'`)
                 await createFile(octokit, repository.owner.login, repository.name, SOURCE_BRANCH_NAME, '.github/workflows/codeql-analysis.yml', 'Create CodeQL workflow', workflow)
             } else {
-                core.warning(`[${repository.name}]: Skipping CodeQL workflow creation as file already exists`)
+                core.info(`[${repository.name}]: File already exists, retrieving SHA`)
+                const workflowSHA = await getFileRefSHA(octokit, repository.owner.login, repository.name, SOURCE_BRANCH_NAME, '.github/workflows/codeql-analysis.yml')
+
+                core.info(`[${repository.name}]: Updating '.github/workflows/codeql-analysis.yml'`)
+                await updateFile(octokit, repository.owner.login, repository.name, SOURCE_BRANCH_NAME, '.github/workflows/codeql-analysis.yml', 'Update CodeQL workflow', workflow, sha)
             }
 
             core.info(`[${repository.name}]: Checking if '.github/emass.json' exists`)
@@ -330,6 +334,41 @@ const getDefaultRefSHA = async (octokit, owner, repo, branch) => {
         return ref.object.sha
     } catch (e) {
         throw new Error(`Failed to retrieve default branch SHA: ${e.message}`)
+    }
+}
+
+const getFileRefSHA = async (octokit, owner, repo, branch, path) => {
+    try {
+        const {data: content} = await octokit.repos.getContent({
+            owner: owner,
+            repo: repo,
+            path: path,
+            ref: branch
+        })
+
+        return content.sha
+    } catch (e) {
+        if(e.status === 404) {
+            throw new Error(`File not found: ${path}`)
+        }
+
+        throw new Error(`Failed to retrieve file SHA: ${e.message}`)
+    }
+}
+
+const updateFile = async (octokit, owner, repo, branch, path, message, content, sha) => {
+    try {
+        await octokit.repos.createOrUpdateFileContents({
+            owner: owner,
+            repo: repo,
+            path: path,
+            message: message,
+            content: Buffer.from(content).toString('base64'),
+            sha: sha,
+            branch: branch
+        })
+    } catch (e) {
+        throw new Error(`Failed to update file: ${e.message}`)
     }
 }
 
