@@ -10,7 +10,6 @@ const axios = require('axios')
 const axiosRetry = require('axios-retry')
 const nodemailer = require('nodemailer')
 const {createGitHubAppClient, supportedCodeQLLanguages, createGitHubClient} = require('../lib/utils')
-const {file} = require("../upload-database/dist");
 
 axiosRetry(axios, {
     retries: 3
@@ -426,8 +425,10 @@ const listCodeQLAnalyses = async (octokit, owner, repo, branch, range) => {
         const languages = []
         const versions = []
         for (const analysis of analyses) {
-            const environment = JSON.parse(analysis.environment)
-            let language = environment.language || analysis.category
+            if (!analysis.category.toLowerCase().startsWith('ois-')) {
+                continue
+            }
+            let language = environment.language || analysis.category.split('-')[1]
             if (language === 'kotlin') {
                 language = 'java'
             }
