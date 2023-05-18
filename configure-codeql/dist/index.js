@@ -43467,8 +43467,7 @@ const main = async () => {
         try {
             core.info(`[${repository.name}]: Retrieving .emass-repo-ignore file`)
             const emassIgnore = await exists(octokit, repository.owner.login, repository.name, '.github/.emass-repo-ignore')
-            console.log(emassIgnore)
-            if (emassIgnore !== null) {
+            if (emassIgnore) {
                 core.info(`[${repository.name}]: [skipped-ignored] Found .emass-repo-ignore file, skipping repository`)
                 return
             }
