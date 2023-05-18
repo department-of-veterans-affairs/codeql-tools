@@ -32,6 +32,7 @@ const main = async () => {
         try {
             core.info(`[${repository.name}]: Retrieving .emass-repo-ignore file`)
             const emassIgnore = await exists(octokit, repository.owner.login, repository.name, '.github/.emass-repo-ignore')
+            console.log(emassIgnore)
             if (emassIgnore !== null) {
                 core.info(`[${repository.name}]: [skipped-ignored] Found .emass-repo-ignore file, skipping repository`)
                 return
@@ -509,6 +510,7 @@ const exists = async (octokit, owner, repo, path) => {
         if (e.status === 404) {
             return false
         }
+
         throw new Error(`Failed to check if file exists: ${e.message}`)
     }
 }
