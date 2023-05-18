@@ -43467,6 +43467,7 @@ const main = async () => {
         try {
             core.info(`[${repository.name}]: Retrieving .emass-repo-ignore file`)
             const emassIgnore = await getRawFile(octokit, repository.owner.login, repository.name, '.github/.emass-repo-ignore')
+            console.log(emassIgnore)
             if (emassIgnore) {
                 core.info(`[${repository.name}]: [skipped-ignored] Found .emass-repo-ignore file, skipping repository`)
                 return
@@ -43759,7 +43760,7 @@ const getDefaultRefSHA = async (octokit, owner, repo, branch) => {
         const {data: ref} = await octokit.git.getRef({
             owner: owner,
             repo: repo,
-            ref: `heads/${branch}`
+            ref: `refs/heads/${branch}`
         })
 
         return ref.object.sha
