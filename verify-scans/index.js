@@ -94,6 +94,8 @@ const main = async () => {
                     const issueBody = generateMissingEMASSInfoIssue(config.missing_info_issue_template, repository.html_url, requiredLanguages)
                     await createIssue(octokit, repository.owner.login, repository.name, 'Error: GitHub Repository Not Mapped To eMASS System', issueBody)
                 }
+
+                return
             }
 
             core.info(`[${repository.name}]: Retrieving existing CodeQL analyses`)
