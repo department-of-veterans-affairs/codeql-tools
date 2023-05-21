@@ -9,13 +9,19 @@ const core = require('@actions/core')
 const axios = require('axios')
 const axiosRetry = require('axios-retry')
 const nodemailer = require('nodemailer')
+const {markdownTable} = require('markdown-table')
 const {createGitHubAppClient, supportedCodeQLLanguages, createGitHubClient} = require('../lib/utils')
 
 axiosRetry(axios, {
     retries: 3
 })
 
+const DRY_RUN = process.env.DRY_RUN && process.env.DRY_RUN.toLowerCase() === 'true'
 const ENABLE_DEBUG = process.env.ACTIONS_STEP_DEBUG && process.env.ACTIONS_STEP_DEBUG.toLowerCase() === 'true'
+
+const CONFIGURED_MISSING_SCANS_REPOS = []
+const FULLY_COMPLIANT_REPOS = []
+const TOTAL_REPOS = []
 
 const main = async () => {
     core.info('Parsing Actions input')
@@ -48,7 +54,6 @@ const main = async () => {
     core.info(`Retrieving System ID list`)
     const systemIDs = await getFileArray(adminClient, config.org, '.github-internal', '.emass-system-include')
 
-    console.log(systemIDs)
     await verifyScansApp.eachRepository(async ({octokit, repository}) => {
         try {
             core.info(`[${repository.name}]: Retrieving .emass-repo-ignore file`)
@@ -58,6 +63,7 @@ const main = async () => {
                 return
             }
 
+            TOTAL_REPOS.push(repository.name)
             core.info(`[${repository.name}]: Retrieving open issues`)
             const issues = await listOpenIssues(octokit, repository.owner.login, repository.name, ['ghas-non-compliant'])
             core.info(`[${repository.name}]: Found ${issues.length} open issues, closing open issues`)
@@ -133,10 +139,12 @@ const main = async () => {
 
             if (missingAnalyses.length === 0 && missingDatabases.length === 0) {
                 core.info(`[${repository.name}]: No missing analyses or databases found`)
+                FULLY_COMPLIANT_REPOS.push(repository.name)
                 core.info(`[${repository.name}]: [successfully-processed] Successfully processed repository`)
                 return
             }
 
+            CONFIGURED_MISSING_SCANS_REPOS.push(repository.name)
             const missingData = {
                 missingAnalyses: missingAnalyses,
                 missingDatabases: missingDatabases
@@ -152,17 +160,40 @@ const main = async () => {
             const emails = emassConfig && emassConfig.systemOwnerEmail ? [emassConfig.systemOwnerEmail, config.secondary_email] : [config.secondary_email]
             await sendEmail(mailer, config.gmail_from, config.secondary_email, emails, 'GitHub Repository Code Scanning Not Enabled', body)
             core.info(`[${repository.name}]: [system-owner-notified] Successfully sent email to system owner`)
-        } catch (error) {
-            core.error(`[${repository.name}]: Error processing repository: ${error}`)
+        } catch (e) {
+            core.error(`[${repository.name}]: Error processing repository: ${e}`)
         }
     })
 
     core.info('Finished processing all repositories, generating summary')
+
+    try {
+        core.info(`Creating dashboard, retrieving existing dashboard ref`)
+        const dashboardRef = await getFileRefSHA(adminClient, config.org, config.dashboard_repo, config.dashboard_repo_default_branch, 'dashboards/enablement.md')
+
+        core.info(`Generating dashboard content`)
+        const dashboardContent = await createDashboardMarkdown()
+
+        core.info(`Updating dashboard`)
+        await updateFile(adminClient, config.org, config.dashboard_repo, config.dashboard_repo_default_branch, 'dashboards/enablement.md', 'Update dashboard', dashboardContent, dashboardRef)
+    } catch (error) {
+        core.error(`Error creating dashboard: ${e}`)
+    }
+
+    core.info(`Finished generating dashboard`)
 }
 
 const parseInput = () => {
     try {
         const admin_token = core.getInput('admin_token', {
+            required: true,
+            trimWhitespace: true
+        })
+        const dashboard_repo = core.getInput('dashboard_repo', {
+            required: true,
+            trimWhitespace: true
+        })
+        const dashboard_repo_default_branch = core.getInput('dashboard_repo_default_branch', {
             required: true,
             trimWhitespace: true
         })
@@ -232,6 +263,8 @@ const parseInput = () => {
 
         return {
             admin_token: admin_token,
+            dashboard_repo: dashboard_repo,
+            dashboard_repo_default_branch: dashboard_repo_default_branch,
             days_to_scan: days_to_scan,
             emass_promotion_app_id: emass_promotion_app_id,
             emass_promotion_private_key: emass_promotion_private_key,
@@ -469,13 +502,15 @@ const isAppInstalled = async (octokit, owner, repo) => {
 }
 
 const sendEmail = async (client, from, replyTo, emails, subject, html) => {
-    await client.sendMail({
-        from: from,
-        to: emails,
-        replyTo: replyTo,
-        subject: subject,
-        html: html
-    })
+    if(!DRY_RUN) {
+        await client.sendMail({
+            from: from,
+            to: emails,
+            replyTo: replyTo,
+            subject: subject,
+            html: html
+        })
+    }
 }
 
 const generateMissingEMASSInfoEmail = (template, repository, languages) => {
@@ -602,6 +637,59 @@ const closeIssues = async (octokit, owner, repo, issues) => {
     } catch (e) {
         throw new Error(`Failed to close issues: ${e.message}`)
     }
+}
+
+const getFileRefSHA = async (octokit, owner, repo, branch, path) => {
+    try {
+        const {data: content} = await octokit.repos.getContent({
+            owner: owner,
+            repo: repo,
+            path: path,
+            ref: branch
+        })
+
+        return content.sha
+    } catch (e) {
+        if(e.status === 404) {
+            throw new Error(`File not found: ${path}`)
+        }
+
+        throw new Error(`Failed to retrieve file SHA: ${e.message}`)
+    }
+}
+
+const updateFile = async (octokit, owner, repo, branch, path, message, content, sha) => {
+    try {
+        await octokit.repos.createOrUpdateFileContents({
+            owner: owner,
+            repo: repo,
+            path: path,
+            message: message,
+            content: Buffer.from(content).toString('base64'),
+            sha: sha,
+            branch: branch
+        })
+    } catch (e) {
+        throw new Error(`Failed to update file: ${e.message}`)
+    }
+}
+
+const createDashboardMarkdown = async() => {
+    const table = markdownTable([
+        ['Fully Enabled', FULLY_COMPLIANT_REPOS],
+        ['Partially Enabled', CONFIGURED_MISSING_SCANS_REPOS],
+        ['Not Enabled', TOTAL_REPOS - FULLY_COMPLIANT_REPOS],
+    ])
+
+    return `---
+layout: minimal
+title: Enablement Dashboard
+nav_order: 100
+parent: Code Scanning Governance Platform Dashboard
+---
+
+${table}
+    `
 }
 
 main().catch(e => core.setFailed(e.message))
