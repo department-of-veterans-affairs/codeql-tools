@@ -5,6 +5,12 @@ inputs:
   admin_token:
     description: A personal access token with admin:org permissions
     required: true
+  dashboard_repo:
+    description: The repository to store the dashboard in
+    required: true
+  dashboard_repo_default_branch:
+    description: The default branch of the dashboard repository
+    required: true
   days_to_scan:
     description: The number of days to scan
     required: true
