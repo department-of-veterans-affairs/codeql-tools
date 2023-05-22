@@ -676,8 +676,8 @@ const updateFile = async (octokit, owner, repo, branch, path, message, content, 
 
 const createDashboardMarkdown = async() => {
     const table = markdownTable([
-        ['Fully Enabled', FULLY_COMPLIANT_REPOS.length],
-        ['Partially Enabled', CONFIGURED_MISSING_SCANS_REPOS.length],
+        ['Enabled', FULLY_COMPLIANT_REPOS.length],
+        ['Enabled: Non-Compliant', CONFIGURED_MISSING_SCANS_REPOS.length],
         ['Not Enabled', TOTAL_REPOS.length - FULLY_COMPLIANT_REPOS.length],
     ])
 
