@@ -39,7 +39,7 @@ for key in "${!workflows[@]}"; do
   git status
   echo "---
 layout: minimal
-title: ${key} Logs
+title: Logs - ${key}
 nav_order: 50
 parent: Code Scanning Governance Platform Dashboard
 ---
