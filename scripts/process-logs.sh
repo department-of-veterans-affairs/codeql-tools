@@ -37,7 +37,7 @@ for key in "${!workflows[@]}"; do
 
   echo "Moving log file"
   git status
-  echo "---\nlayout: minimal\ntitle: ${key} Logs\nnav_order: 100\nparent: Code Scanning Governance Platform Dashboard\n---\n\n\`\`\`shell\n" > "logs/${key}.md"
+  echo "---\\nlayout: minimal\ntitle: ${key} Logs\nnav_order: 100\nparent: Code Scanning Governance Platform Dashboard\n---\n\n\`\`\`shell\n" > "logs/${key}.md"
   cat "${workflows[$key]}" >> "logs/${key}.md"
   echo "\`\`\`" >> "logs/${key}.md"
   git clean -ffd
