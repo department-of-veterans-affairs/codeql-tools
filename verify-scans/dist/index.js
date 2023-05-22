@@ -68861,7 +68861,7 @@ const createDashboardMarkdown = async() => {
     return `---
 layout: minimal
 title: Enablement Dashboard
-nav_order: 100
+nav_order: 60
 parent: Code Scanning Governance Platform Dashboard
 ---
 
