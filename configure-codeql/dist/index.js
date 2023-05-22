@@ -46200,20 +46200,20 @@ const main = async () => {
 
     if(config.scan_all_repos) {
         await configureCodeQLApp.eachRepository(async ({octokit, repository}) => {
-            await process(octokit, config, repository, adminClient, verifyScansInstalledRepositories)
+            await processRepository(octokit, config, repository, adminClient, verifyScansInstalledRepositories)
         })
     } else {
         const {data: repository} = await configureCodeQLInstallationClient.repos.get({
             owner: config.org,
             repo: config.repo
         })
-        await process(configureCodeQLInstallationClient, config, repository, adminClient, verifyScansInstalledRepositories)
+        await processRepository(configureCodeQLInstallationClient, config, repository, adminClient, verifyScansInstalledRepositories)
     }
 
     core.info('Finished processing all repositories, generating summary')
 }
 
-const process = async (octokit, config, repository, adminClient, verifyScansInstalledRepositories) => {
+const processRepository = async (octokit, config, repository, adminClient, verifyScansInstalledRepositories) => {
     try {
         core.info(`[${repository.name}]: Retrieving .emass-repo-ignore file`)
         const emassIgnore = await exists(octokit, repository.owner.login, repository.name, '.github/.emass-repo-ignore')

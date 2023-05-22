@@ -582,16 +582,18 @@ const issueExists = async (octokit, owner, repo, label) => {
 }
 
 const createIssue = async (octokit, owner, repo, title, body, labels) => {
-    try {
-        await octokit.issues.create({
-            owner: owner,
-            repo: repo,
-            title: title,
-            body: body,
-            labels: labels ? ['ghas-non-compliant'].concat(labels) : ['ghas-non-compliant']
-        })
-    } catch (e) {
-        throw new Error(`Failed to create issue: ${e.message}`)
+    if(!DRY_RUN) {
+        try {
+            await octokit.issues.create({
+                owner: owner,
+                repo: repo,
+                title: title,
+                body: body,
+                labels: labels ? ['ghas-non-compliant'].concat(labels) : ['ghas-non-compliant']
+            })
+        } catch (e) {
+            throw new Error(`Failed to create issue: ${e.message}`)
+        }
     }
 }
 
