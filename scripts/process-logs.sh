@@ -37,17 +37,21 @@ for key in "${!workflows[@]}"; do
 
   echo "Moving log file"
   git status
-  rm -f "reports/actions/${key}/logs.md"
-  mv "${workflows[$key]}" "reports/actions/${key}/logs.md"
-  sed -i '1s/^/```shell\n/' "reports/actions/${key}/logs.md"
-  echo "\`\`\`" >> "reports/actions/${key}/logs.md"
+  echo "---
+layout: minimal
+title: ${key} Logs
+nav_order: 100
+parent: Code Scanning Governance Platform Dashboard
+---\n\n\`\`\`shell\n" > "logs/${key}.md"
+  echo "${workflows[$key]}" >> "logs/${key}.md"
+  echo "\`\`\`" >> "logs/${key}.md"
   git clean -ffd
 
   if [[ `git status --porcelain` ]]; then
     echo "Staging logs"
     git config --global user.name "github-actions[bot]"
     git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
-    git add "reports/actions/${key}/logs.md"
+    git add "logs/${key}.md"
     git commit -m "Adding latest ${key} workflow logs"
     git status
     tree
