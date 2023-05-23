@@ -68191,7 +68191,7 @@ axiosRetry(axios, {
     retries: 3
 })
 
-const DISABLE_NOTIFICATIONS = process.env.DISABLE_NOTIFICATIONS && process.env.DISABLE_NOTIFICATIONS.toLowerCase() === 'true'
+const DISABLE_NOTIFICATIONS = false
 const ENABLE_DEBUG = process.env.ACTIONS_STEP_DEBUG && process.env.ACTIONS_STEP_DEBUG.toLowerCase() === 'true'
 
 const CONFIGURED_MISSING_SCANS_REPOS = []
