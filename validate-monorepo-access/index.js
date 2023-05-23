@@ -1,15 +1,19 @@
 
 const core = require('@actions/core')
-const {createGitHubClient} = require("../lib/utils")
+const yaml = require('js-yaml')
+const {createGitHubAppClient} = require("../lib/utils")
 const main = async () => {
     try {
         const config = parseInput()
 
-        core.info('Creating GitHub Client')
-        const octokit = createGitHubClient(config.allowlist_token)
+        core.info('Creating GitHub App Client')
+        const octokit = await createGitHubAppClient(config.allowlist_credentials.appID, config.allowlist_credentials.privateKey)
+
+        core.info('Create GitHub Client')
+        const client = octokit.getInstallationOctokit(config.allowlist_credentials.installationID)
 
         core.info(`[${config.repo}]: Retrieving mono-repo allowlist from ${config.org}/${config.allowlist_repo}/${config.allowlist_path}`)
-        const allowlist = await getFileArray(octokit, config.org, config.allowlist_repo, config.allowlist_path)
+        const allowlist = await getFileArray(client, config.org, config.allowlist_repo, config.allowlist_path)
         core.info(`[${config.repo}]: Validating repo has access to monorepo features`)
         if (!allowlist.includes(config.repo)) {
             core.setFailed(`[${config.repo}]: Configuration not allowed, repo not enabled for monorepo features, please add to allowlist: https://github.com/${config.org}/${config.allowlist_repo}/blob/main/${config.allowlist_path}`)
@@ -23,6 +27,10 @@ const main = async () => {
 }
 
 const parseInput = () => {
+    const allowlist_credentials = core.getInput('allowlist_credentials', {
+        required: true,
+        trimWhitespace: true
+    })
     const allowlist_path = core.getInput('allowlist_path', {
         required: true,
         trimWhitespace: true
@@ -39,15 +47,11 @@ const parseInput = () => {
         required: true,
         trimWhitespace: true
     })
-    const allowlist_token = core.getInput('allowlist_token', {
-        required: true,
-        trimWhitespace: true
-    })
 
     return {
+        allowlist_credentials: yaml.load(allowlist_credentials),
         allowlist_path: allowlist_path,
         allowlist_repo: allowlist_repo,
-        allowlist_token: allowlist_token,
         org: org,
         repo: repo.toLowerCase()
     }

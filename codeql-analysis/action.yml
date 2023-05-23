@@ -29,7 +29,7 @@ runs:
   using: composite
   steps:
     - name: Validate Monorepo Access
-      if: inputs.config != ''
+      if: inputs.config != '' || inputs.path != '.'
       uses: department-of-veterans-affairs/codeql-tools/validate-monorepo-access@main
       with:
         allowlist_path: 'csgp-monorepo-allowlist'
