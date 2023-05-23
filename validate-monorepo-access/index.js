@@ -10,7 +10,7 @@ const main = async () => {
         const octokit = await createGitHubAppClient(config.allowlist_credentials.appID, config.allowlist_credentials.privateKey)
 
         core.info('Create GitHub Client')
-        const client = octokit.getInstallationOctokit(config.allowlist_credentials.installationID)
+        const client = await octokit.getInstallationOctokit(config.allowlist_credentials.installationID)
 
         core.info(`[${config.repo}]: Retrieving mono-repo allowlist from ${config.org}/${config.allowlist_repo}/${config.allowlist_path}`)
         const allowlist = await getFileArray(client, config.org, config.allowlist_repo, config.allowlist_path)
