@@ -5,7 +5,7 @@ inputs:
     description: Name of the build step to invoke
     required: false
   config:
-    description: Path to the CodeQL configuration file
+    description: CodeQL configuration YAML
     required: false
     default: ''
   language:
@@ -25,6 +25,16 @@ inputs:
 runs:
   using: composite
   steps:
+    - name: Validate Monorepo Access
+      if: input.config != ''
+      uses: github/codeql-action/validate-monorepo-access@main
+      with:
+        allowlist_path: ${{ vars.MONOREPO_ALLOWLIST_PATH }}
+        allowlist_repo: ${{ vars.MONOREPO_ALLOWLIST_REPO }}
+        org: ${{ github.event.organization.login }}
+        repo: ${{ github.event.repository.name }}
+        token: ${{ secrets.MONOREPO_ALLOWLIST_TOKEN }}
+
     - name: Checkout repository
       uses: actions/checkout@v3
 
