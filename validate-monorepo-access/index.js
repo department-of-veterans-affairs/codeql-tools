@@ -6,7 +6,8 @@ const main = async () => {
         const config = parseInput()
 
         core.info('Creating GitHub Client')
-        const octokit = createGitHubClient(config.token)
+        console.log(config.allowlist_token)
+        const octokit = createGitHubClient(config.allowlist_token)
 
         core.info(`[${config.repo}]: Retrieving mono-repo allowlist`)
         const allowlist = await getFileArray(octokit, config.org, config.allowlist_repo, config.allowlist_path)
@@ -14,7 +15,10 @@ const main = async () => {
         core.info(`[${config.repo}]: Validating repo has access to monorepo features`)
         if (!allowlist.includes(config.repo)) {
             core.setFailed(`[${config.repo}]: Configuration not allowed, repo not enabled for monorepo features, please add to allowlist: https://github.com/${config.allowlist_repo}/blob/main/${config.allowlist_path}`)
+            process.exit(1)
         }
+
+        core.info(`[${config.repo}]: Validating repo has access to monorepo features`)
     } catch (e) {
         core.setFailed(`Unable to upload database: ${e.message}`)
     }
@@ -25,7 +29,7 @@ const parseInput = () => {
         required: true,
         trimWhitespace: true
     })
-    const allowlist_repo = core.getInput('allowlist_path', {
+    const allowlist_repo = core.getInput('allowlist_repo', {
         required: true,
         trimWhitespace: true
     })
@@ -37,7 +41,7 @@ const parseInput = () => {
         required: true,
         trimWhitespace: true
     })
-    const token = core.getInput('token', {
+    const allowlist_token = core.getInput('allowlist_token', {
         required: true,
         trimWhitespace: true
     })
@@ -45,9 +49,9 @@ const parseInput = () => {
     return {
         allowlist_path: allowlist_path,
         allowlist_repo: allowlist_repo,
+        allowlist_token: allowlist_token,
         org: org,
-        repo: repo.toLowerCase(),
-        token: token
+        repo: repo.toLowerCase()
     }
 }
 
@@ -58,8 +62,8 @@ const getFileArray = async (octokit, owner, repo, path) => {
             repo: repo,
             path: path
         })
+
         const content = Buffer.from(response.content, 'base64').toString().trim()
-        console.log(content)
         return content.split('\n').filter(line => !line.includes('#'))
     } catch (e) {
         if (e.status === 404) {

@@ -34,9 +34,9 @@ runs:
       with:
         allowlist_path: '.github-internal'
         allowlist_repo: 'csgp-monorepo-allowlist'
+        allowlist_token: ${{ inputs.allowlist_token }}
         org: ${{ github.event.organization.login }}
         repo: ${{ github.event.repository.name }}
-        token: ${{ inputs.allowlist_token }}
 
     - name: Checkout repository
       uses: actions/checkout@v3
