@@ -12,11 +12,11 @@ const main = async () => {
         const allowlist = await getFileArray(octokit, config.org, config.allowlist_repo, config.allowlist_path)
         core.info(`[${config.repo}]: Validating repo has access to monorepo features`)
         if (!allowlist.includes(config.repo)) {
-            core.setFailed(`[${config.repo}]: Configuration not allowed, repo not enabled for monorepo features, please add to allowlist: https://github.com/${config.allowlist_repo}/blob/main/${config.allowlist_path}`)
+            core.setFailed(`[${config.repo}]: Configuration not allowed, repo not enabled for monorepo features, please add to allowlist: https://github.com/${config.org}/${config.allowlist_repo}/blob/main/${config.allowlist_path}`)
             process.exit(1)
         }
 
-        core.info(`[${config.repo}]: Validating repo has access to monorepo features`)
+        core.info(`[${config.repo}]: Validated repo has access to monorepo features`)
     } catch (e) {
         core.setFailed(`Unable to upload database: ${e.message}`)
     }
