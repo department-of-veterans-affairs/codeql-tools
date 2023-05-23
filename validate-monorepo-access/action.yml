@@ -2,14 +2,14 @@ name: Validate Monorepo Access
 description: Validates that a monorepo has access to the monorepo features
 author: GitHub Expert Services
 inputs:
+  allowlist_credentials:
+    description: The app credentials to use for authentication
+    required: true
   allowlist_path:
     description: The path to the allowlist file
     required: true
   allowlist_repo:
     description: The repository containing the allowlist in
-    required: true
-  allowlist_token:
-    description: The token to use for authentication
     required: true
   org:
     description: The slug of the organization
