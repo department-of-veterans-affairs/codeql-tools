@@ -27,6 +27,14 @@ inputs:
   org:
     description: The slug of the organization
     required: true
+  repo:
+    description: An individual repository to promote assets for
+    required: true
+    default: ''
+  scan_all_repos:
+    description: Whether to promote assets for all repositories in the organization
+    required: true
+    default: 'true'
 runs:
   using: node16
   main: dist/index.js
