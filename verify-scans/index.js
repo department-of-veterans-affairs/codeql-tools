@@ -58,11 +58,13 @@ const main = async () => {
     const systemIDs = await getFileArray(adminClient, config.org, '.github-internal', '.emass-system-include')
 
     if(config.scan_all_repos) {
+        core.info(`Processing all repositories`)
         await verifyScansApp.eachRepository(async ({octokit, repository}) => {
             await processRepository(octokit, mailer, config, repository, codeQLVersions, systemIDs, adminClient, emassPromotionInstallationClient)
         })
     } else {
-        const {data: repository} = await adm.repos.get({
+        core.info(`[${config.repo}]: Processing single repository`)
+        const {data: repository} = await adminClient.repos.get({
             owner: config.org,
             repo: config.repo
         })
