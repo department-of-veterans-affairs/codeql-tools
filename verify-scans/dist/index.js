@@ -68246,22 +68246,22 @@ const main = async () => {
         await processRepository(verifyScansInstallationClient, mailer, config, repository, codeQLVersions, systemIDs, adminClient, emassPromotionInstallationClient)
     }
 
-    core.info('Finished processing all repositories, generating summary')
+    if(config.scan_all_repos) {
+        core.info('Finished processing all repositories, generating summary')
+        try {
+            core.info(`Creating dashboard, retrieving existing dashboard ref`)
+            const dashboardRef = await getFileRefSHA(adminClient, config.org, config.dashboard_repo, config.dashboard_repo_default_branch, 'dashboards/enablement.md')
 
-    try {
-        core.info(`Creating dashboard, retrieving existing dashboard ref`)
-        const dashboardRef = await getFileRefSHA(adminClient, config.org, config.dashboard_repo, config.dashboard_repo_default_branch, 'dashboards/enablement.md')
+            core.info(`Generating dashboard content`)
+            const dashboardContent = await createDashboardMarkdown()
 
-        core.info(`Generating dashboard content`)
-        const dashboardContent = await createDashboardMarkdown()
-
-        core.info(`Updating dashboard`)
-        await updateFile(adminClient, config.org, config.dashboard_repo, config.dashboard_repo_default_branch, 'dashboards/enablement.md', 'Update dashboard', dashboardContent, dashboardRef)
-    } catch (error) {
-        core.error(`Error creating dashboard: ${e}`)
+            core.info(`Updating dashboard`)
+            await updateFile(adminClient, config.org, config.dashboard_repo, config.dashboard_repo_default_branch, 'dashboards/enablement.md', 'Update dashboard', dashboardContent, dashboardRef)
+        } catch (error) {
+            core.error(`Error creating dashboard: ${e}`)
+        }
+        core.info(`Finished generating dashboard`)
     }
-
-    core.info(`Finished generating dashboard`)
 }
 
 const processRepository = async (octokit, mailer, config, repository, codeQLVersions, systemIDs, adminClient, emassPromotionInstallationClient) => {
