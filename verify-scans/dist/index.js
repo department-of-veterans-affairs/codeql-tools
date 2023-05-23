@@ -68298,7 +68298,7 @@ const processRepository = async (octokit, mailer, config, repository, codeQLVers
         const requiredLanguages = await listLanguages(octokit, repository.owner.login, repository.name, ignoredLanguages)
 
         if (!emassConfig || !emassConfig.systemOwnerEmail || !emassConfig.systemID || !systemIDs.includes(emassConfig.systemID)) {
-            if(!systemIDs.includes(emassConfig.systemID)){
+            if(emassConfig && emassConfig.systemID && !systemIDs.includes(emassConfig.systemID)){
                 core.warning(`[${repository.name}] [invalid-system-id] Skipping repository as it contains an invalid System ID`)
             }
             core.warning(`[${repository.name}]: [missing-configuration] .github/emass.json not found, or missing/incorrect eMASS data`)
