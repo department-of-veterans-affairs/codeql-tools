@@ -303,7 +303,7 @@ const parseInput = () => {
             org: org,
             out_of_compliance_cli_email_template: out_of_compliance_cli_email_template,
             repo: repo,
-            scan_all_repos: scan_all_repos,
+            scan_all_repos: scan_all_repos.toLowerCase() === 'true',
             secondary_email: secondary_email,
             verify_scans_app_id: verify_scans_app_id,
             verify_scans_private_key: verify_scans_private_key,
