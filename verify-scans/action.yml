@@ -48,6 +48,14 @@ inputs:
   out_of_compliance_cli_email_template:
     description: The template for the email to send when a repository is using an outdated CodeQL CLI version
     required: true
+  repo:
+    description: An individual repository to verify
+    required: true
+    default: ''
+  scan_all_repos:
+    description: Whether to verify all repositories in the organization
+    required: true
+    default: 'true'
   secondary_email:
     description: A secondary email address to send emails to
     required: true
