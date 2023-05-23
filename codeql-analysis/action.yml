@@ -1,8 +1,8 @@
 name: CodeQL
 description: GitHub Advanced Security Code Scanning with CodeQL
 inputs:
-  allowlist_token:
-    description: GitHub token for allowlist repo
+  allowlist_credentials:
+    description: GitHub app credentials for allowlist repo
     required: false
   build_step_name:
     description: Name of the build step to invoke
@@ -32,9 +32,9 @@ runs:
       if: inputs.config != '' || inputs.path != '.'
       uses: department-of-veterans-affairs/codeql-tools/validate-monorepo-access@main
       with:
+        allowlist_credentials: ${{ inputs.allowlist_credentials }}
         allowlist_path: 'csgp-monorepo-allowlist'
         allowlist_repo: '.github-internal'
-        allowlist_token: ${{ inputs.allowlist_token }}
         org: ${{ github.event.organization.login }}
         repo: ${{ github.event.repository.name }}
 
