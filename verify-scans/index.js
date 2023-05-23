@@ -71,7 +71,7 @@ const main = async () => {
         await processRepository(verifyScansInstallationClient, mailer, config, repository, codeQLVersions, systemIDs, adminClient, emassPromotionInstallationClient)
     }
 
-    if(config.repo) {
+    if(config.repo === '') {
         core.info('Finished processing all repositories, generating summary')
         try {
             core.info(`Creating dashboard, retrieving existing dashboard ref`)
