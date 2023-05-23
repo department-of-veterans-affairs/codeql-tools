@@ -46205,10 +46205,11 @@ const main = async () => {
         })
     } else {
         core.info(`[${config.repo}]: Processing single repository`)
-        const {data: repository} = await configureCodeQLInstallationClient.repos.get({
+        const {data: repository} = await adminClient.repos.get({
             owner: config.org,
             repo: config.repo
         })
+
         await processRepository(configureCodeQLInstallationClient, config, repository, adminClient, verifyScansInstalledRepositories)
     }
 
