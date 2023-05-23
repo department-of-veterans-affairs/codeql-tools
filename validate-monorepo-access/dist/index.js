@@ -42065,12 +42065,10 @@ const main = async () => {
         const config = parseInput()
 
         core.info('Creating GitHub Client')
-        console.log(config.allowlist_token)
         const octokit = createGitHubClient(config.allowlist_token)
 
         core.info(`[${config.repo}]: Retrieving mono-repo allowlist`)
         const allowlist = await getFileArray(octokit, config.org, config.allowlist_repo, config.allowlist_path)
-        console.log(allowlist)
         core.info(`[${config.repo}]: Validating repo has access to monorepo features`)
         if (!allowlist.includes(config.repo)) {
             core.setFailed(`[${config.repo}]: Configuration not allowed, repo not enabled for monorepo features, please add to allowlist: https://github.com/${config.allowlist_repo}/blob/main/${config.allowlist_path}`)
