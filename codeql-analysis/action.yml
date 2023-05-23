@@ -1,6 +1,9 @@
 name: CodeQL
 description: GitHub Advanced Security Code Scanning with CodeQL
 inputs:
+  allowlist_token:
+    description: GitHub token for allowlist repo
+    required: false
   build_step_name:
     description: Name of the build step to invoke
     required: false
@@ -29,11 +32,11 @@ runs:
       if: input.config != ''
       uses: github/codeql-action/validate-monorepo-access@main
       with:
-        allowlist_path: ${{ vars.MONOREPO_ALLOWLIST_PATH }}
-        allowlist_repo: ${{ vars.MONOREPO_ALLOWLIST_REPO }}
+        allowlist_path: '.github-internal'
+        allowlist_repo: 'csgp-monorepo-allowlist'
         org: ${{ github.event.organization.login }}
         repo: ${{ github.event.repository.name }}
-        token: ${{ secrets.MONOREPO_ALLOWLIST_TOKEN }}
+        token: ${{ inputs.allowlist_token }}
 
     - name: Checkout repository
       uses: actions/checkout@v3
