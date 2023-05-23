@@ -29,7 +29,7 @@ runs:
   using: composite
   steps:
     - name: Validate Monorepo Access
-      if: input.config != ''
+      if: inputs.config != ''
       uses: github/codeql-action/validate-monorepo-access@main
       with:
         allowlist_path: '.github-internal'
