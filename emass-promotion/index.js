@@ -42,6 +42,7 @@ const main = async () => {
     core.info(`Retrieving System ID list`)
     const systemIDs = await getFileArray(adminClient, config.org, '.github-internal', '.emass-system-include')
 
+    console.log(config.repo)
     if(config.repo !== '') {
         core.info(`Processing all repositories`)
         await emassPromotionApp.eachRepository(async ({octokit, repository}) => {
