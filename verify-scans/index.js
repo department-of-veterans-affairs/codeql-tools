@@ -123,6 +123,9 @@ const processRepository = async (octokit, mailer, config, repository, codeQLVers
         const requiredLanguages = await listLanguages(octokit, repository.owner.login, repository.name, ignoredLanguages)
 
         if (!emassConfig || !emassConfig.systemOwnerEmail || !emassConfig.systemID || !systemIDs.includes(emassConfig.systemID)) {
+            if(!systemIDs.includes(emassConfig.systemID)){
+                core.warning(`[${repository}] [invalid-system-id] Skipping repository as it contains an invalid System ID`)
+            }
             core.warning(`[${repository.name}]: [missing-configuration] .github/emass.json not found, or missing/incorrect eMASS data`)
             core.info(`[${repository.name}]: [generating-email] Sending 'Error: GitHub Repository Not Mapped To eMASS System' email to OIS and system owner`)
             const body = generateMissingEMASSInfoEmail(config.missing_info_email_template, repository.html_url, requiredLanguages)
