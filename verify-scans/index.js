@@ -16,7 +16,7 @@ axiosRetry(axios, {
     retries: 3
 })
 
-const DRY_RUN = process.env.DRY_RUN && process.env.DRY_RUN.toLowerCase() === 'true'
+const DISABLE_NOTIFICATIONS = process.env.DISABLE_NOTIFICATIONS && process.env.DISABLE_NOTIFICATIONS.toLowerCase() === 'true'
 const ENABLE_DEBUG = process.env.ACTIONS_STEP_DEBUG && process.env.ACTIONS_STEP_DEBUG.toLowerCase() === 'true'
 
 const CONFIGURED_MISSING_SCANS_REPOS = []
@@ -39,8 +39,11 @@ const main = async () => {
     core.info('Instantiating admin GitHub client')
     const adminClient = await createGitHubClient(config.admin_token)
 
-    core.info('Instantiating emass-promotion GitHub app client')
+    core.info('Instantiating verify-scans GitHub app client')
     const verifyScansApp = await createGitHubAppClient(config.verify_scans_app_id, config.verify_scans_private_key)
+
+    core.info('Instantiating verify-scans GitHub installation client')
+    const verifyScansInstallationClient = await verifyScansApp.getInstallationOctokit(config.verify_scans_installation_id)
 
     core.info('Instantiating emass-promotion GitHub app client')
     const emassPromotionApp = await createGitHubAppClient(config.emass_promotion_app_id, config.emass_promotion_private_key)
@@ -54,116 +57,17 @@ const main = async () => {
     core.info(`Retrieving System ID list`)
     const systemIDs = await getFileArray(adminClient, config.org, '.github-internal', '.emass-system-include')
 
-    await verifyScansApp.eachRepository(async ({octokit, repository}) => {
-        try {
-            core.info(`[${repository.name}]: Retrieving .emass-repo-ignore file`)
-            const emassIgnore = await exists(octokit, repository.owner.login, repository.name, '.github/.emass-repo-ignore')
-            if (emassIgnore) {
-                core.info(`[${repository.name}]: [skipped-ignored] Found .emass-repo-ignore file, skipping repository`)
-                return
-            }
-
-            TOTAL_REPOS.push(repository.name)
-            core.info(`[${repository.name}]: Retrieving open issues`)
-            const issues = await listOpenIssues(octokit, repository.owner.login, repository.name, ['ghas-non-compliant'])
-            core.info(`[${repository.name}]: Found ${issues.length} open issues, closing open issues`)
-            await closeIssues(octokit, repository.owner.login, repository.name, issues)
-
-            core.info(`[${repository.name}]: Retrieving codeql-config.yml file`)
-            let codeqlConfig
-            let ignoredLanguages = []
-            const _codeqlConfigRaw = await getRawFile(octokit, repository.owner.login, repository.name, '.github/codeql-config.yml')
-            if (_codeqlConfigRaw) {
-                core.info(`[${repository.name}]: Found codeql-config.yml file, parsing file`)
-                codeqlConfig = yaml.load(_codeqlConfigRaw)
-
-                core.info(`[${repository.name}]: Parsing ignored languages`)
-                ignoredLanguages = codeqlConfig.excluded_languages.map(language => language.name.toLowerCase())
-            }
-
-            core.info(`[${repository.name}]: Retrieving .github/emass.json file`)
-            const emassConfig = await getFile(octokit, repository.owner.login, repository.name, '.github/emass.json')
-
-            core.info(`[${repository.name}]: Retrieving supported CodeQL languages`)
-            const requiredLanguages = await listLanguages(octokit, repository.owner.login, repository.name, ignoredLanguages)
-
-            if (!emassConfig || !emassConfig.systemOwnerEmail || !emassConfig.systemID || !systemIDs.includes(emassConfig.systemID)) {
-                core.warning(`[${repository.name}]: [missing-configuration] .github/emass.json not found, or missing/incorrect eMASS data`)
-                core.info(`[${repository.name}]: [generating-email] Sending 'Error: GitHub Repository Not Mapped To eMASS System' email to OIS and system owner`)
-                const body = generateMissingEMASSInfoEmail(config.missing_info_email_template, repository.html_url, requiredLanguages)
-                const emails = emassConfig && emassConfig.systemOwnerEmail ? [emassConfig.systemOwnerEmail, config.secondary_email] : [config.secondary_email]
-                await sendEmail(mailer, config.gmail_from, config.secondary_email, emails, 'Error: GitHub Repository Not Mapped To eMASS System', body)
-
-                const emassMissingIssueExists = await issueExists(octokit, repository.owner.login, repository.name, 'ghas-non-compliant')
-                if (!emassMissingIssueExists) {
-                    core.info(`[${repository.name}]: Creating missing EMASS information issue`)
-                    const issueBody = generateMissingEMASSInfoIssue(config.missing_info_issue_template, repository.html_url, requiredLanguages)
-                    await createIssue(octokit, repository.owner.login, repository.name, 'Error: GitHub Repository Not Mapped To eMASS System', issueBody)
-                }
-
-                return
-            }
-
-            core.info(`[${repository.name}]: Retrieving existing CodeQL analyses`)
-            const analyses = await listCodeQLAnalyses(octokit, repository.owner.login, repository.name, repository.default_branch, config.days_to_scan)
-            if (analyses.languages.length > 0) {
-                core.info(`[${repository.name}]: Analyses found, validating 'emass-promotion' app is installed on repository`)
-                const installed = await isAppInstalled(emassPromotionInstallationClient, repository.owner.login, repository.name)
-                if (!installed) {
-                    core.info(`[${repository.name}]: 'emass-promotion' app not installed, installing app on repository`)
-                    await installApp(adminClient, config.emass_promotion_installation_id, repository.id)
-                }
-
-                core.info(`[${repository.name}]: Validating CodeQL CLI version`)
-                for (const version of analyses.versions) {
-                    if (!codeQLVersions.includes(version)) {
-                        core.warning(`[${repository.name}]: [out-of-date-cli] Outdated CodeQL CLI version found: ${version}`)
-                        core.info(`[${repository.name}]: [generating-email] Sending 'GitHub Repository Code Scanning Software Is Out Of Date' email to OIS and System Owner`)
-                        const body = await generateOutOfComplianceCLIEmailBody(config.out_of_compliance_cli_email_template, repository.name, repository.html_url, version)
-                        const emails = emassConfig && emassConfig.systemOwnerEmail ? [emassConfig.systemOwnerEmail, config.secondary_email] : [config.secondary_email]
-                        await sendEmail(mailer, config.gmail_from, config.secondary_email, emails, 'GitHub Repository Code Scanning Software Is Out Of Date', body)
-                        await createIssue(octokit, repository.owner.login, repository.name, 'GitHub Repository Code Scanning Software Is Out Of Date', body, ['out-of-date-codeql-cli'])
-                        break
-                    }
-                }
-            }
-
-            core.info(`[${repository.name}]: Calculating missing analyses languages`)
-            const missingAnalyses = await missingLanguages(requiredLanguages, analyses.languages)
-
-            core.info(`[${repository.name}]: Retrieving supported CodeQL database languages`)
-            const databaseLanguages = await listCodeQLDatabaseLanguages(octokit, repository.owner.login, repository.name, config.days_to_scan)
-
-            core.info(`[${repository.name}]: Calculating missing database languages`)
-            const missingDatabases = await missingLanguages(requiredLanguages, databaseLanguages)
-
-            if (missingAnalyses.length === 0 && missingDatabases.length === 0) {
-                core.info(`[${repository.name}]: No missing analyses or databases found`)
-                FULLY_COMPLIANT_REPOS.push(repository.name)
-                core.info(`[${repository.name}]: [successfully-processed] Successfully processed repository`)
-                return
-            }
-
-            CONFIGURED_MISSING_SCANS_REPOS.push(repository.name)
-            const missingData = {
-                missingAnalyses: missingAnalyses,
-                missingDatabases: missingDatabases
-            }
-
-            core.warning(`[${repository.name}]: [missing-data] Missing analyses or databases identified: ${JSON.stringify(missingData)}`)
-            const uniqueMissingLanguages = [...new Set([...missingAnalyses, ...missingDatabases])]
-
-            core.info(`[${repository.name}]: Generating Non-Compliant repository email body`)
-            const body = generateNonCompliantEmailBody(config.non_compliant_email_template, emassConfig.systemID, emassConfig.systemName, repository.html_url, uniqueMissingLanguages)
-
-            core.warning(`[${repository.name}]: [generating-email] Sending 'GitHub Repository Code Scanning Not Enabled' email to system owner`)
-            const emails = emassConfig && emassConfig.systemOwnerEmail ? [emassConfig.systemOwnerEmail, config.secondary_email] : [config.secondary_email]
-            await sendEmail(mailer, config.gmail_from, config.secondary_email, emails, 'GitHub Repository Code Scanning Not Enabled', body)
-            core.info(`[${repository.name}]: [system-owner-notified] Successfully sent email to system owner`)
-        } catch (e) {
-            core.error(`[${repository.name}]: Error processing repository: ${e}`)
-        }
-    })
+    if(config.scan_all_repos) {
+        await verifyScansApp.eachRepository(async ({octokit, repository}) => {
+            await processRepository(octokit, mailer, config, repository, codeQLVersions, systemIDs, adminClient, emassPromotionInstallationClient)
+        })
+    } else {
+        const {data: repository} = await adm.repos.get({
+            owner: config.org,
+            repo: config.repo
+        })
+        await processRepository(verifyScansInstallationClient, mailer, config, repository, codeQLVersions, systemIDs, adminClient, emassPromotionInstallationClient)
+    }
 
     core.info('Finished processing all repositories, generating summary')
 
@@ -181,6 +85,117 @@ const main = async () => {
     }
 
     core.info(`Finished generating dashboard`)
+}
+
+const processRepository = async (octokit, mailer, config, repository, codeQLVersions, systemIDs, adminClient, emassPromotionInstallationClient) => {
+    try {
+        core.info(`[${repository.name}]: Retrieving .emass-repo-ignore file`)
+        const emassIgnore = await exists(octokit, repository.owner.login, repository.name, '.github/.emass-repo-ignore')
+        if (emassIgnore) {
+            core.info(`[${repository.name}]: [skipped-ignored] Found .emass-repo-ignore file, skipping repository`)
+            return
+        }
+
+        TOTAL_REPOS.push(repository.name)
+        core.info(`[${repository.name}]: Retrieving open issues`)
+        const issues = await listOpenIssues(octokit, repository.owner.login, repository.name, ['ghas-non-compliant'])
+        core.info(`[${repository.name}]: Found ${issues.length} open issues, closing open issues`)
+        await closeIssues(octokit, repository.owner.login, repository.name, issues)
+
+        core.info(`[${repository.name}]: Retrieving codeql-config.yml file`)
+        let codeqlConfig
+        let ignoredLanguages = []
+        const _codeqlConfigRaw = await getRawFile(octokit, repository.owner.login, repository.name, '.github/codeql-config.yml')
+        if (_codeqlConfigRaw) {
+            core.info(`[${repository.name}]: Found codeql-config.yml file, parsing file`)
+            codeqlConfig = yaml.load(_codeqlConfigRaw)
+
+            core.info(`[${repository.name}]: Parsing ignored languages`)
+            ignoredLanguages = codeqlConfig.excluded_languages.map(language => language.name.toLowerCase())
+        }
+
+        core.info(`[${repository.name}]: Retrieving .github/emass.json file`)
+        const emassConfig = await getFile(octokit, repository.owner.login, repository.name, '.github/emass.json')
+
+        core.info(`[${repository.name}]: Retrieving supported CodeQL languages`)
+        const requiredLanguages = await listLanguages(octokit, repository.owner.login, repository.name, ignoredLanguages)
+
+        if (!emassConfig || !emassConfig.systemOwnerEmail || !emassConfig.systemID || !systemIDs.includes(emassConfig.systemID)) {
+            core.warning(`[${repository.name}]: [missing-configuration] .github/emass.json not found, or missing/incorrect eMASS data`)
+            core.info(`[${repository.name}]: [generating-email] Sending 'Error: GitHub Repository Not Mapped To eMASS System' email to OIS and system owner`)
+            const body = generateMissingEMASSInfoEmail(config.missing_info_email_template, repository.html_url, requiredLanguages)
+            const emails = emassConfig && emassConfig.systemOwnerEmail ? [emassConfig.systemOwnerEmail, config.secondary_email] : [config.secondary_email]
+            await sendEmail(mailer, config.gmail_from, config.secondary_email, emails, 'Error: GitHub Repository Not Mapped To eMASS System', body)
+
+            const emassMissingIssueExists = await issueExists(octokit, repository.owner.login, repository.name, 'ghas-non-compliant')
+            if (!emassMissingIssueExists) {
+                core.info(`[${repository.name}]: Creating missing EMASS information issue`)
+                const issueBody = generateMissingEMASSInfoIssue(config.missing_info_issue_template, repository.html_url, requiredLanguages)
+                await createIssue(octokit, repository.owner.login, repository.name, 'Error: GitHub Repository Not Mapped To eMASS System', issueBody)
+            }
+
+            return
+        }
+
+        core.info(`[${repository.name}]: Retrieving existing CodeQL analyses`)
+        const analyses = await listCodeQLAnalyses(octokit, repository.owner.login, repository.name, repository.default_branch, config.days_to_scan)
+        if (analyses.languages.length > 0) {
+            core.info(`[${repository.name}]: Analyses found, validating 'emass-promotion' app is installed on repository`)
+            const installed = await isAppInstalled(emassPromotionInstallationClient, repository.owner.login, repository.name)
+            if (!installed) {
+                core.info(`[${repository.name}]: 'emass-promotion' app not installed, installing app on repository`)
+                await installApp(adminClient, config.emass_promotion_installation_id, repository.id)
+            }
+
+            core.info(`[${repository.name}]: Validating CodeQL CLI version`)
+            for (const version of analyses.versions) {
+                if (!codeQLVersions.includes(version)) {
+                    core.warning(`[${repository.name}]: [out-of-date-cli] Outdated CodeQL CLI version found: ${version}`)
+                    core.info(`[${repository.name}]: [generating-email] Sending 'GitHub Repository Code Scanning Software Is Out Of Date' email to OIS and System Owner`)
+                    const body = await generateOutOfComplianceCLIEmailBody(config.out_of_compliance_cli_email_template, repository.name, repository.html_url, version)
+                    const emails = emassConfig && emassConfig.systemOwnerEmail ? [emassConfig.systemOwnerEmail, config.secondary_email] : [config.secondary_email]
+                    await sendEmail(mailer, config.gmail_from, config.secondary_email, emails, 'GitHub Repository Code Scanning Software Is Out Of Date', body)
+                    await createIssue(octokit, repository.owner.login, repository.name, 'GitHub Repository Code Scanning Software Is Out Of Date', body, ['out-of-date-codeql-cli'])
+                    break
+                }
+            }
+        }
+
+        core.info(`[${repository.name}]: Calculating missing analyses languages`)
+        const missingAnalyses = await missingLanguages(requiredLanguages, analyses.languages)
+
+        core.info(`[${repository.name}]: Retrieving supported CodeQL database languages`)
+        const databaseLanguages = await listCodeQLDatabaseLanguages(octokit, repository.owner.login, repository.name, config.days_to_scan)
+
+        core.info(`[${repository.name}]: Calculating missing database languages`)
+        const missingDatabases = await missingLanguages(requiredLanguages, databaseLanguages)
+
+        if (missingAnalyses.length === 0 && missingDatabases.length === 0) {
+            core.info(`[${repository.name}]: No missing analyses or databases found`)
+            FULLY_COMPLIANT_REPOS.push(repository.name)
+            core.info(`[${repository.name}]: [successfully-processed] Successfully processed repository`)
+            return
+        }
+
+        CONFIGURED_MISSING_SCANS_REPOS.push(repository.name)
+        const missingData = {
+            missingAnalyses: missingAnalyses,
+            missingDatabases: missingDatabases
+        }
+
+        core.warning(`[${repository.name}]: [missing-data] Missing analyses or databases identified: ${JSON.stringify(missingData)}`)
+        const uniqueMissingLanguages = [...new Set([...missingAnalyses, ...missingDatabases])]
+
+        core.info(`[${repository.name}]: Generating Non-Compliant repository email body`)
+        const body = generateNonCompliantEmailBody(config.non_compliant_email_template, emassConfig.systemID, emassConfig.systemName, repository.html_url, uniqueMissingLanguages)
+
+        core.warning(`[${repository.name}]: [generating-email] Sending 'GitHub Repository Code Scanning Not Enabled' email to system owner`)
+        const emails = emassConfig && emassConfig.systemOwnerEmail ? [emassConfig.systemOwnerEmail, config.secondary_email] : [config.secondary_email]
+        await sendEmail(mailer, config.gmail_from, config.secondary_email, emails, 'GitHub Repository Code Scanning Not Enabled', body)
+        core.info(`[${repository.name}]: [system-owner-notified] Successfully sent email to system owner`)
+    } catch (e) {
+        core.error(`[${repository.name}]: Error processing repository: ${e}`)
+    }
 }
 
 const parseInput = () => {
@@ -245,6 +260,14 @@ const parseInput = () => {
             required: true,
             trimWhitespace: true
         })
+        const repo = core.getInput('repo', {
+            required: true,
+            trimWhitespace: true
+        })
+        const scan_all_repos = core.getInput('scan_all_repos', {
+            required: true,
+            trimWhitespace: true
+        })
         const secondary_email = core.getInput('secondary_email', {
             required: true,
         })
@@ -277,6 +300,8 @@ const parseInput = () => {
             non_compliant_email_template: non_compliant_email_template,
             org: org,
             out_of_compliance_cli_email_template: out_of_compliance_cli_email_template,
+            repo: repo,
+            scan_all_repos: scan_all_repos,
             secondary_email: secondary_email,
             verify_scans_app_id: verify_scans_app_id,
             verify_scans_private_key: verify_scans_private_key,
@@ -502,7 +527,7 @@ const isAppInstalled = async (octokit, owner, repo) => {
 }
 
 const sendEmail = async (client, from, replyTo, emails, subject, html) => {
-    if(!DRY_RUN) {
+    if(!DISABLE_NOTIFICATIONS) {
         await client.sendMail({
             from: from,
             to: emails,
@@ -582,7 +607,7 @@ const issueExists = async (octokit, owner, repo, label) => {
 }
 
 const createIssue = async (octokit, owner, repo, title, body, labels) => {
-    if(!DRY_RUN) {
+    if(!DISABLE_NOTIFICATIONS) {
         try {
             await octokit.issues.create({
                 owner: owner,
