@@ -31,7 +31,7 @@ const main = async () => {
     const verifyScansApp = await createGitHubAppClient(config.verify_scans_id, config.verify_scans_privateKey)
     const verifyScansInstalledRepositories = await listInstalledRepos(verifyScansApp, config.verify_scans_installationID, config.org)
 
-    if(config.repo !== '') {
+    if(config.repo === '') {
         core.info(`Processing all repositories`)
         await configureCodeQLApp.eachRepository(async ({octokit, repository}) => {
             await processRepository(octokit, config, repository, adminClient, verifyScansInstalledRepositories)
