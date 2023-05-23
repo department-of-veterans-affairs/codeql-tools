@@ -174,7 +174,7 @@ const parseInput = () => {
             trimWhitespace: true
         })
         const repo = core.getInput('repo', {
-            required: true,
+            required: false,
             trimWhitespace: true
         })
         const verify_scans_id = Number(core.getInput('ghas_verify_scans_app_id', {
