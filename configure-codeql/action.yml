@@ -33,10 +33,6 @@ inputs:
     description: An individual repository to scan
     required: true
     default: ''
-  scan_all_repos:
-    description: Whether to scan all repositories in the organization
-    required: true
-    default: 'true'
 runs:
   using: node16
   main: dist/index.js

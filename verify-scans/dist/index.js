@@ -68232,7 +68232,7 @@ const main = async () => {
     core.info(`Retrieving System ID list`)
     const systemIDs = await getFileArray(adminClient, config.org, '.github-internal', '.emass-system-include')
 
-    if(config.scan_all_repos) {
+    if(config.repo) {
         core.info(`Processing all repositories`)
         await verifyScansApp.eachRepository(async ({octokit, repository}) => {
             await processRepository(octokit, mailer, config, repository, codeQLVersions, systemIDs, adminClient, emassPromotionInstallationClient)
@@ -68246,7 +68246,7 @@ const main = async () => {
         await processRepository(verifyScansInstallationClient, mailer, config, repository, codeQLVersions, systemIDs, adminClient, emassPromotionInstallationClient)
     }
 
-    if(config.scan_all_repos) {
+    if(config.repo) {
         core.info('Finished processing all repositories, generating summary')
         try {
             core.info(`Creating dashboard, retrieving existing dashboard ref`)
@@ -68441,10 +68441,6 @@ const parseInput = () => {
             required: false,
             trimWhitespace: true
         })
-        const scan_all_repos = core.getInput('scan_all_repos', {
-            required: true,
-            trimWhitespace: true
-        })
         const secondary_email = core.getInput('secondary_email', {
             required: true,
         })
@@ -68478,7 +68474,6 @@ const parseInput = () => {
             org: org,
             out_of_compliance_cli_email_template: out_of_compliance_cli_email_template,
             repo: repo,
-            scan_all_repos: scan_all_repos.toLowerCase() === 'true',
             secondary_email: secondary_email,
             verify_scans_app_id: verify_scans_app_id,
             verify_scans_private_key: verify_scans_private_key,
