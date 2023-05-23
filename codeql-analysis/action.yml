@@ -89,6 +89,7 @@ runs:
       uses: github/codeql-action/init@v2
       with:
         config: ${{ inputs.config }}
+        debug: true
         languages: ${{ inputs.language }}
         queries: security-and-quality
 
