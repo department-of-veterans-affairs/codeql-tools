@@ -68232,7 +68232,7 @@ const main = async () => {
     core.info(`Retrieving System ID list`)
     const systemIDs = await getFileArray(adminClient, config.org, '.github-internal', '.emass-system-include')
 
-    if(config.repo !== '') {
+    if(config.repo === '') {
         core.info(`Processing all repositories`)
         await verifyScansApp.eachRepository(async ({octokit, repository}) => {
             await processRepository(octokit, mailer, config, repository, codeQLVersions, systemIDs, adminClient, emassPromotionInstallationClient)
