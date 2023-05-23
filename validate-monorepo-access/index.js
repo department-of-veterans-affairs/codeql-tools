@@ -8,7 +8,7 @@ const main = async () => {
         core.info('Creating GitHub Client')
         const octokit = createGitHubClient(config.allowlist_token)
 
-        core.info(`[${config.repo}]: Retrieving mono-repo allowlist`)
+        core.info(`[${config.repo}]: Retrieving mono-repo allowlist from ${config.org}/${config.allowlist_repo}/${config.allowlist_path}`)
         const allowlist = await getFileArray(octokit, config.org, config.allowlist_repo, config.allowlist_path)
         core.info(`[${config.repo}]: Validating repo has access to monorepo features`)
         if (!allowlist.includes(config.repo)) {
