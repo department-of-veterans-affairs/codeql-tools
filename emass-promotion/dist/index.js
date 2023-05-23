@@ -50720,7 +50720,7 @@ const main = async () => {
     core.info(`Retrieving System ID list`)
     const systemIDs = await getFileArray(adminClient, config.org, '.github-internal', '.emass-system-include')
 
-    if(config.scan_all_repos) {
+    if(config.repo) {
         await emassPromotionApp.eachRepository(async ({octokit, repository}) => {
             await processRepository(octokit, config, repository, systemIDs, adminClient, codeqlClient, emassOrganizationApp)
         })
@@ -50863,11 +50863,6 @@ const parseInput = () => {
             required: false,
             trimWhitespace: true
         })
-        const scan_all_repos = core.getInput('scan_all_repos', {
-            required: true,
-            trimWhitespace: true
-        })
-
 
         return {
             admin_token: admin_token,
@@ -50878,8 +50873,7 @@ const parseInput = () => {
             emass_promotion_installation_id: emass_promotion_installation_id,
             emass_org: emass_org,
             org: org,
-            repo: repo,
-            scan_all_repos: scan_all_repos.toLowerCase() === 'true'
+            repo: repo
         }
     } catch (e) {
         throw new Error(`Error parsing input: ${e.message}`)

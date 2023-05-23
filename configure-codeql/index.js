@@ -31,7 +31,7 @@ const main = async () => {
     const verifyScansApp = await createGitHubAppClient(config.verify_scans_id, config.verify_scans_privateKey)
     const verifyScansInstalledRepositories = await listInstalledRepos(verifyScansApp, config.verify_scans_installationID, config.org)
 
-    if(config.scan_all_repos) {
+    if(config.repo) {
         await configureCodeQLApp.eachRepository(async ({octokit, repository}) => {
             await processRepository(octokit, config, repository, adminClient, verifyScansInstalledRepositories)
         })
@@ -175,10 +175,6 @@ const parseInput = () => {
             required: true,
             trimWhitespace: true
         })
-        const scan_all_repos = core.getInput('scan_all_repos', {
-            required: true,
-            trimWhitespace: true
-        })
         const verify_scans_id = Number(core.getInput('ghas_verify_scans_app_id', {
             required: true,
             trimWhitespace: true
@@ -200,7 +196,6 @@ const parseInput = () => {
             configure_codeql_installationID: configure_codeql_installationID,
             pull_request_body: pull_request_body,
             repo: repo,
-            scan_all_repos: scan_all_repos.toLowerCase() === 'true',
             verify_scans_id: verify_scans_id,
             verify_scans_privateKey: verify_scans_private_key,
             verify_scans_installationID: verify_scans_installationID

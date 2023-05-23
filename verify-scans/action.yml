@@ -52,10 +52,6 @@ inputs:
     description: An individual repository to verify
     required: true
     default: ''
-  scan_all_repos:
-    description: Whether to verify all repositories in the organization
-    required: true
-    default: 'true'
   secondary_email:
     description: A secondary email address to send emails to
     required: true
