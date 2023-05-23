@@ -8,16 +8,15 @@ inputs:
   allowlist_repo:
     description: The repository containing the allowlist in
     required: true
+  allowlist_token:
+    description: The token to use for authentication
+    required: true
   org:
     description: The slug of the organization
     required: true
   repo:
     description: The slug of the repository
     required: true
-  token:
-    description: The token to use for authentication
-    required: true
-    default: ${{ github.token }}
 runs:
   using: node16
   main: dist/index.js
