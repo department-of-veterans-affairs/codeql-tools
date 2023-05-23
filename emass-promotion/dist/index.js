@@ -50860,7 +50860,7 @@ const parseInput = () => {
             trimWhitespace: true
         })
         const repo = core.getInput('repo', {
-            required: true,
+            required: false,
             trimWhitespace: true
         })
         const scan_all_repos = core.getInput('scan_all_repos', {
