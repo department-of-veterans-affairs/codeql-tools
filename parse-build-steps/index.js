@@ -4,18 +4,22 @@ const yaml = require('js-yaml')
 
 const main = async () => {
     try {
+        core.info('Parsing input')
+        const buildStepName = core.getInput('build_step_name', {required: false, trimWhitespace: true})
+        const language = core.getInput('language', {required: false, trimWhitespace: true})
+
         core.info('Checking for custom build steps')
         const fileExists = fs.existsSync('.github/codeql-config.yml')
         if (fileExists) {
             core.info('Found .github/codeql-config.yml')
-            const language = process.env.build_step_name || process.env.language
-            core.info(`Parsing build steps for key: ${language}`)
-            if (language) {
+            const key = buildStepName || language
+            core.info(`Parsing build steps for key: ${key}`)
+            if (key) {
                 const yml = fs.readFileSync('.github/codeql-config.yml', 'utf8')
                 const config = yaml.load(yml)
-                if (config.build_steps && config.build_steps[language]) {
+                if (config.build_steps && config.build_steps[key]) {
                     core.info('Found custom build steps')
-                    core.setOutput('build-steps', config.build_steps[language])
+                    core.setOutput('build-steps', config.build_steps[key])
                     return
                 }
             }
