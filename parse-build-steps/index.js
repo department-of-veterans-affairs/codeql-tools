@@ -19,7 +19,7 @@ const main = async () => {
                 const config = yaml.load(yml)
                 if (config.build_steps && config.build_steps[key]) {
                     core.info('Found custom build steps')
-                    core.setOutput('build-steps', config.build_steps[key])
+                    core.setOutput('results', config.build_steps[key])
                     return
                 }
             }

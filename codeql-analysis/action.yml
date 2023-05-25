@@ -106,7 +106,6 @@ runs:
       with:
         build_step_name: ${{ inputs.build_step_name }}
         language: ${{ inputs.language }}
-        temp: ${{ runner.temp }}
 
     - name: Build Source
       if: steps.build-steps.outputs.result != '' && runner.os != 'Windows'
