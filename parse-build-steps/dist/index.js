@@ -6949,7 +6949,9 @@ const main = async () => {
         core.info('Checking for custom build steps')
         const fileExists = fs.existsSync('.github/codeql-config.yml')
         if (fileExists) {
+            core.info('Found .github/codeql-config.yml')
             const language = process.env.build_step_name || process.env.language
+            core.info(`Parsing build steps for key: ${language}`)
             if (language) {
                 const yml = fs.readFileSync('.github/codeql-config.yml', 'utf8')
                 const config = yaml.load(yml)
