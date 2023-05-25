@@ -46,7 +46,7 @@ runs:
       uses: actions/checkout@v3
 
     - name: Validate emass.json
-      if: steps.build-steps.outputs.result != '' && runner.os != 'Windows'
+      if: runner.os != 'Windows'
       shell: bash
       run: |
         json_file=".github/emass.json"
@@ -64,7 +64,7 @@ runs:
         fi
 
     - name: Validate emass.json
-      if: steps.build-steps.outputs.result != '' && runner.os == 'Windows'
+      if: runner.os == 'Windows'
       shell: powershell
       run: |
         $json_file = ".github\emass.json"
