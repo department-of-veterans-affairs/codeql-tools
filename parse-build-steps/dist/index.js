@@ -6946,6 +6946,7 @@ const yaml = __nccwpck_require__(2876)
 
 const main = async () => {
     try {
+        core.info('Checking for custom build steps')
         const fileExists = fs.existsSync('.github/codeql-config.yml')
         if (fileExists) {
             const language = process.env.build_step_name || process.env.language
