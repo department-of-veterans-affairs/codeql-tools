@@ -46231,6 +46231,12 @@ const processRepository = async (octokit, config, repository, adminClient, verif
             return
         }
 
+        core.info(`[${repository.name}]: Checking if repository is archived`)
+        if (repository.archived) {
+            core.info(`[${repository.name}]: [skipped-archived] Skipping repository as it is archived`)
+            return
+        }
+
         core.info(`[${repository.name}]: Checking if repository has Code Scanning enabled`)
         // TODO: Figure out what app permission grants the `security_event` permission
         const codeScanningConfig = await codeScanningEnabled(adminClient, repository.owner.login, repository.name)
