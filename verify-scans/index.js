@@ -706,7 +706,7 @@ const createDashboardMarkdown = async() => {
     const enabledNonCompliant = CONFIGURED_MISSING_SCANS_REPOS.length
     const notEnabled = TOTAL_REPOS.length - FULLY_COMPLIANT_REPOS.length
     const table = markdownTable([
-        ['Enabled', 'Enabled: Non-Compliant', 'Not Enabled'],
+        ['Enabled', 'Enabled: Non-Compliant', 'Not Enabled (Based on Policy)'],
         [enabled, enabledNonCompliant, notEnabled]
     ])
 
