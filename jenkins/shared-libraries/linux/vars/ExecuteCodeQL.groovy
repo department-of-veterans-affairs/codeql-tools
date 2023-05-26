@@ -115,9 +115,9 @@ def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
 
         echo "Analyzing database"
         if [ "${INSTALL_CODEQL}" = true ]; then
-            ./codeql/codeql database analyze "${DATABASE_PATH}" --no-download --sarif-category "${LANGUAGE}" --format sarif-latest --output "${SARIF_FILE}" "${QL_PACKS}"
+            ./codeql/codeql database analyze "${DATABASE_PATH}" --no-download --sarif-category "ois-${LANGUAGE}" --format sarif-latest --output "${SARIF_FILE}" "${QL_PACKS}"
         else
-            codeql database analyze "${DATABASE_PATH}" --no-download --sarif-category "${LANGUAGE}" --format sarif-latest --output "${SARIF_FILE}" "${QL_PACKS}"
+            codeql database analyze "${DATABASE_PATH}" --no-download --sarif-category "ois-${LANGUAGE}" --format sarif-latest --output "${SARIF_FILE}" "${QL_PACKS}"
         fi
         echo "Database analyzed"
 

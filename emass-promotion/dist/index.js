@@ -24,7 +24,8 @@ exports.supportedCodeQLLanguages = [
     'javascript',
     'python',
     'ruby',
-    'typescript'
+    'typescript',
+    'swift'
 ]
 
 const throttlingOptions = {
