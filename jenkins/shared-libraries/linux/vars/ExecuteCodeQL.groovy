@@ -12,6 +12,7 @@ def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
         env.BRANCH = branch
     }
     env.BUILD_COMMAND = buildCommand
+    env.CONFIG_FILE = ".github/codeql-config.yml"
     env.DATABASE_BUNDLE = sprintf("%s-database.zip", language)
     env.DATABASE_PATH = sprintf("%s-%s", repo, language)
     if(!env.ENABLE_DEBUG) {
@@ -44,9 +45,8 @@ def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
 
         cd "${WORKSPACE}"
 
-        json_file=".github/emass.json"
-
         echo "Validating emass.json"
+        json_file=".github/emass.json"
         if [ ! -f "$json_file" ]; then
           echo "Error: emass.json not found, please refer to the OIS documentation on creating the emass.json file"
           exit 1
@@ -96,7 +96,6 @@ def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
 
     sh """
         echo "Initializing database"
-        config_file=".github/codeql-config.yml"
         if [ ! -f "${config_file}" ]; then
             if [ -z "${BUILD_COMMAND}" ]; then
                 echo "No build command, using default"
@@ -117,16 +116,16 @@ def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
             if [ -z "${BUILD_COMMAND}" ]; then
                 echo "No build command, using default"
                 if [ "${INSTALL_CODEQL}" = true ]; then
-                   ./codeql/codeql database create "${DATABASE_PATH}" --language="${LANGUAGE}" --codescanning-config "${config_file}" --source-root .
+                   ./codeql/codeql database create "${DATABASE_PATH}" --language="${LANGUAGE}" --codescanning-config "${CONFIG_FILE}" --source-root .
                 else
-                    codeql database create "${DATABASE_PATH}" --language="${LANGUAGE}" --codescanning-config "${config_file}" --source-root .
+                    codeql database create "${DATABASE_PATH}" --language="${LANGUAGE}" --codescanning-config "${CONFIG_FILE}" --source-root .
                 fi
             else
                 echo "Build command specified, using '${BUILD_COMMAND}'"
                 if [ "${INSTALL_CODEQL}" = true ]; then
-                    ./codeql/codeql database create "${DATABASE_PATH}" --language="${LANGUAGE}" --codescanning-config "${config_file}" --source-root . --command="${BUILD_COMMAND}"
+                    ./codeql/codeql database create "${DATABASE_PATH}" --language="${LANGUAGE}" --codescanning-config "${CONFIG_FILE}" --source-root . --command="${BUILD_COMMAND}"
                 else
-                    codeql database create "${DATABASE_PATH}" --language="${LANGUAGE}" --codescanning-config "${config_file}" --source-root . --command="${BUILD_COMMAND}"
+                    codeql database create "${DATABASE_PATH}" --language="${LANGUAGE}" --codescanning-config "${CONFIG_FILE}" --source-root . --command="${BUILD_COMMAND}"
                 fi
             fi
         fi
