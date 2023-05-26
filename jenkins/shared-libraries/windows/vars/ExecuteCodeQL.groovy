@@ -93,9 +93,9 @@ def call(Org, Repo, Branch, Language, BuildCommand, Token, InstallCodeQL) {
 
         Write-Output "Analyzing database"
         if("\$Env:INSTALL_CODEQL" -eq "true") {
-            .\\codeql\\codeql database analyze --download "\$Env:DATABASE_PATH" --sarif-category "\$Env:LANGUAGE" --format sarif-latest --output "\$Env:SARIF_FILE" "\$Env:QL_PACKS"
+            .\\codeql\\codeql database analyze --download "\$Env:DATABASE_PATH" --sarif-category "ois-\$Env:LANGUAGE" --format sarif-latest --output "\$Env:SARIF_FILE" "\$Env:QL_PACKS"
         } else {
-            codeql database analyze --download "\$Env:DATABASE_PATH" --sarif-category "\$Env:LANGUAGE" --format sarif-latest --output "\$Env:SARIF_FILE" "\$Env:QL_PACKS"
+            codeql database analyze --download "\$Env:DATABASE_PATH" --sarif-category "ois-\$Env:LANGUAGE" --format sarif-latest --output "\$Env:SARIF_FILE" "\$Env:QL_PACKS"
         }
         Write-Output "Database analyzed"
 
