@@ -96,19 +96,38 @@ def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
 
     sh """
         echo "Initializing database"
-        if [ -z "${BUILD_COMMAND}" ]; then
-            echo "No build command, using default"
-            if [ "${INSTALL_CODEQL}" = true ]; then
-               ./codeql/codeql database create "${DATABASE_PATH}" --language="${LANGUAGE}" --source-root .
+        config_file=".github/codeql-config.yml"
+        if [ ! -f "${config_file}" ]; then
+            if [ -z "${BUILD_COMMAND}" ]; then
+                echo "No build command, using default"
+                if [ "${INSTALL_CODEQL}" = true ]; then
+                   ./codeql/codeql database create "${DATABASE_PATH}" --language="${LANGUAGE}" --source-root .
+                else
+                    codeql database create "${DATABASE_PATH}" --language="${LANGUAGE}" --source-root .
+                fi
             else
-                codeql database create "${DATABASE_PATH}" --language="${LANGUAGE}" --source-root .
+                echo "Build command specified, using '${BUILD_COMMAND}'"
+                if [ "${INSTALL_CODEQL}" = true ]; then
+                    ./codeql/codeql database create "${DATABASE_PATH}" --language="${LANGUAGE}" --source-root . --command="${BUILD_COMMAND}"
+                else
+                    codeql database create "${DATABASE_PATH}" --language="${LANGUAGE}" --source-root . --command="${BUILD_COMMAND}"
+                fi
             fi
         else
-            echo "Build command specified, using '${BUILD_COMMAND}'"
-            if [ "${INSTALL_CODEQL}" = true ]; then
-                ./codeql/codeql database create "${DATABASE_PATH}" --language="${LANGUAGE}" --source-root . --command="${BUILD_COMMAND}"
+            if [ -z "${BUILD_COMMAND}" ]; then
+                echo "No build command, using default"
+                if [ "${INSTALL_CODEQL}" = true ]; then
+                   ./codeql/codeql database create "${DATABASE_PATH}" --language="${LANGUAGE}" --codescanning-config "${config_file}" --source-root .
+                else
+                    codeql database create "${DATABASE_PATH}" --language="${LANGUAGE}" --codescanning-config "${config_file}" --source-root .
+                fi
             else
-                codeql database create "${DATABASE_PATH}" --language="${LANGUAGE}" --source-root . --command="${BUILD_COMMAND}"
+                echo "Build command specified, using '${BUILD_COMMAND}'"
+                if [ "${INSTALL_CODEQL}" = true ]; then
+                    ./codeql/codeql database create "${DATABASE_PATH}" --language="${LANGUAGE}" --codescanning-config "${config_file}" --source-root . --command="${BUILD_COMMAND}"
+                else
+                    codeql database create "${DATABASE_PATH}" --language="${LANGUAGE}" --codescanning-config "${config_file}" --source-root . --command="${BUILD_COMMAND}"
+                fi
             fi
         fi
         echo "Database initialized"
