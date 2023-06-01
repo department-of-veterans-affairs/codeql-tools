@@ -68315,6 +68315,9 @@ const processRepository = async (octokit, mailer, config, repository, codeQLVers
                 await createIssue(octokit, repository.owner.login, repository.name, 'Error: GitHub Repository Not Mapped To eMASS System', issueBody)
             }
 
+            core.info(`Uninstalling 'emass-promotion' app from repository`)
+            await uninstallApp(adminClient, config.emass_promotion_installation_id, repository.id)
+
             return
         }
 
@@ -68337,6 +68340,8 @@ const processRepository = async (octokit, mailer, config, repository, codeQLVers
                     const emails = emassConfig && emassConfig.systemOwnerEmail ? [emassConfig.systemOwnerEmail, config.secondary_email] : [config.secondary_email]
                     await sendEmail(mailer, config.gmail_from, config.secondary_email, emails, 'GitHub Repository Code Scanning Software Is Out Of Date', body)
                     await createIssue(octokit, repository.owner.login, repository.name, 'GitHub Repository Code Scanning Software Is Out Of Date', body, ['out-of-date-codeql-cli'])
+                    core.info(`Uninstalling 'emass-promotion' app from repository`)
+                    await uninstallApp(adminClient, config.emass_promotion_installation_id, repository.id)
                     break
                 }
             }
@@ -68373,6 +68378,8 @@ const processRepository = async (octokit, mailer, config, repository, codeQLVers
         core.warning(`[${repository.name}]: [generating-email] Sending 'GitHub Repository Code Scanning Not Enabled' email to system owner`)
         const emails = emassConfig && emassConfig.systemOwnerEmail ? [emassConfig.systemOwnerEmail, config.secondary_email] : [config.secondary_email]
         await sendEmail(mailer, config.gmail_from, config.secondary_email, emails, 'GitHub Repository Code Scanning Not Enabled', body)
+        core.info(`Uninstalling 'emass-promotion' app from repository`)
+        await uninstallApp(adminClient, config.emass_promotion_installation_id, repository.id)
         core.info(`[${repository.name}]: [system-owner-notified] Successfully sent email to system owner`)
     } catch (e) {
         core.error(`[${repository.name}]: Error processing repository: ${e}`)
@@ -68764,6 +68771,17 @@ const installApp = async (octokit, installationID, repositoryID) => {
         })
     } catch (e) {
         throw new Error(`Failed to install app: ${e.message}`)
+    }
+}
+
+const uninstallApp = async (octokit, installationID, repositoryID) => {
+    try {
+        await octokit.request('DELETE /user/installations/{installation_id}/repositories/{repository_id}', {
+            installation_id: installationID,
+            repository_id: repositoryID
+        })
+    } catch (e) {
+        throw new Error(`Failed to uninstall app: ${e.message}`)
     }
 }
 
