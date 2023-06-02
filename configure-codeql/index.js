@@ -142,7 +142,7 @@ const processRepository = async (octokit, config, repository, adminClient, verif
         core.info(`[${repository.name}]: Generating pull request body with supported languages: [${languages.join(', ')}]`)
         const pullRequestBody = generatePullRequestBody(languages, config.pull_request_body, repository.owner.login, repository.name, SOURCE_BRANCH_NAME)
 
-        core.info(`[${repository.name}]: Creating CodeQL pull request`)
+        core.info(`[${repository.name}]: Creating CodeQL pull request: ${repository.html_url}/pulls`)
         await createPullRequest(octokit, repository.owner.login, repository.name, PULL_REQUEST_TITLE, SOURCE_BRANCH_NAME, repository.default_branch, pullRequestBody)
 
         core.info(`[${repository.name}]: Installing 'verify-scans' GitHub App`)
