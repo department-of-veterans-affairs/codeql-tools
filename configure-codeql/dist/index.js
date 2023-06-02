@@ -46177,6 +46177,7 @@ const core = __nccwpck_require__(5344)
 
 const {createGitHubClient, createGitHubAppClient, supportedCodeQLLanguages} = __nccwpck_require__(6794)
 
+const DRY_RUN = process.env.DRY_RUN && process.env.DRY_RUN.toLowerCase() === 'true'
 const ENABLE_DEBUG = process.env.ACTIONS_STEP_DEBUG && process.env.ACTIONS_STEP_DEBUG.toLowerCase() === 'true'
 const PULL_REQUEST_TITLE = 'Action Required: Configure CodeQL'
 const SOURCE_BRANCH_NAME = 'ghas-enforcement-codeql'
@@ -46418,10 +46419,12 @@ const codeScanningEnabled = async (octokit, owner, repo) => {
 
 const installVerifyScansApp = async (octokit, installationID, repositoryID) => {
     try {
-        await octokit.apps.addRepoToInstallationForAuthenticatedUser({
-            installation_id: installationID,
-            repository_id: repositoryID
-        })
+        if(!DRY_RUN) {
+            await octokit.apps.addRepoToInstallationForAuthenticatedUser({
+                installation_id: installationID,
+                repository_id: repositoryID
+            })
+        }
     } catch (e) {
         throw new Error(`Failed to install 'verify-scans' GitHub App: ${e.message}`)
     }
@@ -46553,15 +46556,17 @@ const getFileRefSHA = async (octokit, owner, repo, branch, path) => {
 
 const updateFile = async (octokit, owner, repo, branch, path, message, content, sha) => {
     try {
-        await octokit.repos.createOrUpdateFileContents({
-            owner: owner,
-            repo: repo,
-            path: path,
-            message: message,
-            content: Buffer.from(content).toString('base64'),
-            sha: sha,
-            branch: branch
-        })
+        if(!DRY_RUN) {
+            await octokit.repos.createOrUpdateFileContents({
+                owner: owner,
+                repo: repo,
+                path: path,
+                message: message,
+                content: Buffer.from(content).toString('base64'),
+                sha: sha,
+                branch: branch
+            })
+        }
     } catch (e) {
         throw new Error(`Failed to update file: ${e.message}`)
     }
@@ -46586,12 +46591,14 @@ const refExists = async (octokit, owner, repo, branch) => {
 
 const createRef = async (octokit, owner, repo, sha, name) => {
     try {
-        await octokit.git.createRef({
-            owner: owner,
-            repo: repo,
-            ref: `refs/heads/${name}`,
-            sha: sha
-        })
+        if(!DRY_RUN) {
+            await octokit.git.createRef({
+                owner: owner,
+                repo: repo,
+                ref: `refs/heads/${name}`,
+                sha: sha
+            })
+        }
     } catch (e) {
         throw new Error(`Failed to create ref: ${e.message}`)
     }
@@ -46617,17 +46624,19 @@ const fileExists = async (octokit, owner, repo, branch, path) => {
 
 const createFile = async (octokit, owner, repo, branch, path, message, content) => {
     try {
-        const base64Content = Buffer.from(content).toString('base64')
-        await octokit.repos.createOrUpdateFileContents({
-            owner: owner,
-            repo: repo,
-            path: path,
-            message: message,
-            content: base64Content,
-            branch: branch,
-            name: 'ghas-configure-codeql[bot]',
-            email: '41898282+ghas-configure-codeql[bot]@users.noreply.github.com'
-        })
+        if(!DRY_RUN) {
+            const base64Content = Buffer.from(content).toString('base64')
+            await octokit.repos.createOrUpdateFileContents({
+                owner: owner,
+                repo: repo,
+                path: path,
+                message: message,
+                content: base64Content,
+                branch: branch,
+                name: 'ghas-configure-codeql[bot]',
+                email: '41898282+ghas-configure-codeql[bot]@users.noreply.github.com'
+            })
+        }
     } catch (e) {
         throw new Error(`Failed to create file: ${e.message}`)
     }
@@ -46642,14 +46651,16 @@ const generatePullRequestBody = (languages, template, org, repo, branch) => {
 
 const createPullRequest = async (octokit, owner, repo, title, head, base, body) => {
     try {
-        await octokit.pulls.create({
-            owner: owner,
-            repo: repo,
-            title: title,
-            head: head,
-            base: base,
-            body: body
-        })
+        if(!DRY_RUN) {
+            await octokit.pulls.create({
+                owner: owner,
+                repo: repo,
+                title: title,
+                head: head,
+                base: base,
+                body: body
+            })
+        }
     } catch (e) {
         throw new Error(`Failed to create pull request: ${e.message}`)
     }

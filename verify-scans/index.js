@@ -16,7 +16,7 @@ axiosRetry(axios, {
     retries: 3
 })
 
-const DISABLE_NOTIFICATIONS = false
+const DRY_RUN = process.env.DRY_RUN && process.env.DRY_RUN.toLowerCase() === 'true'
 const ENABLE_DEBUG = process.env.ACTIONS_STEP_DEBUG && process.env.ACTIONS_STEP_DEBUG.toLowerCase() === 'true'
 
 const CONFIGURED_MISSING_SCANS_REPOS = []
@@ -534,7 +534,7 @@ const isAppInstalled = async (octokit, owner, repo) => {
 }
 
 const sendEmail = async (client, from, replyTo, emails, subject, html) => {
-    if(!DISABLE_NOTIFICATIONS) {
+    if(!DRY_RUN) {
         await client.sendMail({
             from: from,
             to: emails,
@@ -589,10 +589,12 @@ const generateOutOfComplianceCLIEmailBody = (template, repositoryName, repositor
 
 const installApp = async (octokit, installationID, repositoryID) => {
     try {
-        await octokit.request('PUT /user/installations/{installation_id}/repositories/{repository_id}', {
-            installation_id: installationID,
-            repository_id: repositoryID
-        })
+        if(!DRY_RUN) {
+            await octokit.request('PUT /user/installations/{installation_id}/repositories/{repository_id}', {
+                installation_id: installationID,
+                repository_id: repositoryID
+            })
+        }
     } catch (e) {
         throw new Error(`Failed to install app: ${e.message}`)
     }
@@ -600,10 +602,12 @@ const installApp = async (octokit, installationID, repositoryID) => {
 
 const uninstallApp = async (octokit, installationID, repositoryID) => {
     try {
-        await octokit.request('DELETE /user/installations/{installation_id}/repositories/{repository_id}', {
-            installation_id: installationID,
-            repository_id: repositoryID
-        })
+        if(!DRY_RUN) {
+            await octokit.request('DELETE /user/installations/{installation_id}/repositories/{repository_id}', {
+                installation_id: installationID,
+                repository_id: repositoryID
+            })
+        }
     } catch (e) {
         throw new Error(`Failed to uninstall app: ${e.message}`)
     }
@@ -625,7 +629,7 @@ const issueExists = async (octokit, owner, repo, label) => {
 }
 
 const createIssue = async (octokit, owner, repo, title, body, labels) => {
-    if(!DISABLE_NOTIFICATIONS) {
+    if(!DRY_RUN) {
         try {
             await octokit.issues.create({
                 owner: owner,
@@ -671,13 +675,15 @@ const listOpenIssues = async (octokit, owner, repo, label) => {
 
 const closeIssues = async (octokit, owner, repo, issues) => {
     try {
-        for (const issue of issues) {
-            await octokit.issues.update({
-                owner: owner,
-                repo: repo,
-                issue_number: issue.number,
-                state: 'closed'
-            })
+        if(!DRY_RUN) {
+            for (const issue of issues) {
+                await octokit.issues.update({
+                    owner: owner,
+                    repo: repo,
+                    issue_number: issue.number,
+                    state: 'closed'
+                })
+            }
         }
     } catch (e) {
         throw new Error(`Failed to close issues: ${e.message}`)
@@ -705,15 +711,17 @@ const getFileRefSHA = async (octokit, owner, repo, branch, path) => {
 
 const updateFile = async (octokit, owner, repo, branch, path, message, content, sha) => {
     try {
-        await octokit.repos.createOrUpdateFileContents({
-            owner: owner,
-            repo: repo,
-            path: path,
-            message: message,
-            content: Buffer.from(content).toString('base64'),
-            sha: sha,
-            branch: branch
-        })
+        if(!DRY_RUN) {
+            await octokit.repos.createOrUpdateFileContents({
+                owner: owner,
+                repo: repo,
+                path: path,
+                message: message,
+                content: Buffer.from(content).toString('base64'),
+                sha: sha,
+                branch: branch
+            })
+        }
     } catch (e) {
         throw new Error(`Failed to update file: ${e.message}`)
     }
