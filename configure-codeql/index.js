@@ -52,6 +52,12 @@ const main = async () => {
 
 const processRepository = async (octokit, config, repository, adminClient, verifyScansInstalledRepositories) => {
     try {
+        core.info(`[${repository.name}]: Checking if repository is archived`)
+        if (repository.archived) {
+            core.info(`[${repository.name}]: [skipped-archived] Skipping repository as it is archived`)
+            return
+        }
+
         core.info(`[${repository.name}]: Retrieving .emass-repo-ignore file`)
         const emassIgnore = await exists(octokit, repository.owner.login, repository.name, '.github/.emass-repo-ignore')
         if (emassIgnore) {
@@ -62,12 +68,6 @@ const processRepository = async (octokit, config, repository, adminClient, verif
         core.info(`[${repository.name}]: Processing repository`)
         if (verifyScansInstalledRepositories.includes(repository.name)) {
             core.info(`[${repository.name}]: [skipped-already-configured] Skipping repository as it is has already been configured via the Configure CodeQL GitHub App Pull Request`)
-            return
-        }
-
-        core.info(`[${repository.name}]: Checking if repository is archived`)
-        if (repository.archived) {
-            core.info(`[${repository.name}]: [skipped-archived] Skipping repository as it is archived`)
             return
         }
 
