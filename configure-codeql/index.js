@@ -269,7 +269,18 @@ const retrieveSupportedCodeQLLanguages = async (octokit, owner, repo) => {
             repo: repo
         })
 
-        return Object.keys(languages).map(language => language.toLowerCase()).filter(language => supportedCodeQLLanguages.includes(language))
+        return Object.keys(languages).map(language => language.toLowerCase()).map(language => {
+            switch(language) {
+            case 'c#':
+                return 'csharp'
+            case 'c++':
+                return 'cpp'
+            case 'kotlin':
+                return 'java'
+            default:
+                return language
+            }
+        }).filter(language => supportedCodeQLLanguages.includes(language))
     } catch (e) {
         throw new Error(`Failed to retrieve supported CodeQL languages: ${e.message}`)
     }
