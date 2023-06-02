@@ -50698,6 +50698,7 @@ axiosRetry(axios, {
 
 const {createCodeQLGitHubClient, createGitHubAppClient, createGitHubClient} = __nccwpck_require__(6794)
 
+const DRY_RUN = process.env.DRY_RUN && process.env.DRY_RUN.toLowerCase() === 'true'
 const ENABLE_DEBUG = process.env.ACTIONS_STEP_DEBUG && process.env.ACTIONS_STEP_DEBUG.toLowerCase() === 'true'
 const main = async () => {
     core.info('Parsing Actions input')
@@ -50988,21 +50989,23 @@ const downloadCodeQLDatabase = async (token, url, path) => {
 
 const uploadCodeQLDatabase = async (octokit, token, owner, repo, language, path, name) => {
     try {
-        const bundledDbSize = fs.statSync(path).size
-        const bundledDbReadStream = fs.createReadStream(path)
-        await octokit.request(`POST https://uploads.github.com/repos/:owner/:repo/code-scanning/codeql/databases/:language?name=:name`, {
-                owner: owner,
-                repo: repo,
-                language: language,
-                name: name,
-                data: bundledDbReadStream,
-                headers: {
-                    "authorization": `token ${token}`,
-                    "Content-Type": "application/zip",
-                    "Content-Length": bundledDbSize,
-                },
-            }
-        )
+        if(!DRY_RUN) {
+            const bundledDbSize = fs.statSync(path).size
+            const bundledDbReadStream = fs.createReadStream(path)
+            await octokit.request(`POST https://uploads.github.com/repos/:owner/:repo/code-scanning/codeql/databases/:language?name=:name`, {
+                    owner: owner,
+                    repo: repo,
+                    language: language,
+                    name: name,
+                    data: bundledDbReadStream,
+                    headers: {
+                        "authorization": `token ${token}`,
+                        "Content-Type": "application/zip",
+                        "Content-Length": bundledDbSize,
+                    },
+                }
+            )
+        }
     } catch (e) {
         throw new Error(`failed uploading CodeQL database: ${e.message}`)
     }
@@ -51090,13 +51093,15 @@ const downloadAndEncodeAnalysis = async (octokit, owner, repo, id) => {
 
 const uploadAnalysis = async (octokit, owner, repo, sha, ref, sarif) => {
     try {
-        await octokit.request('POST /repos/{owner}/{repo}/code-scanning/sarifs', {
-            owner: owner,
-            repo: repo,
-            commit_sha: sha,
-            ref: ref,
-            sarif: sarif
-        })
+        if(!DRY_RUN) {
+            await octokit.request('POST /repos/{owner}/{repo}/code-scanning/sarifs', {
+                owner: owner,
+                repo: repo,
+                commit_sha: sha,
+                ref: ref,
+                sarif: sarif
+            })
+        }
     } catch (e) {
         throw new Error(`failed uploading CodeQL analysis: ${e.message}`)
     }
@@ -51134,17 +51139,17 @@ const getDefaultBranchSHA = async (octokit, owner, repo, branch) => {
 
 const createRepo = async (octokit, org, repo) => {
     try {
-        await octokit.repos.createInOrg({
-            org: org,
-            name: repo,
-            visibility: 'private',
-            has_issues: false,
-            has_projects: false,
-            has_wiki: false,
-            auto_init: true
-        })
-
-
+        if(!DRY_RUN) {
+            await octokit.repos.createInOrg({
+                org: org,
+                name: repo,
+                visibility: 'private',
+                has_issues: false,
+                has_projects: false,
+                has_wiki: false,
+                auto_init: true
+            })
+        }
     } catch (e) {
         throw new Error(`failed creating repo: ${e.message}`)
     }
@@ -51168,12 +51173,14 @@ const refExists = async (octokit, owner, repo, ref) => {
 
 const createRef = async (octokit, owner, repo, ref, sha) => {
     try {
-        await octokit.request('POST /repos/{owner}/{repo}/git/refs', {
-            owner: owner,
-            repo: repo,
-            ref: ref,
-            sha: sha
-        })
+        if(!DRY_RUN) {
+            await octokit.request('POST /repos/{owner}/{repo}/git/refs', {
+                owner: owner,
+                repo: repo,
+                ref: ref,
+                sha: sha
+            })
+        }
     } catch (e) {
         if (e.message.includes('exists')) {
             return
@@ -51184,11 +51191,13 @@ const createRef = async (octokit, owner, repo, ref, sha) => {
 
 const setDefaultBranch = async (octokit, owner, repo, branch) => {
     try {
-        await octokit.repos.update({
-            owner: owner,
-            repo: repo,
-            default_branch: branch
-        })
+        if(!DRY_RUN) {
+            await octokit.repos.update({
+                owner: owner,
+                repo: repo,
+                default_branch: branch
+            })
+        }
     } catch (e) {
         throw new Error(`failed setting default branch: ${e.message}`)
     }
@@ -51199,27 +51208,6 @@ const deleteLocalFile = async (path) => {
         fs.unlinkSync(path)
     } catch (e) {
         throw new Error(`failed deleting local file: ${e.message}`)
-    }
-}
-
-const getRawFile = async (octokit, owner, repo, path) => {
-    try {
-        const response = await octokit.repos.getContent({
-            owner: owner,
-            repo: repo,
-            path: path
-        })
-
-        if (ENABLE_DEBUG) {
-            core.info(`[TRACE] reusableWorkflowInUse: ${Buffer.from(response.data.content, 'base64').toString()}`)
-        }
-
-        return Buffer.from(response.data.content, 'base64').toString()
-    } catch (error) {
-        if (error.status === 404) {
-            return null
-        }
-        throw error
     }
 }
 
