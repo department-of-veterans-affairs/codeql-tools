@@ -46270,7 +46270,8 @@ const processRepository = async (octokit, config, repository, adminClient, verif
         }
 
         core.info(`[${repository.name}]: Generating CodeQL workflow for supported languages: [${languages.join(', ')}]`)
-        const workflow = generateCodeQLWorkflow(languages, repository.default_branch)
+        const canonicalLanguages = mapLanguages(languages)
+        const workflow = generateCodeQLWorkflow(canonicalLanguages, repository.default_branch)
         const emass = generateEMASSJson()
 
         core.info(`[${repository.name}]: Retrieving SHA for branch ${repository.default_branch}`)
@@ -46437,25 +46438,27 @@ const retrieveSupportedCodeQLLanguages = async (octokit, owner, repo) => {
             repo: repo
         })
 
-        return Object.keys(languages).map(language => language.toLowerCase()).map(language => {
-            switch (language) {
-                case 'c':
-                    return 'cpp'
-                case 'c#':
-                    return 'csharp'
-                case 'c++':
-                    return 'cpp'
-                case 'kotlin':
-                    return 'java'
-                case 'typescript':
-                    return 'javascript'
-                default:
-                    return language
-            }
-        }).filter(language => supportedCodeQLLanguages.includes(language))
+        return Object.keys(languages).map(language => language.toLowerCase()).filter(language => supportedCodeQLLanguages.includes(language))
     } catch (e) {
         throw new Error(`Failed to retrieve supported CodeQL languages: ${e.message}`)
     }
+}
+
+const mapLanguages = (languages) => {
+    return languages.map(language => {
+        switch (language) {
+            case 'cpp':
+                return 'c'
+            case 'csharp':
+                return 'c#'
+            case 'java':
+                return 'kotlin'
+            case 'javascript':
+                return 'typescript'
+            default:
+                return language
+        }
+    })
 }
 
 const analysisTemplate = {
