@@ -91,6 +91,12 @@ const main = async () => {
 
 const processRepository = async (octokit, mailer, config, repository, codeQLVersions, systemIDs, adminClient, emassPromotionInstallationClient) => {
     try {
+        core.info(`[${repository.name}]: Checking if repository is archived`)
+        if (repository.archived) {
+            core.info(`[${repository.name}]: [skipped-archived] Skipping repository as it is archived`)
+            return
+        }
+
         core.info(`[${repository.name}]: Retrieving .emass-repo-ignore file`)
         const emassIgnore = await exists(octokit, repository.owner.login, repository.name, '.github/.emass-repo-ignore')
         if (emassIgnore) {
