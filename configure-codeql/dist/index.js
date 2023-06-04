@@ -46200,7 +46200,7 @@ const main = async () => {
     const verifyScansApp = await createGitHubAppClient(config.verify_scans_id, config.verify_scans_privateKey)
     const verifyScansInstalledRepositories = await listInstalledRepos(verifyScansApp, config.verify_scans_installationID, config.org)
 
-    if(config.repo === '') {
+    if (config.repo === '') {
         core.info(`Processing all repositories`)
         await configureCodeQLApp.eachRepository(async ({octokit, repository}) => {
             await processRepository(octokit, config, repository, adminClient, verifyScansInstalledRepositories)
@@ -46419,7 +46419,7 @@ const codeScanningEnabled = async (octokit, owner, repo) => {
 
 const installVerifyScansApp = async (octokit, installationID, repositoryID) => {
     try {
-        if(!DRY_RUN) {
+        if (!DRY_RUN) {
             await octokit.apps.addRepoToInstallationForAuthenticatedUser({
                 installation_id: installationID,
                 repository_id: repositoryID
@@ -46438,15 +46438,19 @@ const retrieveSupportedCodeQLLanguages = async (octokit, owner, repo) => {
         })
 
         return Object.keys(languages).map(language => language.toLowerCase()).map(language => {
-            switch(language) {
-            case 'c#':
-                return 'csharp'
-            case 'c++':
-                return 'cpp'
-            case 'kotlin':
-                return 'java'
-            default:
-                return language
+            switch (language) {
+                case 'c':
+                    return 'cpp'
+                case 'c#':
+                    return 'csharp'
+                case 'c++':
+                    return 'cpp'
+                case 'kotlin':
+                    return 'java'
+                case 'typescript':
+                    return 'javascript'
+                default:
+                    return language
             }
         }).filter(language => supportedCodeQLLanguages.includes(language))
     } catch (e) {
@@ -46557,7 +46561,7 @@ const getFileRefSHA = async (octokit, owner, repo, branch, path) => {
 
         return content.sha
     } catch (e) {
-        if(e.status === 404) {
+        if (e.status === 404) {
             throw new Error(`File not found: ${path}`)
         }
 
@@ -46567,7 +46571,7 @@ const getFileRefSHA = async (octokit, owner, repo, branch, path) => {
 
 const updateFile = async (octokit, owner, repo, branch, path, message, content, sha) => {
     try {
-        if(!DRY_RUN) {
+        if (!DRY_RUN) {
             await octokit.repos.createOrUpdateFileContents({
                 owner: owner,
                 repo: repo,
@@ -46602,7 +46606,7 @@ const refExists = async (octokit, owner, repo, branch) => {
 
 const createRef = async (octokit, owner, repo, sha, name) => {
     try {
-        if(!DRY_RUN) {
+        if (!DRY_RUN) {
             await octokit.git.createRef({
                 owner: owner,
                 repo: repo,
@@ -46635,7 +46639,7 @@ const fileExists = async (octokit, owner, repo, branch, path) => {
 
 const createFile = async (octokit, owner, repo, branch, path, message, content) => {
     try {
-        if(!DRY_RUN) {
+        if (!DRY_RUN) {
             const base64Content = Buffer.from(content).toString('base64')
             await octokit.repos.createOrUpdateFileContents({
                 owner: owner,
@@ -46662,7 +46666,7 @@ const generatePullRequestBody = (languages, template, org, repo, branch) => {
 
 const createPullRequest = async (octokit, owner, repo, title, head, base, body) => {
     try {
-        if(!DRY_RUN) {
+        if (!DRY_RUN) {
             await octokit.pulls.create({
                 owner: owner,
                 repo: repo,
@@ -46700,7 +46704,7 @@ const reusableWorkflowInUse = async (octokit, owner, repo, branch, path) => {
         })
         const decodedContent = Buffer.from(workflow.content, 'base64').toString('utf-8')
 
-        if(ENABLE_DEBUG) {
+        if (ENABLE_DEBUG) {
             core.info(`[TRACE] reusableWorkflowInUse: ${decodedContent}`)
         }
 
