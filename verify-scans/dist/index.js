@@ -68233,7 +68233,7 @@ const main = async () => {
     core.info(`Retrieving System ID list`)
     const systemIDs = await getFileArray(adminClient, config.org, '.github-internal', '.emass-system-include')
 
-    if(config.repo === '') {
+    if (config.repo === '') {
         core.info(`Processing all repositories`)
         await verifyScansApp.eachRepository(async ({octokit, repository}) => {
             await processRepository(octokit, mailer, config, repository, codeQLVersions, systemIDs, adminClient, emassPromotionInstallationClient)
@@ -68247,7 +68247,7 @@ const main = async () => {
         await processRepository(verifyScansInstallationClient, mailer, config, repository, codeQLVersions, systemIDs, adminClient, emassPromotionInstallationClient)
     }
 
-    if(config.repo === '') {
+    if (config.repo === '') {
         core.info('Finished processing all repositories, generating summary')
         try {
             core.info(`Creating dashboard, retrieving existing dashboard ref`)
@@ -68305,7 +68305,7 @@ const processRepository = async (octokit, mailer, config, repository, codeQLVers
         const requiredLanguages = await listLanguages(octokit, repository.owner.login, repository.name, ignoredLanguages)
 
         if (!emassConfig || !emassConfig.systemOwnerEmail || !emassConfig.systemID || !systemIDs.includes(emassConfig.systemID)) {
-            if(emassConfig && emassConfig.systemID && !systemIDs.includes(emassConfig.systemID)){
+            if (emassConfig && emassConfig.systemID && !systemIDs.includes(emassConfig.systemID)) {
                 core.warning(`[${repository.name}] [invalid-system-id] Skipping repository as it contains an invalid System ID`)
             }
             core.warning(`[${repository.name}]: [missing-configuration] .github/emass.json not found, or missing/incorrect eMASS data`)
@@ -68528,7 +68528,7 @@ const getFileArray = async (octokit, owner, repo, path) => {
         })
         const content = Buffer.from(response.content, 'base64').toString().trim()
 
-        if(ENABLE_DEBUG) {
+        if (ENABLE_DEBUG) {
             core.info(`[TRACE] getFileArray: ${content}`)
         }
 
@@ -68600,13 +68600,17 @@ const listLanguages = async (octokit, owner, repo, ignoredLanguages) => {
 
         return Object.keys(languages).map(language => language.toLowerCase())
             .map(language => {
-                switch(language) {
+                switch (language) {
+                    case 'c':
+                        return 'cpp'
                     case 'c#':
                         return 'csharp'
                     case 'c++':
                         return 'cpp'
                     case 'kotlin':
                         return 'java'
+                    case 'typescript':
+                        return 'javascript'
                     default:
                         return language
                 }
@@ -68722,7 +68726,7 @@ const isAppInstalled = async (octokit, owner, repo) => {
 }
 
 const sendEmail = async (client, from, replyTo, emails, subject, html) => {
-    if(!DRY_RUN) {
+    if (!DRY_RUN) {
         await client.sendMail({
             from: from,
             to: emails,
@@ -68777,7 +68781,7 @@ const generateOutOfComplianceCLIEmailBody = (template, repositoryName, repositor
 
 const installApp = async (octokit, installationID, repositoryID) => {
     try {
-        if(!DRY_RUN) {
+        if (!DRY_RUN) {
             await octokit.request('PUT /user/installations/{installation_id}/repositories/{repository_id}', {
                 installation_id: installationID,
                 repository_id: repositoryID
@@ -68790,7 +68794,7 @@ const installApp = async (octokit, installationID, repositoryID) => {
 
 const uninstallApp = async (octokit, installationID, repositoryID) => {
     try {
-        if(!DRY_RUN) {
+        if (!DRY_RUN) {
             await octokit.request('DELETE /user/installations/{installation_id}/repositories/{repository_id}', {
                 installation_id: installationID,
                 repository_id: repositoryID
@@ -68817,7 +68821,7 @@ const issueExists = async (octokit, owner, repo, label) => {
 }
 
 const createIssue = async (octokit, owner, repo, title, body, labels) => {
-    if(!DRY_RUN) {
+    if (!DRY_RUN) {
         try {
             await octokit.issues.create({
                 owner: owner,
@@ -68863,7 +68867,7 @@ const listOpenIssues = async (octokit, owner, repo, label) => {
 
 const closeIssues = async (octokit, owner, repo, issues) => {
     try {
-        if(!DRY_RUN) {
+        if (!DRY_RUN) {
             for (const issue of issues) {
                 await octokit.issues.update({
                     owner: owner,
@@ -68889,7 +68893,7 @@ const getFileRefSHA = async (octokit, owner, repo, branch, path) => {
 
         return content.sha
     } catch (e) {
-        if(e.status === 404) {
+        if (e.status === 404) {
             throw new Error(`File not found: ${path}`)
         }
 
@@ -68899,7 +68903,7 @@ const getFileRefSHA = async (octokit, owner, repo, branch, path) => {
 
 const updateFile = async (octokit, owner, repo, branch, path, message, content, sha) => {
     try {
-        if(!DRY_RUN) {
+        if (!DRY_RUN) {
             await octokit.repos.createOrUpdateFileContents({
                 owner: owner,
                 repo: repo,
@@ -68915,7 +68919,7 @@ const updateFile = async (octokit, owner, repo, branch, path, message, content, 
     }
 }
 
-const createDashboardMarkdown = async() => {
+const createDashboardMarkdown = async () => {
     const enabled = FULLY_COMPLIANT_REPOS.length
     const enabledNonCompliant = CONFIGURED_MISSING_SCANS_REPOS.length
     const notEnabled = TOTAL_REPOS.length - FULLY_COMPLIANT_REPOS.length
