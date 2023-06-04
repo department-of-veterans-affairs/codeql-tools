@@ -81,7 +81,7 @@ const processRepository = async (octokit, config, repository, adminClient, verif
                 core.info(`[${repository.name}]: Repository has Default Code Scanning enabled, executing configuration`)
             } else {
                 core.info(`[${repository.name}]: Validating reusable workflow in use`)
-                const reusableWorkflowUsed = await reusableWorkflowInUse(adminClient, repository.owner.login, repository.name, repository.default_branch, codeScanningConfig.workflow)
+                const reusableWorkflowUsed = await reusableWorkflowInUse(octokit, repository.owner.login, repository.name, repository.default_branch, codeScanningConfig.workflow)
                 if (reusableWorkflowUsed) {
                     core.info(`[${repository.name}]: Repository has Code Scanning enabled and reusable workflow in use, installing 'verify-scans' GitHub App`)
                     await installVerifyScansApp(adminClient, config.verify_scans_installationID, repository.id)
@@ -143,7 +143,7 @@ const processRepository = async (octokit, config, repository, adminClient, verif
         const pullRequestBody = generatePullRequestBody(languages, config.pull_request_body, repository.owner.login, repository.name, SOURCE_BRANCH_NAME)
 
         core.info(`[${repository.name}]: Creating CodeQL pull request: ${repository.html_url}/pulls`)
-        await createPullRequest(octokit, repository.owner.login, repository.name, PULL_REQUEST_TITLE, SOURCE_BRANCH_NAME, repository.default_branch, pullRequestBody)
+        await createPullRequest(adminClient, repository.owner.login, repository.name, PULL_REQUEST_TITLE, SOURCE_BRANCH_NAME, repository.default_branch, pullRequestBody)
 
         core.info(`[${repository.name}]: Installing 'verify-scans' GitHub App`)
         await installVerifyScansApp(adminClient, config.verify_scans_installationID, repository.id)
