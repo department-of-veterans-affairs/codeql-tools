@@ -277,20 +277,24 @@ const retrieveSupportedCodeQLLanguages = async (octokit, owner, repo) => {
 }
 
 const mapLanguages = (languages) => {
-    return languages.map(language => {
+    const mappedLanguages = languages.map(language => {
         switch (language) {
-            case 'cpp':
-                return 'c'
-            case 'csharp':
-                return 'c#'
-            case 'java':
-                return 'kotlin'
-            case 'javascript':
-                return 'typescript'
+            case 'c':
+                return 'cpp'
+            case 'c#':
+                return 'csharp'
+            case 'c++':
+                return 'cpp'
+            case 'kotlin':
+                return 'java'
+            case 'typescript':
+                return 'javascript'
             default:
                 return language
         }
     })
+
+    return [...new Set(mappedLanguages)]
 }
 
 const analysisTemplate = {
