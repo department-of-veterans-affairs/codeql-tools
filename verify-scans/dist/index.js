@@ -68905,17 +68905,15 @@ const getFileRefSHA = async (octokit, owner, repo, branch, path) => {
 
 const updateFile = async (octokit, owner, repo, branch, path, message, content, sha) => {
     try {
-        if (!DRY_RUN) {
-            await octokit.repos.createOrUpdateFileContents({
-                owner: owner,
-                repo: repo,
-                path: path,
-                message: message,
-                content: Buffer.from(content).toString('base64'),
-                sha: sha,
-                branch: branch
-            })
-        }
+        await octokit.repos.createOrUpdateFileContents({
+            owner: owner,
+            repo: repo,
+            path: path,
+            message: message,
+            content: Buffer.from(content).toString('base64'),
+            sha: sha,
+            branch: branch
+        })
     } catch (e) {
         throw new Error(`Failed to update file: ${e.message}`)
     }
