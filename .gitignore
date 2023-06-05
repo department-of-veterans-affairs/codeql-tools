@@ -3,3 +3,7 @@ tmp/
 
 script.sh
 test.js
+
+**/.env
+**/.envrc
+*.pem
