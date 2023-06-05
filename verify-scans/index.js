@@ -145,7 +145,7 @@ const processRepository = async (octokit, mailer, config, repository, codeQLVers
                 await createIssue(octokit, repository.owner.login, repository.name, 'Error: GitHub Repository Not Mapped To eMASS System', issueBody)
             }
 
-            core.info(`Uninstalling 'emass-promotion' app from repository`)
+            core.info(`[${repository.name}]: Uninstalling 'emass-promotion' app from repository`)
             await uninstallApp(adminClient, config.emass_promotion_installation_id, repository.id)
 
             return
