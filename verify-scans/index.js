@@ -16,7 +16,7 @@ axiosRetry(axios, {
     retries: 3
 })
 
-const DRY_RUN = process.env.DRY_RUN && process.env.DRY_RUN.toLowerCase() === 'true'
+const DRY_RUN = (process.env.DRY_RUN && process.env.DRY_RUN.toLowerCase() === 'true') || process.env.DISABLE_NOTIFICATIONS && process.env.DISABLE_NOTIFICATIONS.toLowerCase() === 'true'
 const ENABLE_DEBUG = process.env.ACTIONS_STEP_DEBUG && process.env.ACTIONS_STEP_DEBUG.toLowerCase() === 'true'
 
 const CONFIGURED_MISSING_SCANS_REPOS = []
