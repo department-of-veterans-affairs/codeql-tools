@@ -68598,7 +68598,7 @@ const listLanguages = async (octokit, owner, repo, ignoredLanguages) => {
             repo: repo
         })
 
-        return Object.keys(languages).map(language => language.toLowerCase())
+        const mappedLanguages =  Object.keys(languages).map(language => language.toLowerCase())
             .map(language => {
                 switch (language) {
                     case 'c':
@@ -68617,6 +68617,8 @@ const listLanguages = async (octokit, owner, repo, ignoredLanguages) => {
             })
             .filter(language => supportedCodeQLLanguages.includes(language))
             .filter(language => !ignoredLanguages.includes(language))
+
+        return [...new Set(mappedLanguages)]
     } catch (e) {
         throw new Error(`Failed to list and filtered languages: ${e.message}`)
     }
