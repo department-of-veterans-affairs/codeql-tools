@@ -118,8 +118,10 @@ const processRepository = async (octokit, mailer, config, repository, codeQLVers
             core.info(`[${repository.name}]: Found codeql-config.yml file, parsing file`)
             codeqlConfig = yaml.load(_codeqlConfigRaw)
 
-            core.info(`[${repository.name}]: Parsing ignored languages`)
-            ignoredLanguages = codeqlConfig.excluded_languages.map(language => language.name.toLowerCase())
+            if (codeqlConfig.excluded_languages) {
+                core.info(`[${repository.name}]: Parsing ignored languages`)
+                ignoredLanguages = codeqlConfig.excluded_languages.map(language => language.name.toLowerCase())
+            }
         }
 
         core.info(`[${repository.name}]: Retrieving .github/emass.json file`)
