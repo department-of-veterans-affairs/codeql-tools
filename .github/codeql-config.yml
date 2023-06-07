@@ -1,2 +1,3 @@
 paths-ignore:
-  - **/dist
+  - **/dist/*.js
+  - **/dist/**/*.js
