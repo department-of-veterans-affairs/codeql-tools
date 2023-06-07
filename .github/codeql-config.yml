@@ -1,8 +1,8 @@
 paths-ignore:
-  - configure-codeql/dist
-  - emass-promotion/dist
-  - parse-build-steps/dist
-  - upload-database/dist
-  - validate-monorepo-access/dist
-  - verify-scans/dist
+  - configure-codeql/dist/index.js
+  - emass-promotion/dist/index.js
+  - parse-build-steps/dist/index.js
+  - upload-database/dist/index.js
+  - validate-monorepo-access/dist/index.js
+  - verify-scans/dist/index.js
   
