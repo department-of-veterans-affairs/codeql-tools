@@ -110,12 +110,12 @@ const processRepository = async (octokit, mailer, config, repository, codeQLVers
         core.info(`[${repository.name}]: Found ${issues.length} open issues, closing open issues`)
         await closeIssues(octokit, repository.owner.login, repository.name, issues)
 
-        core.info(`[${repository.name}]: Retrieving codeql-config.yml file`)
+        core.info(`[${repository.name}]: Retrieving codeql.yml file`)
         let codeqlConfig
         let ignoredLanguages = []
-        const _codeqlConfigRaw = await getRawFile(octokit, repository.owner.login, repository.name, '.github/codeql-config.yml')
+        const _codeqlConfigRaw = await getRawFile(octokit, repository.owner.login, repository.name, '.github/codeql.yml')
         if (_codeqlConfigRaw) {
-            core.info(`[${repository.name}]: Found codeql-config.yml file, parsing file`)
+            core.info(`[${repository.name}]: Found codeql.yml file, parsing file`)
             codeqlConfig = yaml.load(_codeqlConfigRaw)
 
             if (codeqlConfig.excluded_languages) {
