@@ -9,13 +9,13 @@ const main = async () => {
         const language = core.getInput('language', {required: false, trimWhitespace: true})
 
         core.info('Checking for custom build steps')
-        const fileExists = fs.existsSync('.github/codeql-config.yml')
+        const fileExists = fs.existsSync('.github/codeql.yml')
         if (fileExists) {
-            core.info('Found .github/codeql-config.yml')
+            core.info('Found .github/codeql.yml')
             const key = buildStepName || language
             core.info(`Parsing build steps for key: ${key}`)
             if (key) {
-                const yml = fs.readFileSync('.github/codeql-config.yml', 'utf8')
+                const yml = fs.readFileSync('.github/codeql.yml', 'utf8')
                 const config = yaml.load(yml)
                 if (config.build_steps && config.build_steps[key]) {
                     core.info('Found custom build steps')
