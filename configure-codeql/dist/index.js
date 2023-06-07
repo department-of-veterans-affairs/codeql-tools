@@ -46226,16 +46226,16 @@ const processRepository = async (octokit, config, repository, adminClient, verif
             return
         }
 
+        core.info(`[${repository.name}]: Processing repository`)
+        if (verifyScansInstalledRepositories.includes(repository.name)) {
+            core.info(`[${repository.name}]: [skipped-already-configured] Skipping repository as it is has already been configured via the Configure CodeQL GitHub App Pull Request`)
+            return
+        }
+
         core.info(`[${repository.name}]: Retrieving .emass-repo-ignore file`)
         const emassIgnore = await exists(octokit, repository.owner.login, repository.name, '.github/.emass-repo-ignore')
         if (emassIgnore) {
             core.info(`[${repository.name}]: [skipped-ignored] Found .emass-repo-ignore file, skipping repository`)
-            return
-        }
-
-        core.info(`[${repository.name}]: Processing repository`)
-        if (verifyScansInstalledRepositories.includes(repository.name)) {
-            core.info(`[${repository.name}]: [skipped-already-configured] Skipping repository as it is has already been configured via the Configure CodeQL GitHub App Pull Request`)
             return
         }
 
