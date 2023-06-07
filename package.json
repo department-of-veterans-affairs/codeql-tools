@@ -63,6 +63,6 @@
     "js-yaml": "^4.1.0",
     "markdown-table": "^3.0.3",
     "node-gzip": "^1.1.2",
-    "nodemailer": "^6.9.2"
+    "nodemailer": "^6.9.3"
   }
 }
