@@ -9,8 +9,6 @@ const core = require('@actions/core')
 const axios = require('axios')
 const axiosRetry = require('axios-retry')
 const nodemailer = require('nodemailer')
-const fs = require('fs')
-const {markdownTable} = require('markdown-table')
 const {createGitHubAppClient, supportedCodeQLLanguages, createGitHubClient} = require('../lib/utils')
 
 axiosRetry(axios, {
@@ -780,26 +778,6 @@ const updateFile = async (octokit, owner, repo, branch, path, message, content, 
     } catch (e) {
         throw new Error(`Failed to update file: ${e.message}`)
     }
-}
-
-const createDashboardMarkdown = async () => {
-    const enabled = fullyCompliant.length
-    const enabledNonCompliant = configuredButMissingScans.length
-    const notEnabled = allRepos.length - fullyCompliant.length
-    const table = markdownTable([
-        ['Enabled', 'Enabled: Non-Compliant', 'Not Enabled (Based on Policy)'],
-        [enabled, enabledNonCompliant, notEnabled]
-    ])
-
-    return `---
-layout: minimal
-title: Enablement Dashboard
-nav_order: 60
-parent: Code Scanning Governance Platform Dashboard
----
-
-${table}
-    `
 }
 
 main().catch(e => core.setFailed(e.message))
