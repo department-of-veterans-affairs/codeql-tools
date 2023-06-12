@@ -68185,6 +68185,7 @@ const core = __nccwpck_require__(5344)
 const axios = __nccwpck_require__(4202)
 const axiosRetry = __nccwpck_require__(8733)
 const nodemailer = __nccwpck_require__(9257)
+const fs = __nccwpck_require__(5747)
 const {markdownTable} = __nccwpck_require__(3450)
 const {createGitHubAppClient, supportedCodeQLLanguages, createGitHubClient} = __nccwpck_require__(6794)
 
@@ -68195,9 +68196,10 @@ axiosRetry(axios, {
 const DRY_RUN = (process.env.DRY_RUN && process.env.DRY_RUN.toLowerCase() === 'true') || process.env.DISABLE_NOTIFICATIONS && process.env.DISABLE_NOTIFICATIONS.toLowerCase() === 'true'
 const ENABLE_DEBUG = process.env.ACTIONS_STEP_DEBUG && process.env.ACTIONS_STEP_DEBUG.toLowerCase() === 'true'
 
-const CONFIGURED_MISSING_SCANS_REPOS = []
-const FULLY_COMPLIANT_REPOS = []
-const TOTAL_REPOS = []
+const configuredButMissingScans = []
+const fullyCompliant = []
+const allRepos = []
+const state = []
 
 const main = async () => {
     core.info('Parsing Actions input')
@@ -68247,29 +68249,47 @@ const main = async () => {
         await processRepository(verifyScansInstallationClient, mailer, config, repository, codeQLVersions, systemIDs, adminClient, emassPromotionInstallationClient)
     }
 
-    if (config.repo === '') {
-        core.info('Finished processing all repositories, generating summary')
-        try {
-            core.info(`Creating dashboard, retrieving existing dashboard ref`)
-            const dashboardRef = await getFileRefSHA(adminClient, config.org, config.dashboard_repo, config.dashboard_repo_default_branch, 'dashboards/enablement.md')
+    const platformState = {
+        enabled: fullyCompliant.length,
+        enabled_non_compliant: configuredButMissingScans.length,
+        not_enabled: allRepos.length - fullyCompliant.length,
+        repo_state: state,
+    }
 
-            core.info(`Generating dashboard content`)
-            const dashboardContent = await createDashboardMarkdown()
+    if (config.repo === '') {
+        core.info('Finished processing all repositories, generating state.json')
+        try {
+            core.info(`Creating state.json, retrieving existing state.json ref`)
+            const stateRef = await getFileRefSHA(adminClient, config.org, config.dashboard_repo, config.dashboard_repo_default_branch, 'dashboards/state.json')
 
             core.info(`Updating dashboard`)
-            await updateFile(adminClient, config.org, config.dashboard_repo, config.dashboard_repo_default_branch, 'dashboards/enablement.md', 'Update dashboard', dashboardContent, dashboardRef)
-        } catch (error) {
-            core.error(`Error creating dashboard: ${e}`)
+            const stateJSON = JSON.stringify(platformState, null, 2)
+            await updateFile(adminClient, config.org, config.dashboard_repo, config.dashboard_repo_default_branch, 'dashboards/state.json', 'Update state.json', stateJSON, stateRef)
+        } catch (e) {
+            core.error(`Error creating stat.json: ${e.message}`)
         }
-        core.info(`Finished generating dashboard`)
+        core.info(`Finished updating state.json`)
     }
 }
 
 const processRepository = async (octokit, mailer, config, repository, codeQLVersions, systemIDs, adminClient, emassPromotionInstallationClient) => {
     try {
+        const repoState = {
+            name: repository.full_name,
+            archived: false,
+            ignored: false,
+            eMASSConfigMissing: false,
+            systemOwnerEmailMissing: false,
+            systemIDMissing: false,
+            outOfComplianceCLI: false,
+            fullyCompliant: false,
+            missingData: null,
+        }
         core.info(`[${repository.name}]: Checking if repository is archived`)
         if (repository.archived) {
             core.info(`[${repository.name}]: [skipped-archived] Skipping repository as it is archived`)
+            repoState.archived = true
+            state.push(repoState)
             return
         }
 
@@ -68277,10 +68297,12 @@ const processRepository = async (octokit, mailer, config, repository, codeQLVers
         const emassIgnore = await exists(octokit, repository.owner.login, repository.name, '.github/.emass-repo-ignore')
         if (emassIgnore) {
             core.info(`[${repository.name}]: [skipped-ignored] Found .emass-repo-ignore file, skipping repository`)
+            repoState.ignored = true
+            state.push(repoState)
             return
         }
 
-        TOTAL_REPOS.push(repository.name)
+        allRepos.push(repository.name)
         core.info(`[${repository.name}]: Retrieving open issues`)
         const issues = await listOpenIssues(octokit, repository.owner.login, repository.name, ['ghas-non-compliant'])
         core.info(`[${repository.name}]: Found ${issues.length} open issues, closing open issues`)
@@ -68309,7 +68331,17 @@ const processRepository = async (octokit, mailer, config, repository, codeQLVers
         if (!emassConfig || !emassConfig.systemOwnerEmail || !emassConfig.systemID || !systemIDs.includes(emassConfig.systemID)) {
             if (emassConfig && emassConfig.systemID && !systemIDs.includes(emassConfig.systemID)) {
                 core.warning(`[${repository.name}] [invalid-system-id] Skipping repository as it contains an invalid System ID`)
+                repoState.systemIDMissing = true
             }
+            if (!emassConfig) {
+                core.warning(`[${repository.name}] [missing-configuration] repository missing .github/emass.json`)
+                repoState.eMASSConfigMissing = true
+            }
+            if (emassConfig && !emassConfig.systemOwnerEmail) {
+                core.warning(`[${repository.name}] [missing-configuration] repository missing systemOwnerEmail in .github/emass.json`)
+                repoState.systemOwnerEmailMissing = true
+            }
+            state.push(repoState)
             core.warning(`[${repository.name}]: [missing-configuration] .github/emass.json not found, or missing/incorrect eMASS data`)
             core.info(`[${repository.name}]: [generating-email] Sending 'Error: GitHub Repository Not Mapped To eMASS System' email to OIS and system owner`)
             const body = generateMissingEMASSInfoEmail(config.missing_info_email_template, repository.html_url, requiredLanguages)
@@ -68320,7 +68352,7 @@ const processRepository = async (octokit, mailer, config, repository, codeQLVers
             if (!emassMissingIssueExists) {
                 core.info(`[${repository.name}]: Creating missing EMASS information issue`)
                 const issueBody = generateMissingEMASSInfoIssue(config.missing_info_issue_template, repository.html_url, requiredLanguages)
-                await createIssue(octokit, repository.owner.login, repository.name, 'Error: GitHub Repository Not Mapped To eMASS System', issueBody)
+                await createIssue(adminClient, repository.owner.login, repository.name, 'Error: GitHub Repository Not Mapped To eMASS System', issueBody)
             }
 
             core.info(`[${repository.name}]: Uninstalling 'emass-promotion' app from repository`)
@@ -68347,9 +68379,10 @@ const processRepository = async (octokit, mailer, config, repository, codeQLVers
                     const body = await generateOutOfComplianceCLIEmailBody(config.out_of_compliance_cli_email_template, repository.name, repository.html_url, version)
                     const emails = emassConfig && emassConfig.systemOwnerEmail ? [emassConfig.systemOwnerEmail, config.secondary_email] : [config.secondary_email]
                     await sendEmail(mailer, config.gmail_from, config.secondary_email, emails, 'GitHub Repository Code Scanning Software Is Out Of Date', body)
-                    await createIssue(octokit, repository.owner.login, repository.name, 'GitHub Repository Code Scanning Software Is Out Of Date', body, ['out-of-date-codeql-cli'])
+                    await createIssue(adminClient, repository.owner.login, repository.name, 'GitHub Repository Code Scanning Software Is Out Of Date', body, ['out-of-date-codeql-cli'])
                     core.info(`Uninstalling 'emass-promotion' app from repository`)
                     await uninstallApp(adminClient, config.emass_promotion_installation_id, repository.id)
+                    repoState.outOfComplianceCLI = true
                     break
                 }
             }
@@ -68366,16 +68399,20 @@ const processRepository = async (octokit, mailer, config, repository, codeQLVers
 
         if (missingAnalyses.length === 0 && missingDatabases.length === 0) {
             core.info(`[${repository.name}]: No missing analyses or databases found`)
-            FULLY_COMPLIANT_REPOS.push(repository.name)
+            fullyCompliant.push(repository.name)
+            repoState.fullyCompliant = true
+            state.push(repoState)
             core.info(`[${repository.name}]: [successfully-processed] Successfully processed repository`)
             return
         }
 
-        CONFIGURED_MISSING_SCANS_REPOS.push(repository.name)
+        configuredButMissingScans.push(repository.name)
         const missingData = {
             missingAnalyses: missingAnalyses,
             missingDatabases: missingDatabases
         }
+        repoState.missingData = missingData
+        state.push(repoState)
 
         core.warning(`[${repository.name}]: [missing-data] Missing analyses or databases identified: ${JSON.stringify(missingData)}`)
         const uniqueMissingLanguages = [...new Set([...missingAnalyses, ...missingDatabases])]
@@ -68922,9 +68959,9 @@ const updateFile = async (octokit, owner, repo, branch, path, message, content, 
 }
 
 const createDashboardMarkdown = async () => {
-    const enabled = FULLY_COMPLIANT_REPOS.length
-    const enabledNonCompliant = CONFIGURED_MISSING_SCANS_REPOS.length
-    const notEnabled = TOTAL_REPOS.length - FULLY_COMPLIANT_REPOS.length
+    const enabled = fullyCompliant.length
+    const enabledNonCompliant = configuredButMissingScans.length
+    const notEnabled = allRepos.length - fullyCompliant.length
     const table = markdownTable([
         ['Enabled', 'Enabled: Non-Compliant', 'Not Enabled (Based on Policy)'],
         [enabled, enabledNonCompliant, notEnabled]
