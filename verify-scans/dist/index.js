@@ -68260,11 +68260,11 @@ const main = async () => {
         core.info('Finished processing all repositories, generating state.json')
         try {
             core.info(`Creating state.json, retrieving existing state.json ref`)
-            const stateRef = await getFileRefSHA(adminClient, config.org, config.dashboard_repo, config.dashboard_repo_default_branch, 'dashboards/state.json')
+            const stateRef = await getFileRefSHA(adminClient, config.org, config.dashboard_repo, config.dashboard_repo_default_branch, 'dashboards/enablement/state.json')
 
             core.info(`Updating dashboard`)
             const stateJSON = JSON.stringify(platformState, null, 2)
-            await updateFile(adminClient, config.org, config.dashboard_repo, config.dashboard_repo_default_branch, 'dashboards/state.json', 'Update state.json', stateJSON, stateRef)
+            await updateFile(adminClient, config.org, config.dashboard_repo, config.dashboard_repo_default_branch, 'dashboards/enablement/state.json', 'Update state.json', stateJSON, stateRef)
         } catch (e) {
             core.error(`Error creating stat.json: ${e.message}`)
         }
@@ -68670,15 +68670,15 @@ const listCodeQLDatabaseLanguages = async (octokit, owner, repo, range) => {
             repo: repo,
         })
 
-        return databases.filter(async (database) => {
-            return await validateCodeQLDatabase(octokit, database.created_at, range)
+        return databases.filter(database => {
+            return validateCodeQLDatabase(octokit, database.created_at, range)
         }).map(database => database.language.toLowerCase())
     } catch (e) {
         throw new Error(`Failed to list CodeQL database languages: ${e.message}`)
     }
 }
 
-const validateCodeQLDatabase = async (octokit, createdAt, range) => {
+const validateCodeQLDatabase = (octokit, createdAt, range) => {
     const databaseDate = new Date(createdAt)
     const currentDate = new Date()
     const diffTime = Math.abs(currentDate - databaseDate)
