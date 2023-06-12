@@ -20,7 +20,7 @@ const main = async () => {
         }
 
         core.info(`Uploading database ${file}`)
-        const octokit = createCodeQLGitHubClient(config.token)
+        const octokit = createCodeQLGitHubClient()
         const bundledDbSize = fs.statSync(file).size
         core.info(`Bundle size: ${bundledDbSize}`)
         const bundledDbReadStream = fs.createReadStream(file)

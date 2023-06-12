@@ -29,7 +29,7 @@ const main = async () => {
     const adminClient = await createGitHubClient(config.admin_token)
 
     core.info('Instantiating CodeQL Upload GitHub client')
-    const codeqlClient = await createCodeQLGitHubClient(config.admin_token)
+    const codeqlClient = await createCodeQLGitHubClient()
 
     core.info('Instantiating emass-promotion GitHub app client')
     const emassPromotionApp = await createGitHubAppClient(config.emass_promotion_app_id, config.emass_promotion_privateKey)
