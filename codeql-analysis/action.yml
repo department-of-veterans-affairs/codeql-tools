@@ -80,18 +80,6 @@ runs:
           Exit 4
         }
 
-    - name: Enable Swift Language Analysis
-      if: runner.os != 'Windows' && inputs.language == 'swift'
-      shell: bash
-      run: |
-        echo "CODEQL_ENABLE_EXPERIMENTAL_FEATURES_SWIFT=true" >> "$GITHUB_ENV"
-
-    - name: Enable Swift Language Analysis
-      if: runner.os == 'Windows' && inputs.language == 'swift'
-      shell: powershell
-      run: |
-          Add-Content -Path $env:GITHUB_ENV -Value "CODEQL_ENABLE_EXPERIMENTAL_FEATURES_SWIFT=true"
-
     - name: Initialize CodeQL
       uses: github/codeql-action/init@v2
       with:
