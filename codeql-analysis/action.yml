@@ -34,7 +34,7 @@ runs:
   steps:
     - name: Validate Monorepo Access
       if: inputs.config != '' || inputs.path != '.'
-      uses: department-of-veterans-affairs/codeql-tools/validate-monorepo-access@main
+      uses: department-of-veterans-affairs/codeql-tools/validate-monorepo-access@dev
       with:
         allowlist_credentials: ${{ inputs.allowlist_credentials }}
         allowlist_path: 'csgp-monorepo-allowlist'
