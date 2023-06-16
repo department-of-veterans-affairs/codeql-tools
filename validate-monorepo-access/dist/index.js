@@ -46217,6 +46217,7 @@ const main = async () => {
 
         core.info(`[${config.repo}]: Retrieving mono-repo allowlist from ${config.org}/${config.allowlist_repo}/${config.allowlist_path}`)
         const allowlist = await getFileArray(client, config.org, config.allowlist_repo, config.allowlist_path)
+        console.log(allowlist)
         core.info(`[${config.repo}]: Validating repo has access to monorepo features`)
         if (!allowlist.includes(config.repo)) {
             core.setFailed(`[${config.repo}]: Configuration not allowed, repo not enabled for monorepo features, please add to allowlist: https://github.com/${config.org}/${config.allowlist_repo}/blob/main/${config.allowlist_path}`)
@@ -46269,6 +46270,7 @@ const getFileArray = async (octokit, owner, repo, path) => {
         })
 
         const content = Buffer.from(response.content, 'base64').toString().trim()
+        console.log(content)
         return content.split('\n').filter(line => !line.includes('#'))
     } catch (e) {
         if (e.status === 404) {
