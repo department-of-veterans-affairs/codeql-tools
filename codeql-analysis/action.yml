@@ -142,7 +142,7 @@ runs:
       shell: bash
       run: |
         if [[ ! -v codeql ]]; then
-          $(realpath /opt/hostedtoolcache/CodeQL/*/x64/codeql/codeql | head -n 1) database interpret-results $path --format=csv --output="$temp/codeql-scan-results-$language.csv"
+          $(realpath $RUNNER_TOOL_CACHE/CodeQL/*/x64/codeql/codeql | head -n 1) database interpret-results $path --format=csv --output="$temp/codeql-scan-results-$language.csv"
         else
           codeql database interpret-results $path --format=csv --output="$temp/codeql-scan-results-$language.csv"
         fi
@@ -163,7 +163,7 @@ runs:
         if (Get-Command codeql -errorAction SilentlyContinue) {
           codeql database interpret-results $Path --format=csv --output="$CSVPath"
         } else {
-          $CodeQLCommand = "$((Get-ChildItem C:\hostedtoolcache\windows\CodeQL\*\x64\codeql\codeql.exe).fullname | Select-Object -first 1)"
+          $CodeQLCommand = "$((Get-ChildItem $Env:RUNNER_TOOL_CACHE\CodeQL\*\x64\codeql\codeql.exe).fullname | Select-Object -first 1)"
           Invoke-Expression "$CodeQLCommand database interpret-results $Path --format=csv --output='$CSVPath'"
         }
       env:
