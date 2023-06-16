@@ -32,15 +32,15 @@ inputs:
 runs:
   using: composite
   steps:
-    # - name: Validate Monorepo Access
-    #   if: inputs.config != '' || inputs.path != '.'
-    #   uses: department-of-veterans-affairs/codeql-tools/validate-monorepo-access@main
-    #   with:
-    #     allowlist_credentials: ${{ inputs.allowlist_credentials }}
-    #     allowlist_path: 'csgp-monorepo-allowlist'
-    #     allowlist_repo: '.github-internal'
-    #     org: ${{ github.event.organization.login }}
-    #     repo: ${{ github.event.repository.name }}
+    - name: Validate Monorepo Access
+      if: inputs.config != '' || inputs.path != '.'
+      uses: department-of-veterans-affairs/codeql-tools/validate-monorepo-access@main
+      with:
+        allowlist_credentials: ${{ inputs.allowlist_credentials }}
+        allowlist_path: 'csgp-monorepo-allowlist'
+        allowlist_repo: '.github-internal'
+        org: ${{ github.event.organization.login }}
+        repo: ${{ github.event.repository.name }}
 
     - name: Checkout repository
       uses: actions/checkout@v3
