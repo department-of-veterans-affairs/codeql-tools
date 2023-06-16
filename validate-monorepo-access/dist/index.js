@@ -46269,7 +46269,7 @@ const getFileArray = async (octokit, owner, repo, path) => {
         })
 
         const content = Buffer.from(response.content, 'base64').toString().trim()
-        return content.split('\n').filter(line => !line.includes('#'))
+        return yaml.load(content).repos
     } catch (e) {
         if (e.status === 404) {
             return new Error(`failed retrieving ${path} for ${owner}/${repo}: ${e.message}`)
