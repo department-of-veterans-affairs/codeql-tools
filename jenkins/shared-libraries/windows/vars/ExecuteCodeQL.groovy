@@ -4,8 +4,7 @@ import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream
 def call(Org, Repo, Branch, Language, BuildCommand, Token, InstallCodeQL) {
     env.AUTHORIZATION_HEADER = sprintf("token %s", Token)
     if(Branch == "") {
-        // TODO: This doesn't work if branch includes a slash in it, split and reform based on branch name
-        env.BRANCH = env.GIT_BRANCH.split('/')[1]
+        env.BRANCH = env.GIT_BRANCH.substring(env.GIT_BRANCH.indexOf('/') + 1)
     } else {
         env.BRANCH = Branch
     }

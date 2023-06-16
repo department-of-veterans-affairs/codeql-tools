@@ -6,8 +6,7 @@ import java.nio.file.Paths
 def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
     env.AUTHORIZATION_HEADER = sprintf("Authorization: token %s", token)
     if(branch == "") {
-        // TODO: This doesn't work if branch includes a slash in it, split and reform based on branch name
-        env.BRANCH = env.GIT_BRANCH.split('/')[1]
+        env.BRANCH = env.GIT_BRANCH.substring(env.GIT_BRANCH.indexOf('/') + 1)
     } else {
         env.BRANCH = branch
     }
