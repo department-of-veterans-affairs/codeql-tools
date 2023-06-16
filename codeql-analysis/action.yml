@@ -37,7 +37,7 @@ runs:
       uses: department-of-veterans-affairs/codeql-tools/validate-monorepo-access@dev
       with:
         allowlist_credentials: ${{ inputs.allowlist_credentials }}
-        allowlist_path: 'csgp-monorepo-allowlist'
+        allowlist_path: 'csgp-monorepo-allowlist.yml'
         allowlist_repo: '.github-internal'
         org: ${{ github.event.organization.login }}
         repo: ${{ github.event.repository.name }}
