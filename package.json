@@ -56,7 +56,7 @@
     "@octokit/app": "^13.1.5",
     "@octokit/plugin-retry": "^5.0.2",
     "@octokit/plugin-throttling": "^6.1.0",
-    "@octokit/rest": "^19.0.11",
+    "@octokit/rest": "^19.0.13",
     "archiver": "^5.3.1",
     "axios": "^1.4.0",
     "axios-retry": "^3.5.0",
