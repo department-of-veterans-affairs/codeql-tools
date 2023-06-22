@@ -152,10 +152,10 @@ runs:
         $CSVPath = "$Temp\codeql-scan-results-$Language.csv"
         Write-Output "Generating CodeQL Results CSV at $CSVPath"
         if (Get-Command codeql -errorAction SilentlyContinue) {
-          codeql database interpret-results $DatabasePath --format=csv --output="$CSVPath"
+          codeql database interpret-results "$DatabasePath" --format=csv --output="$CSVPath"
         } else {
           $CodeQLCommand = "$((Get-ChildItem $Env:RUNNER_TOOL_CACHE\CodeQL\*\x64\codeql\codeql.exe).fullname | Select-Object -first 1)"
-          & $CodeQLCommand database interpret-results $DatabasePath --format=csv --output='$CSVPath'
+          & $CodeQLCommand database interpret-results "$DatabasePath" --format=csv --output="$CSVPath"
         }
       env:
         language: ${{ inputs.language }}
