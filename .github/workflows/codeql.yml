@@ -10,7 +10,6 @@ jobs:
   analyze:
     name: Analyze
     runs-on: ${{ matrix.runner }}
-    concurrency: ${{ github.workflow }}-${{ matrix.language }}-${{ github.ref }}-${{ matrix.runner }}
     permissions:
       actions: read
       contents: read
