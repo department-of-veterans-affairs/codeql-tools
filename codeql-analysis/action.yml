@@ -130,13 +130,13 @@ runs:
       shell: bash
       run: |
         if [[ ! -v codeql ]]; then
-          $(realpath $RUNNER_TOOL_CACHE/CodeQL/*/x64/codeql/codeql | head -n 1) database interpret-results $path --format=csv --output="$temp/codeql-scan-results-$language.csv"
+          $(realpath $RUNNER_TOOL_CACHE/CodeQL/*/x64/codeql/codeql | head -n 1) database interpret-results $database --format=csv --output="$temp/codeql-scan-results-$language.csv"
         else
-          codeql database interpret-results $path --format=csv --output="$temp/codeql-scan-results-$language.csv"
+          codeql database interpret-results $database --format=csv --output="$temp/codeql-scan-results-$language.csv"
         fi
       env:
         language: ${{ inputs.language }}
-        path: ${{ runner.temp }}/codeql_databases/${{ inputs.language }}
+        database: ${{ runner.temp }}/codeql_databases/${{ inputs.language }}
         qlpacks: 'codeql/${{ inputs.language }}-queries:codeql-suites/${{ inputs.language }}-security-and-quality'
         temp: ${{ runner.temp }}
 
