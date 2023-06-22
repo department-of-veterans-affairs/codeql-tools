@@ -126,13 +126,15 @@ runs:
         category: ois-${{ inputs.language }}
 
     - name: Generate CodeQL Results CSV
-      if: runner.os == 'Linux'
+      if: runner.os != 'Windows'
       shell: bash
       run: |
+        database_path="$temp/codeql-scan-results-$language.csv"
+        echo "Generating CodeQL Results CSV at $database_path"
         if [[ ! -v codeql ]]; then
-          $(realpath $RUNNER_TOOL_CACHE/CodeQL/*/x64/codeql/codeql | head -n 1) database interpret-results $database --format=csv --output="$temp/codeql-scan-results-$language.csv"
+          $(realpath $RUNNER_TOOL_CACHE/CodeQL/*/x64/codeql/codeql | head -n 1) database interpret-results $database --format=csv --output="$database_path"
         else
-          codeql database interpret-results $database --format=csv --output="$temp/codeql-scan-results-$language.csv"
+          codeql database interpret-results $database --format=csv --output="$database_path"
         fi
       env:
         language: ${{ inputs.language }}
@@ -147,7 +149,8 @@ runs:
         $Language = "$Env:language"
         $DatabasePath = "$Env:database"
         $Temp = "$Env:temp"
-        $CSVPath = "$Temp\codeql-scan-results-$Env:language.csv"
+        $CSVPath = "$Temp\codeql-scan-results-$Language.csv"
+        Write-Output "Generating CodeQL Results CSV at $CSVPath"
         if (Get-Command codeql -errorAction SilentlyContinue) {
           codeql database interpret-results $DatabasePath --format=csv --output="$CSVPath"
         } else {
@@ -156,17 +159,35 @@ runs:
         }
       env:
         language: ${{ inputs.language }}
-        database: ${{ runner.temp }}/codeql_databases/${{ inputs.language }}
+        database: ${{ runner.temp }}\codeql_databases\${{ inputs.language }}
         temp: ${{ runner.temp }}
 
     - name: Upload Artifact
+      if: runner.os != 'Windows'
       uses: actions/upload-artifact@v3
       with:
         name: codeql-scan-results-${{ inputs.language }}
         path: ${{ runner.temp }}/codeql-scan-results-${{ inputs.language }}.csv
 
+    - name: Upload Artifact
+      if: runner.os == 'Windows'
+      uses: actions/upload-artifact@v3
+      with:
+        name: codeql-scan-results-${{ inputs.language }}
+        path: ${{ runner.temp }}\codeql-scan-results-${{ inputs.language }}.csv
+
     - name: Upload CodeQL Database
-      if: inputs.upload_db == 'true'
+      if: inputs.upload_db == 'true' && runner.os != 'Windows'
+      uses: department-of-veterans-affairs/codeql-tools/upload-database@main
+      with:
+        language: ${{ inputs.language }}
+        org: ${{ github.event.repository.owner.login }}
+        path: ${{ runner.temp }}/codeql_databases/${{ inputs.language }}
+        repo: ${{ github.event.repository.name }}
+        token: ${{ inputs.token }}
+
+    - name: Upload CodeQL Database
+      if: inputs.upload_db == 'true' && runner.os == 'Windows'
       uses: department-of-veterans-affairs/codeql-tools/upload-database@main
       with:
         language: ${{ inputs.language }}
