@@ -145,18 +145,18 @@ runs:
       shell: powershell
       run: |
         $Language = "$Env:language"
-        $Path = "$Env:path"
+        $DatabasePath = "$Env:database"
         $Temp = "$Env:temp"
         $CSVPath = "$Temp\codeql-scan-results-$Env:language.csv"
         if (Get-Command codeql -errorAction SilentlyContinue) {
-          codeql database interpret-results $Path --format=csv --output="$CSVPath"
+          codeql database interpret-results $DatabasePath --format=csv --output="$CSVPath"
         } else {
           $CodeQLCommand = "$((Get-ChildItem $Env:RUNNER_TOOL_CACHE\CodeQL\*\x64\codeql\codeql.exe).fullname | Select-Object -first 1)"
-          & $CodeQLCommand database interpret-results $Path --format=csv --output='$CSVPath'
+          & $CodeQLCommand database interpret-results $DatabasePath --format=csv --output='$CSVPath'
         }
       env:
         language: ${{ inputs.language }}
-        path: ${{ runner.temp }}/codeql_databases/${{ inputs.language }}
+        database: ${{ runner.temp }}/codeql_databases/${{ inputs.language }}
         temp: ${{ runner.temp }}
 
     - name: Upload Artifact
