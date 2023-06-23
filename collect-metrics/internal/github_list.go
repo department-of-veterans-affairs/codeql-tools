@@ -14,32 +14,26 @@ import (
 )
 
 func (m *Manager) ListRepos() ([]*github.Repository, error) {
-	repo, _, err := m.MetricsGithubClient.Repositories.Get(m.Context, "department-of-veterans-affairs", "vulnerable-node")
-	if err != nil {
-		return nil, fmt.Errorf("failed to get repository: %v", err)
+	opts := &github.ListOptions{
+		PerPage: 100,
 	}
-	return []*github.Repository{repo}, nil
 
-	//opts := &github.ListOptions{
-	//	PerPage: 100,
-	//}
-	//
-	//var repos []*github.Repository
-	//for {
-	//	installations, resp, err := m.VerifyScansGithubClient.Apps.ListRepos(m.Context, opts)
-	//	if err != nil {
-	//		return nil, fmt.Errorf("failed to list repositories: %v", err)
-	//	}
-	//	repos = append(repos, installations.Repositories...)
-	//
-	//	if resp.NextPage == 0 {
-	//		break
-	//	}
-	//
-	//	opts.Page = resp.NextPage
-	//}
-	//
-	//return repos, nil
+	var repos []*github.Repository
+	for {
+		installations, resp, err := m.VerifyScansGithubClient.Apps.ListRepos(m.Context, opts)
+		if err != nil {
+			return nil, fmt.Errorf("failed to list repositories: %v", err)
+		}
+		repos = append(repos, installations.Repositories...)
+
+		if resp.NextPage == 0 {
+			break
+		}
+
+		opts.Page = resp.NextPage
+	}
+
+	return repos, nil
 }
 
 func (m *Manager) ListExpectedCodeQLLanguages(owner, repo string, ignoredLanguages []string) ([]string, error) {
