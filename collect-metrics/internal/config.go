@@ -59,6 +59,21 @@ func ParseInput() *Input {
 		githubactions.Fatalf("metrics_app_installation_id input must be an integer")
 	}
 
+	monorepoListOrg := githubactions.GetInput("monorepo_list_org")
+	if eMASSSystemListOrg == "" {
+		githubactions.Fatalf("emass_system_list_org input must be an integer")
+	}
+
+	monorepoListRepo := githubactions.GetInput("monorepo_list_repo")
+	if eMASSSystemListRepo == "" {
+		githubactions.Fatalf("emass_system_list_repo input must be an integer")
+	}
+
+	monorepoListPath := githubactions.GetInput("monorepo_list_path")
+	if eMASSSystemListPath == "" {
+		githubactions.Fatalf("emass_system_list_path input must be an integer")
+	}
+
 	stateFileOrg := githubactions.GetInput("state_file_org")
 	if stateFileOrg == "" {
 		githubactions.Fatalf("state_file_org input is required")
@@ -99,7 +114,7 @@ func ParseInput() *Input {
 	}
 	verifyScansAppInstallationIDInt64, err := strconv.ParseInt(verifyScansAppInstallationID, 10, 64)
 	if err != nil {
-		githubactions.Fatalf("verify_scans_installation_id input must be an integer")
+		githubactions.Fatalf("verify_scans_app_installation_id input must be an integer")
 	}
 
 	return &Input{
@@ -115,6 +130,9 @@ func ParseInput() *Input {
 		MetricsAppID:              metricsAppIDInt64,
 		MetricsAppPrivateKey:      []byte(metricsAppPrivateKey),
 		MetricsAppInstallationID:  metricsAppInstallationIDInt64,
+		MonorepoListOrg:           monorepoListOrg,
+		MonorepoListRepo:          monorepoListRepo,
+		MonorepoListPath:          monorepoListPath,
 		VerifyScansAppID:          verifyScansAppIDInt64,
 		VerifyScansPrivateKey:     []byte(verifyScansAppPrivateKey),
 		VerifyScansInstallationID: verifyScansAppInstallationIDInt64,
