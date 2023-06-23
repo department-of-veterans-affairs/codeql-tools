@@ -69,13 +69,6 @@ func main() {
 		GlobalLogger: globalLogger,
 	}
 
-	globalLogger.Infof("Retrieving repositories")
-	repos, err := m.ListRepos()
-	if err != nil {
-		globalLogger.Fatalf("failed to list repositories: %v", err)
-	}
-	globalLogger.Debugf("Retrieved %d repositories", len(repos))
-
 	globalLogger.Infof("Retrieving latest CodeQL versions")
 	latestCodeQLVersions, err := m.GetLatestCodeQLVersions()
 	if err != nil {
@@ -92,6 +85,21 @@ func main() {
 	m.EMASSSystemIDs = emassSystemIDs
 	globalLogger.Debugf("Retrieved %d eMASS system IDs", len(emassSystemIDs))
 
+	globalLogger.Infof("Retrieving monorepo list")
+	monorepoList, err := m.GetMonorepoList(m.Config.MonorepoListOrg, m.Config.MonorepoListRepo, m.Config.MonorepoListPath)
+	if err != nil {
+		globalLogger.Fatalf("failed to get monorepo list: %v", err)
+	}
+	m.MonorepoList = monorepoList
+	globalLogger.Debugf("Retrieved %d monorepos", len(monorepoList.Repos))
+
+	globalLogger.Infof("Retrieving repositories")
+	repos, err := m.ListRepos()
+	if err != nil {
+		globalLogger.Fatalf("failed to list repositories: %v", err)
+	}
+	globalLogger.Debugf("Retrieved %d repositories", len(repos))
+
 	states := map[string]*internal.State{}
 	for _, repo := range repos {
 		state, err := m.ProcessRepository(repo)
@@ -105,7 +113,7 @@ func main() {
 
 	metrics := generateMetrics(states)
 	globalLogger.Infof("Retrieving state file: %s/%s/%s/%s", m.Config.StateFileOrg, m.Config.StateFileRepo, m.Config.StateFileBranch, m.Config.StateFilePath)
-	content, sha, err := m.GetFile(m.Config.StateFileOrg, m.Config.StateFileRepo, m.Config.StateFileBranch, m.Config.StateFilePath)
+	content, sha, err := m.GetStateFile(m.Config.StateFileOrg, m.Config.StateFileRepo, m.Config.StateFileBranch, m.Config.StateFilePath)
 	if err != nil {
 		globalLogger.Fatalf("Failed retrieving state file: %v", err)
 	}

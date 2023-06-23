@@ -22,6 +22,7 @@ type Manager struct {
 
 	EMASSSystemIDs       []int64
 	LatestCodeQLVersions []string
+	MonorepoList         *RepoList
 }
 
 func (m *Manager) ProcessRepository(repo *github.Repository) (*State, error) {
@@ -128,6 +129,13 @@ func (m *Manager) ProcessRepository(repo *github.Repository) (*State, error) {
 	logger.Infof("Calculating missing CodeQL database languages")
 	missingDatabaseLanguages := CalculateMissingLanguages(expectedLanguages, databaseLanguages)
 	logger.Debugf("Missing CodeQL database languages calculated: %v", missingDatabaseLanguages)
+
+	logger.Infof("Checking if repository monorepo")
+	isMonorepo := Includes(m.MonorepoList.Repos, repo.GetName())
+	if isMonorepo {
+		state.Monorepo = true
+	}
+	logger.Debugf("Repository monorepo status checked")
 
 	state.MissingAnalyses = missingLanguages
 	if missingLanguages == nil {

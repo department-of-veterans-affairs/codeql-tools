@@ -56,7 +56,7 @@ func MapLanguages(languages map[string]int) []string {
 
 func Includes(a []string, s string) bool {
 	for _, value := range a {
-		if value == s {
+		if strings.TrimSpace(strings.ToLower(value)) == strings.TrimSpace(strings.ToLower(s)) {
 			return true
 		}
 	}

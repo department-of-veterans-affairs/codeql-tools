@@ -13,6 +13,9 @@ type Input struct {
 	MetricsAppID              int64
 	MetricsAppPrivateKey      []byte
 	MetricsAppInstallationID  int64
+	MonorepoListOrg           string
+	MonorepoListRepo          string
+	MonorepoListPath          string
 	StateFileOrg              string
 	StateFileRepo             string
 	StateFileBranch           string
@@ -74,6 +77,7 @@ type State struct {
 	CLIVersionInvalid       bool     `json:"cli_version_invalid"`
 	MissingAnalyses         []string `json:"missing_analyses"`
 	MissingDatabases        []string `json:"missing_databases"`
+	Monorepo                bool     `json:"monorepo"`
 }
 
 type Metric struct {
@@ -86,4 +90,8 @@ type Metric struct {
 type Report struct {
 	Metrics []*Metric         `json:"metrics"`
 	States  map[string]*State `json:"states"`
+}
+
+type RepoList struct {
+	Repos []string `yaml:"repos"`
 }

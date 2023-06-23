@@ -27,6 +27,15 @@ inputs:
   metrics_app_installation_id:
     description: The installation ID of the GitHub Metrics app
     required: true
+  monorepo_list_org:
+    description: The name of the organization that contains the Monorepo List repository
+    required: true
+  monorepo_list_repo:
+      description: The name of the Monorepo List repository
+      required: true
+  monorepo_list_path:
+    description: The path to the Monorepo List file
+    required: true
   state_file_org:
     description: The name of the organization that contains the state file repository
     required: true

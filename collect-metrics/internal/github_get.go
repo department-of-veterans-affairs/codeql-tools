@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/google/go-github/v52/github"
+	"gopkg.in/yaml.v2"
 )
 
 func (m *Manager) GetEMASSConfig(owner, repo string) (*EMASSConfig, error) {
@@ -116,7 +117,7 @@ func (m *Manager) GetLatestCodeQLVersions() (*CodeQLDefaultVersions, error) {
 	return &defaults, nil
 }
 
-func (m *Manager) GetFile(org, repo, branch, path string) (*Report, string, error) {
+func (m *Manager) GetStateFile(org, repo, branch, path string) (*Report, string, error) {
 	results, _, resp, err := m.MetricsGithubClient.Repositories.GetContents(m.Context, org, repo, path, &github.RepositoryContentGetOptions{
 		Ref: branch,
 	})
@@ -134,6 +135,32 @@ func (m *Manager) GetFile(org, repo, branch, path string) (*Report, string, erro
 
 	var metrics Report
 	err = json.Unmarshal([]byte(rawContent), &metrics)
+	if err != nil {
+		return nil, "", fmt.Errorf("failed to unmarshal file content: %v", err)
+	}
 
 	return &metrics, results.GetSHA(), nil
+}
+
+func (m *Manager) GetMonorepoList(org, repo, path string) (*RepoList, error) {
+	results, _, resp, err := m.MetricsGithubClient.Repositories.GetContents(m.Context, org, repo, path, &github.RepositoryContentGetOptions{})
+	if err != nil {
+		if resp.StatusCode == http.StatusNotFound {
+			return nil, fmt.Errorf("%s not found", path)
+		}
+		return nil, fmt.Errorf("failed to retrieve repo contents: %v", err)
+	}
+
+	rawContent, err := results.GetContent()
+	if err != nil {
+		return nil, fmt.Errorf("failed to decode file content: %v", err)
+	}
+
+	var monorepoList RepoList
+	err = yaml.Unmarshal([]byte(rawContent), &monorepoList)
+	if err != nil {
+		return nil, fmt.Errorf("failed to unmarshal file content: %v", err)
+	}
+
+	return &monorepoList, nil
 }
