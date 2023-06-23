@@ -50,4 +50,4 @@ inputs:
     required: true
 runs:
   using: 'docker'
-  image: 'docker://ghcr.io/department-of-veterans-affairs/codeql-tools:verify-scans'
+  image: 'docker://ghcr.io/department-of-veterans-affairs/codeql-tools:collect-metrics'
