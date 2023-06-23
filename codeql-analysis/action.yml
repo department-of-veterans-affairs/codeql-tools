@@ -33,7 +33,7 @@ runs:
   using: composite
   steps:
     - name: Validate Monorepo Access
-      if: inputs.config != '' || inputs.path != '.'
+      if: inputs.config != ''
       uses: department-of-veterans-affairs/codeql-tools/validate-monorepo-access@main
       with:
         allowlist_credentials: ${{ inputs.allowlist_credentials }}
