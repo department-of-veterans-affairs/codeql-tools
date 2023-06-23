@@ -1,0 +1,53 @@
+name: CodeQL Metrics
+description: Generate Metrics for CodeQL Enablement
+author: GitHub Expert Services
+inputs:
+  admin_token:
+    description: A personal access token with admin:org permissions
+    required: true
+  days_to_scan:
+    description: The number of days to scan
+    required: true
+    default: 7
+  emass_system_list_org:
+    description: The name of the organization that contains the EMASS System List repository
+    required: true
+  emass_system_list_repo:
+    description: The name of the EMASS System List repository
+    required: true
+  emass_system_list_path:
+    description: The path to the EMASS System List file
+    required: true
+  metrics_app_id:
+    description: The ID of the GitHub Metrics app
+    required: true
+  metrics_app_private_key:
+    description: The private key of the GitHub Metrics app
+    required: true
+  metrics_app_installation_id:
+    description: The installation ID of the GitHub Metrics app
+    required: true
+  state_file_org:
+    description: The name of the organization that contains the state file repository
+    required: true
+  state_file_repo:
+    description: The name of the state file repository
+    required: true
+  state_file_branch:
+    description: The name of the state file branch
+    required: true
+  state_file_path:
+    description: The path to the state file
+    required: true
+  verify_scans_app_id:
+    description: The ID of the GitHub Verify Scans app
+    required: true
+  verify_scans_app_private_key:
+    description: The private key of the GitHub Verify Scans app
+    required: true
+  verify_scans_app_installation_id:
+    description: The installation ID of the GitHub Verify Scans app
+    required: true
+runs:
+  using: 'docker'
+  image: 'docker://ghcr.io/department-of-veterans-affairs/codeql-tools:verify-scans'
