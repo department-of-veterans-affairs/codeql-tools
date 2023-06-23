@@ -46329,7 +46329,7 @@ const main = async () => {
 
         core.info(`[${config.repo}]: Validated repo has access to monorepo features`)
     } catch (e) {
-        core.setFailed(`Unable to upload database: ${e.message}`)
+        core.setFailed(`Failed validating access: ${e.message}`)
     }
 }
 
