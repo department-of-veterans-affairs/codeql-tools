@@ -18,11 +18,6 @@ axiosRetry(axios, {
 const DRY_RUN = (process.env.DRY_RUN && process.env.DRY_RUN.toLowerCase() === 'true') || process.env.DISABLE_NOTIFICATIONS && process.env.DISABLE_NOTIFICATIONS.toLowerCase() === 'true'
 const ENABLE_DEBUG = process.env.ACTIONS_STEP_DEBUG && process.env.ACTIONS_STEP_DEBUG.toLowerCase() === 'true'
 
-const configuredButMissingScans = []
-const fullyCompliant = []
-const allRepos = []
-const state = []
-
 const main = async () => {
     core.info('Parsing Actions input')
     const config = parseInput()
@@ -70,48 +65,13 @@ const main = async () => {
         })
         await processRepository(verifyScansInstallationClient, mailer, config, repository, codeQLVersions, systemIDs, adminClient, emassPromotionInstallationClient)
     }
-
-    const platformState = {
-        enabled: fullyCompliant.length,
-        enabled_non_compliant: configuredButMissingScans.length,
-        not_enabled: allRepos.length - fullyCompliant.length,
-        repo_state: state,
-    }
-
-    if (config.repo === '') {
-        core.info('Finished processing all repositories, generating state.json')
-        try {
-            core.info(`Creating state.json, retrieving existing state.json ref`)
-            const stateRef = await getFileRefSHA(adminClient, config.org, config.dashboard_repo, config.dashboard_repo_default_branch, 'dashboards/enablement/state.json')
-
-            core.info(`Updating dashboard`)
-            const stateJSON = JSON.stringify(platformState, null, 2)
-            await updateFile(adminClient, config.org, config.dashboard_repo, config.dashboard_repo_default_branch, 'dashboards/enablement/state.json', 'Update state.json', stateJSON, stateRef)
-        } catch (e) {
-            core.error(`Error creating stat.json: ${e.message}`)
-        }
-        core.info(`Finished updating state.json`)
-    }
 }
 
 const processRepository = async (octokit, mailer, config, repository, codeQLVersions, systemIDs, adminClient, emassPromotionInstallationClient) => {
     try {
-        const repoState = {
-            name: repository.full_name,
-            archived: false,
-            ignored: false,
-            eMASSConfigMissing: false,
-            systemOwnerEmailMissing: false,
-            systemIDMissing: false,
-            outOfComplianceCLI: false,
-            fullyCompliant: false,
-            missingData: null,
-        }
         core.info(`[${repository.name}]: Checking if repository is archived`)
         if (repository.archived) {
             core.info(`[${repository.name}]: [skipped-archived] Skipping repository as it is archived`)
-            repoState.archived = true
-            state.push(repoState)
             return
         }
 
@@ -119,12 +79,9 @@ const processRepository = async (octokit, mailer, config, repository, codeQLVers
         const emassIgnore = await exists(octokit, repository.owner.login, repository.name, '.github/.emass-repo-ignore')
         if (emassIgnore) {
             core.info(`[${repository.name}]: [skipped-ignored] Found .emass-repo-ignore file, skipping repository`)
-            repoState.ignored = true
-            state.push(repoState)
             return
         }
 
-        allRepos.push(repository.name)
         core.info(`[${repository.name}]: Retrieving open issues`)
         const issues = await listOpenIssues(octokit, repository.owner.login, repository.name, ['ghas-non-compliant'])
         core.info(`[${repository.name}]: Found ${issues.length} open issues, closing open issues`)
@@ -153,17 +110,13 @@ const processRepository = async (octokit, mailer, config, repository, codeQLVers
         if (!emassConfig || !emassConfig.systemOwnerEmail || !emassConfig.systemID || !systemIDs.includes(emassConfig.systemID)) {
             if (emassConfig && emassConfig.systemID && !systemIDs.includes(emassConfig.systemID)) {
                 core.warning(`[${repository.name}] [invalid-system-id] Skipping repository as it contains an invalid System ID`)
-                repoState.systemIDMissing = true
             }
             if (!emassConfig) {
                 core.warning(`[${repository.name}] [missing-configuration] repository missing .github/emass.json`)
-                repoState.eMASSConfigMissing = true
             }
             if (emassConfig && !emassConfig.systemOwnerEmail) {
                 core.warning(`[${repository.name}] [missing-configuration] repository missing systemOwnerEmail in .github/emass.json`)
-                repoState.systemOwnerEmailMissing = true
             }
-            state.push(repoState)
             core.warning(`[${repository.name}]: [missing-configuration] .github/emass.json not found, or missing/incorrect eMASS data`)
             core.info(`[${repository.name}]: [generating-email] Sending 'Error: GitHub Repository Not Mapped To eMASS System' email to OIS and system owner`)
             const body = generateMissingEMASSInfoEmail(config.missing_info_email_template, repository.html_url, requiredLanguages)
@@ -204,7 +157,6 @@ const processRepository = async (octokit, mailer, config, repository, codeQLVers
                     await createIssue(adminClient, repository.owner.login, repository.name, 'GitHub Repository Code Scanning Software Is Out Of Date', body, ['out-of-date-codeql-cli'])
                     core.info(`Uninstalling 'emass-promotion' app from repository`)
                     await uninstallApp(adminClient, config.emass_promotion_installation_id, repository.id)
-                    repoState.outOfComplianceCLI = true
                     break
                 }
             }
@@ -221,20 +173,14 @@ const processRepository = async (octokit, mailer, config, repository, codeQLVers
 
         if (missingAnalyses.length === 0 && missingDatabases.length === 0) {
             core.info(`[${repository.name}]: No missing analyses or databases found`)
-            fullyCompliant.push(repository.name)
-            repoState.fullyCompliant = true
-            state.push(repoState)
             core.info(`[${repository.name}]: [successfully-processed] Successfully processed repository`)
             return
         }
 
-        configuredButMissingScans.push(repository.name)
         const missingData = {
             missingAnalyses: missingAnalyses,
             missingDatabases: missingDatabases
         }
-        repoState.missingData = missingData
-        state.push(repoState)
 
         core.warning(`[${repository.name}]: [missing-data] Missing analyses or databases identified: ${JSON.stringify(missingData)}`)
         const uniqueMissingLanguages = [...new Set([...missingAnalyses, ...missingDatabases])]
@@ -742,41 +688,6 @@ const closeIssues = async (octokit, owner, repo, issues) => {
         }
     } catch (e) {
         throw new Error(`Failed to close issues: ${e.message}`)
-    }
-}
-
-const getFileRefSHA = async (octokit, owner, repo, branch, path) => {
-    try {
-        const {data: content} = await octokit.repos.getContent({
-            owner: owner,
-            repo: repo,
-            path: path,
-            ref: branch
-        })
-
-        return content.sha
-    } catch (e) {
-        if (e.status === 404) {
-            throw new Error(`File not found: ${path}`)
-        }
-
-        throw new Error(`Failed to retrieve file SHA: ${e.message}`)
-    }
-}
-
-const updateFile = async (octokit, owner, repo, branch, path, message, content, sha) => {
-    try {
-        await octokit.repos.createOrUpdateFileContents({
-            owner: owner,
-            repo: repo,
-            path: path,
-            message: message,
-            content: Buffer.from(content).toString('base64'),
-            sha: sha,
-            branch: branch
-        })
-    } catch (e) {
-        throw new Error(`Failed to update file: ${e.message}`)
     }
 }
 
