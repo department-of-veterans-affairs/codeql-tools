@@ -8,6 +8,7 @@ require (
 	github.com/sethvargo/go-githubactions v1.1.0
 	github.com/sirupsen/logrus v1.9.2
 	golang.org/x/oauth2 v0.8.0
+	gopkg.in/yaml.v2 v2.4.0
 )
 
 require (
