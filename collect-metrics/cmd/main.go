@@ -136,7 +136,7 @@ func main() {
 
 func generateMetrics(states map[string]*internal.State) *internal.Metric {
 	metrics := &internal.Metric{
-		Timestamp:    time.Now(),
+		Timestamp:    time.Now().In(time.UTC),
 		Enabled:      0,
 		NonCompliant: 0,
 		NotEnabled:   0,
