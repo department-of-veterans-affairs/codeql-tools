@@ -11,6 +11,10 @@ inputs:
     description: CodeQL configuration YAML
     required: false
     default: ''
+  config-file:
+    description: CodeQL configuration YAML
+    required: false
+    default: ''
   debug:
     description: Enable debug logging
     required: false
@@ -84,6 +88,7 @@ runs:
       uses: github/codeql-action/init@v2
       with:
         config: ${{ inputs.config }}
+        config-file: ${{ inputs.config-file }}
         debug: ${{ inputs.debug }}
         languages: ${{ inputs.language }}
         queries: security-and-quality
