@@ -48,7 +48,7 @@ const main = async () => {
 
     core.info('Retrieving latest CodeQL CLI versions')
     const codeQLVersions = await getLatestCodeQLVersions(adminClient)
-    core.info(`Latest CodeQL CLI versions: ${JSON.stringify(codeQLVersions)}`
+    core.info(`Latest CodeQL CLI versions: ${JSON.stringify(codeQLVersions)}`)
 
     core.info(`Retrieving System ID list`)
     const systemIDs = await getFileArray(adminClient, config.org, '.github-internal', '.emass-system-include')
@@ -654,7 +654,7 @@ const getLatestCodeQLVersions = async (client) => {
             path: 'src/defaults.json'
         })
 
-        const defaults = Buffer.from(response.content, 'base64').toString('utf8')
+        const defaults = JSON.parse(Buffer.from(response.content, 'base64').toString('utf8'))
         return [
             defaults.cliVersion,
             defaults.priorCliVersion
