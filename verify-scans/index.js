@@ -48,6 +48,7 @@ const main = async () => {
 
     core.info('Retrieving latest CodeQL CLI versions')
     const codeQLVersions = await getLatestCodeQLVersions(adminClient)
+    core.info(`Latest CodeQL CLI versions: ${JSON.stringify(codeQLVersions)}`
 
     core.info(`Retrieving System ID list`)
     const systemIDs = await getFileArray(adminClient, config.org, '.github-internal', '.emass-system-include')
@@ -647,13 +648,17 @@ const createIssue = async (octokit, owner, repo, title, body, labels) => {
 
 const getLatestCodeQLVersions = async (client) => {
     try {
-        const {data: versions} = await client.request('GET https://api.github.com/repos/{owner}/{repo}/releases', {
+        const {data: response} = await client.request('GET /repos/{owner}/{repo}/contents/{path}', {
             owner: 'github',
-            repo: 'codeql-cli-binaries',
-            per_page: 2
+            repo: 'codeql-action',
+            path: 'src/defaults.json'
         })
 
-        return versions.map(version => version.tag_name.split('v')[1])
+        const defaults = Buffer.from(response.content, 'base64').toString('utf8')
+        return [
+            defaults.cliVersion,
+            defaults.priorCliVersion
+        ]
     } catch (e) {
         throw new Error(`Failed to get latest CodeQL version: ${e.message}`)
     }
