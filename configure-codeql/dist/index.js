@@ -47106,7 +47106,6 @@ var __webpack_exports__ = {};
 // This entry need to be wrapped in an IIFE because it need to be isolated against other modules in the chunk.
 (() => {
 // TODO: Add tests
-// TODO: Add licensing and license headers
 const core = __nccwpck_require__(9530)
 
 const {parseInput} = __nccwpck_require__(7085)

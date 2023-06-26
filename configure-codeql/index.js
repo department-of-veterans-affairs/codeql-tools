@@ -1,5 +1,4 @@
 // TODO: Add tests
-// TODO: Add licensing and license headers
 const core = require('@actions/core')
 
 const {parseInput} = require('./config')
