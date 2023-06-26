@@ -1,8 +1,5 @@
 // TODO: Add tests
 // TODO: Add licensing and license headers
-// TODO: Add function documentation
-// TODO: Add pull request body template
-// TODO: Replace all calls with actual endpoint for clarity (dont use the embedded function)
 const core = require('@actions/core')
 
 const {parseInput} = require('./config')

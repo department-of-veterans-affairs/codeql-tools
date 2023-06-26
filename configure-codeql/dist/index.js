@@ -47107,9 +47107,6 @@ var __webpack_exports__ = {};
 (() => {
 // TODO: Add tests
 // TODO: Add licensing and license headers
-// TODO: Add function documentation
-// TODO: Add pull request body template
-// TODO: Replace all calls with actual endpoint for clarity (dont use the embedded function)
 const core = __nccwpck_require__(9530)
 
 const {parseInput} = __nccwpck_require__(7085)
