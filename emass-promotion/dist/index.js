@@ -50944,6 +50944,8 @@ const processRepository = async (octokit, config, repository, systemIDs, adminCl
 
         core.info(`[${repository.name}]: Checking if repository is archived`)
         if (repository.archived) {
+            core.info(`[${repository.name}]: Repository archived, uninstalling GitHub App`)
+            await uninstallApp(adminClient, config.emass_promotion_installation_id, repository.id)
             core.info(`[${repository.name}]: [skipped-archived] Skipping repository as it is archived`)
             return
         }
@@ -51411,6 +51413,19 @@ const deleteLocalFile = async (path) => {
         fs.unlinkSync(path)
     } catch (e) {
         throw new Error(`failed deleting local file: ${e.message}`)
+    }
+}
+
+const uninstallApp = async (octokit, installationID, repositoryID) => {
+    try {
+        if (!DRY_RUN) {
+            await octokit.request('DELETE /user/installations/{installation_id}/repositories/{repository_id}', {
+                installation_id: installationID,
+                repository_id: repositoryID
+            })
+        }
+    } catch (e) {
+        throw new Error(`Failed to uninstall app: ${e.message}`)
     }
 }
 
