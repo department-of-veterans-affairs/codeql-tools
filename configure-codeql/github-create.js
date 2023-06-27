@@ -6,19 +6,20 @@ const DRY_RUN = process.env.DRY_RUN && process.env.DRY_RUN.toLowerCase() === 'tr
  * @param owner - The owner of the repository
  * @param repo - The name of the repository
  * @param sha - The sha of the commit to branch from
- * @param name - The name of the new branch
+ * @param branch - The name of the new branch
  * @returns {Promise<void>} - A promise which resolves when the branch has been created
  *
  * @throws {Error} - If the branch could not be created
  */
-exports.createRef = async (octokit, owner, repo, sha, name) => {
+exports.createRef = async (octokit, owner, repo, sha, branch) => {
     try {
         if (!DRY_RUN) {
+            console.log(`Creating branch ${branch} in ${owner}/${repo} with sha ${sha}...`)
             // https://docs.github.com/en/enterprise-cloud@latest/rest/git/refs?apiVersion=2022-11-28#create-a-reference
-            await octokit.request('PUT /repos/{owner}/{repo}/git/refs', {
+            await octokit.request('POST /repos/{owner}/{repo}/git/refs', {
                 owner: owner,
                 repo: repo,
-                ref: `refs/heads/${name}`,
+                ref: `refs/heads/${branch}`,
                 sha: sha
             })
         }
@@ -77,7 +78,7 @@ exports.createPullRequest = async (octokit, owner, repo, title, head, base, body
     try {
         if (!DRY_RUN) {
             // https://docs.github.com/en/enterprise-cloud@latest/rest/pulls/pulls?apiVersion=2022-11-28#create-a-pull-request
-            await octokit.request('PUT /repos/{owner}/{repo}/pulls',{
+            await octokit.request('POST /repos/{owner}/{repo}/pulls',{
                 owner: owner,
                 repo: repo,
                 title: title,

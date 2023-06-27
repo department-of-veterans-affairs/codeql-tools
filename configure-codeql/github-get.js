@@ -18,6 +18,9 @@ exports.getCodeQLStatus = async (octokit, owner, repo) => {
             tool_name: 'CodeQL',
             per_page: 1
         })
+        if (analyses.length === 0) {
+            return false
+        }
 
         return {
             enabled: analyses.length > 0,
