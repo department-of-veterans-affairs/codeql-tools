@@ -68041,6 +68041,8 @@ const processRepository = async (octokit, mailer, config, repository, codeQLVers
     try {
         core.info(`[${repository.name}]: Checking if repository is archived`)
         if (repository.archived) {
+            core.info(`[${repository.name}]: Repository archived, uninstalling GitHub App`)
+            await uninstallApp(adminClient, config.emass_promotion_installation_id, repository.id)
             core.info(`[${repository.name}]: [skipped-archived] Skipping repository as it is archived`)
             return
         }
