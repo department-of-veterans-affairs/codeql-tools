@@ -1,6 +1,7 @@
 node_modules/
 tmp/
 
+configure-codeql/pull-request-body.txt
 script.sh
 test.js
 
