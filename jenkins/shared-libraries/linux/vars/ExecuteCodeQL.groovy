@@ -4,6 +4,10 @@ import java.nio.file.Files
 import java.nio.file.Paths
 
 def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
+    sh """
+        env
+    """
+
     env.AUTHORIZATION_HEADER = sprintf("Authorization: token %s", token)
     if(branch == "") {
         env.BRANCH = env.GIT_BRANCH.substring(env.GIT_BRANCH.indexOf('/') + 1)
