@@ -5,7 +5,7 @@ import java.nio.file.Paths
 
 def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
     sh """
-        env
+        env | sort
     """
 
     env.AUTHORIZATION_HEADER = sprintf("Authorization: token %s", token)
