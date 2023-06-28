@@ -29,6 +29,7 @@ inputs:
   token:
     description: GitHub token
     required: true
+    default: ${{ github.token }}
   upload_db:
     description: Upload the CodeQL database to GitHub
     required: false
