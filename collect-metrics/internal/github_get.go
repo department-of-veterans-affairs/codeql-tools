@@ -164,3 +164,54 @@ func (m *Manager) GetMonorepoList(org, repo, path string) (*RepoList, error) {
 
 	return &monorepoList, nil
 }
+
+func (m *Manager) GetDependabotAlertCount(org, repo string) (int, error) {
+	_, resp, err := m.MetricsGithubClient.Dependabot.ListRepoAlerts(m.Context, org, repo, &github.ListAlertsOptions{
+		State: github.String("open"),
+		ListCursorOptions: github.ListCursorOptions{
+			PerPage: 1,
+		},
+	})
+	if err != nil {
+		if resp.StatusCode == http.StatusNotFound {
+			return 0, fmt.Errorf("dependabot alerts not found")
+		}
+		return 0, fmt.Errorf("failed to list alerts: %v", err)
+	}
+
+	return resp.LastPage, nil
+}
+
+func (m *Manager) GetSecretScanningAlertCount(org, repo string) (int, error) {
+	_, resp, err := m.MetricsGithubClient.SecretScanning.ListAlertsForRepo(m.Context, org, repo, &github.SecretScanningAlertListOptions{
+		State: "open",
+		ListOptions: github.ListOptions{
+			PerPage: 1,
+		},
+	})
+	if err != nil {
+		if resp.StatusCode == http.StatusNotFound {
+			return 0, fmt.Errorf("dependabot alerts not found")
+		}
+		return 0, fmt.Errorf("failed to list alerts: %v", err)
+	}
+
+	return resp.LastPage, nil
+}
+
+func (m *Manager) GetCodeScanningAlertCount(org, repo string) (int, error) {
+	_, resp, err := m.MetricsGithubClient.CodeScanning.ListAlertsForRepo(m.Context, org, repo, &github.AlertListOptions{
+		State: "open",
+		ListOptions: github.ListOptions{
+			PerPage: 1,
+		},
+	})
+	if err != nil {
+		if resp.StatusCode == http.StatusNotFound {
+			return 0, fmt.Errorf("dependabot alerts not found")
+		}
+		return 0, fmt.Errorf("failed to list alerts: %v", err)
+	}
+
+	return resp.LastPage, nil
+}
