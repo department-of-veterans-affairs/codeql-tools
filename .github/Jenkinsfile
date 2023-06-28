@@ -1,0 +1,23 @@
+@Library('codeql-linux')_
+
+pipeline {
+    agent { node { label 'linux' } }
+
+    stages {
+        stage('CodeQL - JavaScript') {
+            steps{
+                checkout scm
+                withCredentials([string(credentialsId: 'github-token', variable: 'TOKEN')]) {
+                    ExecuteCodeQL('department-of-veterans-affairs', 'codeql-tools', env.BRANCH, 'javascript', env.TOKEN, true)
+                }
+                archiveArtifacts artifacts: 'codeql-scan-results-javascript.csv', fingerprint: true
+            }
+        }
+    }
+
+    post {
+        always {
+            cleanWs()
+        }
+    }
+}
