@@ -35,8 +35,11 @@ func (m *Manager) ProcessRepository(repo *github.Repository) (*State, error) {
 
 	logger.Infof("Processing repository")
 	state := &State{
-		MissingAnalyses:  []string{},
-		MissingDatabases: []string{},
+		CodeScanningAlertCount:   -1,
+		DependabotAlertCount:     -1,
+		SecretScanningAlertCount: -1,
+		MissingAnalyses:          []string{},
+		MissingDatabases:         []string{},
 	}
 
 	logger.Infof("Checking if repository is archived")
