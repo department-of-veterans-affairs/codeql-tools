@@ -197,6 +197,6 @@ runs:
       with:
         language: ${{ inputs.language }}
         org: ${{ github.event.repository.owner.login }}
-        path: ${{ runner.temp }}/codeql_databases/${{ inputs.language }}
+        path: ${{ runner.temp }}\codeql_databases\${{ inputs.language }}
         repo: ${{ github.event.repository.name }}
         token: ${{ inputs.token }}
