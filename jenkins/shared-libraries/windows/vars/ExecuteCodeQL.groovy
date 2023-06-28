@@ -3,10 +3,10 @@ import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream
 
 def call(Org, Repo, Branch, Language, BuildCommand, Token, InstallCodeQL) {
     env.AUTHORIZATION_HEADER = sprintf("token %s", Token)
-    if(Branch == "") {
-        env.BRANCH = env.GIT_BRANCH.substring(env.GIT_BRANCH.indexOf('/') + 1)
+    if(branch == "") {
+        env.BRANCH = env.GIT_BRANCH
     } else {
-        env.BRANCH = Branch
+        env.BRANCH = branch
     }
     env.BUILD_COMMAND = BuildCommand
     env.CONFIG_FILE = ".github\\codeql.yml"
@@ -24,6 +24,10 @@ def call(Org, Repo, Branch, Language, BuildCommand, Token, InstallCodeQL) {
     }
     env.ORG = Org
     env.REPO = Repo
+    env.REF = sprintf("refs/heads/%s", env.BRANCH)
+    if(env.CHANGE_ID) {
+        env.REF = sprintf("refs/pull/%s/head", env.CHANGE_ID)
+    }
     env.SARIF_FILE = sprintf("%s-%s.sarif", Repo, Language)
     env.UPLOAD_URL = sprintf("https://uploads.github.com/repos/%s/%s/code-scanning/codeql/databases/%s?name=%s", Org, Repo, Language, env.DATABASE_BUNDLE)
     env.QL_PACKS = sprintf("codeql/%s-queries:codeql-suites/%s-security-and-quality.qls", language, language)
@@ -129,9 +133,9 @@ def call(Org, Repo, Branch, Language, BuildCommand, Token, InstallCodeQL) {
         Write-Output "Uploading SARIF file"
         \$Commit = "\$(git rev-parse HEAD)"
         if("\$Env:INSTALL_CODEQL" -eq "true") {
-            .\\codeql\\codeql github upload-results --repository "\$Env:ORG/\$Env:REPO"  --ref "refs/heads/\$Env:BRANCH" --commit "\$Commit" --sarif="\$Env:SARIF_FILE"
+            .\\codeql\\codeql github upload-results --repository "\$Env:ORG/\$Env:REPO"  --ref "\$Env:REF" --commit "\$Commit" --sarif="\$Env:SARIF_FILE"
         } else {
-            codeql github upload-results --repository "\$Env:ORG/\$Env:REPO"  --ref "refs/heads/\$Env:BRANCH" --commit "\$Commit" --sarif="\$Env:SARIF_FILE"
+            codeql github upload-results --repository "\$Env:ORG/\$Env:REPO"  --ref "\$Env:REF" --commit "\$Commit" --sarif="\$Env:SARIF_FILE"
         }
         Write-Output "SARIF file uploaded"
 
