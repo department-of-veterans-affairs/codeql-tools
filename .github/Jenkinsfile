@@ -8,7 +8,7 @@ pipeline {
             steps{
                 checkout scm
                 withCredentials([string(credentialsId: 'github-token', variable: 'TOKEN')]) {
-                    ExecuteCodeQL('department-of-veterans-affairs', 'codeql-tools', 'main', 'javascript', '', env.TOKEN, true)
+                    ExecuteCodeQL('department-of-veterans-affairs', 'codeql-tools', env.GIT_BRANCH, 'javascript', '', env.TOKEN, true)
                 }
                 archiveArtifacts artifacts: 'codeql-scan-results-javascript.csv', fingerprint: true
             }
