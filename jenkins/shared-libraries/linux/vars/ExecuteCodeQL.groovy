@@ -4,10 +4,6 @@ import java.nio.file.Files
 import java.nio.file.Paths
 
 def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
-    sh """
-        env | sort
-    """
-
     env.AUTHORIZATION_HEADER = sprintf("Authorization: token %s", token)
     if(branch == "") {
         env.BRANCH = env.GIT_BRANCH.substring(env.GIT_BRANCH.indexOf('/') + 1)
@@ -36,6 +32,10 @@ def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
     }
     env.ORG = org
     env.REPO = repo
+    env.REF = sprintf("refs/heads/%s", env.BRANCH)
+    if(env.CHANGE_ID) {
+        env.REF = sprintf("refs/pulls/%s/merge", env.CHANGE_ID)
+    }
     env.SARIF_FILE = sprintf("%s-%s.sarif", repo, language)
     env.QL_PACKS = sprintf("codeql/%s-queries:codeql-suites/%s-security-and-quality.qls", language, language)
 
@@ -164,13 +164,13 @@ def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
         if [ "${INSTALL_CODEQL}" = true ]; then
             ./codeql/codeql github upload-results \
             --repository="${ORG}/${REPO}" \
-            --ref="refs/heads/${BRANCH}" \
+            --ref="${REF}" \
             --commit="\$commit" \
             --sarif="${SARIF_FILE}"
         else
             codeql github upload-results \
             --repository="${ORG}/${REPO}" \
-            --ref="refs/heads/${BRANCH}" \
+            --ref="${REF}" \
             --commit="\$commit" \
             --sarif="${SARIF_FILE}"
         fi
