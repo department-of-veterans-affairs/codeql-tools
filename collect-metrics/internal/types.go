@@ -78,6 +78,10 @@ type State struct {
 	MissingAnalyses         []string `json:"missing_analyses"`
 	MissingDatabases        []string `json:"missing_databases"`
 	Monorepo                bool     `json:"monorepo"`
+
+	CodeScanningAlertCount   int `json:"code_scanning_alert_count"`
+	DependabotAlertCount     int `json:"dependabot_alert_count"`
+	SecretScanningAlertCount int `json:"secret_scanning_alert_count"`
 }
 
 type Metric struct {
