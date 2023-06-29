@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/google/go-github/v52/github"
+	"github.com/google/go-github/v53/github"
 )
 
 func (m *Manager) FileExists(owner, repo, path string) (bool, error) {

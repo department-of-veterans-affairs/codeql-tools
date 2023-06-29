@@ -3,11 +3,12 @@ package internal
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"strconv"
 	"strings"
 
-	"github.com/google/go-github/v52/github"
+	"github.com/google/go-github/v53/github"
 	"gopkg.in/yaml.v2"
 )
 
@@ -118,7 +119,28 @@ func (m *Manager) GetLatestCodeQLVersions() (*CodeQLDefaultVersions, error) {
 }
 
 func (m *Manager) GetStateFile(org, repo, branch, path string) (*Report, string, error) {
-	results, _, resp, err := m.MetricsGithubClient.Repositories.GetContents(m.Context, org, repo, path, &github.RepositoryContentGetOptions{
+	results, resp, err := m.MetricsGithubClient.Repositories.DownloadContents(m.Context, org, repo, path, &github.RepositoryContentGetOptions{
+		Ref: branch,
+	})
+	if err != nil {
+		if resp.StatusCode == http.StatusNotFound {
+			return nil, "", fmt.Errorf("%s not found", path)
+		}
+		return nil, "", fmt.Errorf("failed to retrieve repo contents: %v", err)
+	}
+	// Copy all content from results
+	rawContent, err := io.ReadAll(results)
+	if err != nil {
+		return nil, "", fmt.Errorf("failed to read file content: %v", err)
+	}
+
+	var metrics Report
+	err = json.Unmarshal(rawContent, &metrics)
+	if err != nil {
+		return nil, "", fmt.Errorf("failed to unmarshal file content: %v", err)
+	}
+
+	content, _, resp, err := m.MetricsGithubClient.Repositories.GetContents(m.Context, org, repo, path, &github.RepositoryContentGetOptions{
 		Ref: branch,
 	})
 	if err != nil {
@@ -128,18 +150,7 @@ func (m *Manager) GetStateFile(org, repo, branch, path string) (*Report, string,
 		return nil, "", fmt.Errorf("failed to retrieve repo contents: %v", err)
 	}
 
-	rawContent, err := results.GetContent()
-	if err != nil {
-		return nil, "", fmt.Errorf("failed to decode file content: %v", err)
-	}
-
-	var metrics Report
-	err = json.Unmarshal([]byte(rawContent), &metrics)
-	if err != nil {
-		return nil, "", fmt.Errorf("failed to unmarshal file content: %v", err)
-	}
-
-	return &metrics, results.GetSHA(), nil
+	return &metrics, content.GetSHA(), nil
 }
 
 func (m *Manager) GetMonorepoList(org, repo, path string) (*RepoList, error) {

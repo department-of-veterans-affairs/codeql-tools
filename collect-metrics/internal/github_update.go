@@ -3,7 +3,7 @@ package internal
 import (
 	"fmt"
 
-	"github.com/google/go-github/v52/github"
+	"github.com/google/go-github/v53/github"
 )
 
 func (m *Manager) UpdateFile(owner, repo, branch, path, sha, message string, content []byte) error {

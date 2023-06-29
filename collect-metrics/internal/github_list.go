@@ -10,7 +10,7 @@ import (
 	"strings"
 
 	"github.com/department-of-veterans-affairs/codeql-tools/utils"
-	"github.com/google/go-github/v52/github"
+	"github.com/google/go-github/v53/github"
 )
 
 func (m *Manager) ListRepos() ([]*github.Repository, error) {
