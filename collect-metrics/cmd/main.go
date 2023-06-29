@@ -126,7 +126,6 @@ func main() {
 	if err != nil {
 		globalLogger.Fatalf("Failed marshalling JSON")
 	}
-
 	message := "Update state file"
 	err = m.UpdateFile(m.Config.StateFileOrg, m.Config.StateFileRepo, m.Config.StateFileBranch, m.Config.StateFilePath, sha, message, reportJSON)
 	if err != nil {

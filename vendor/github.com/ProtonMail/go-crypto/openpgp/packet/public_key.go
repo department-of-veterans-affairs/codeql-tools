@@ -415,10 +415,6 @@ func (pk *PublicKey) parseEdDSA(r io.Reader) (err error) {
 		return
 	}
 
-	if len(pk.p.Bytes()) == 0 {
-		return errors.StructuralError("empty EdDSA public key")
-	}
-
 	pub := eddsa.NewPublicKey(c)
 
 	switch flag := pk.p.Bytes()[0]; flag {
@@ -600,7 +596,7 @@ func (pk *PublicKey) VerifySignature(signed hash.Hash, sig *Signature) (err erro
 	}
 	signed.Write(sig.HashSuffix)
 	hashBytes := signed.Sum(nil)
-	if sig.Version == 5 && (hashBytes[0] != sig.HashTag[0] || hashBytes[1] != sig.HashTag[1]) {
+	if hashBytes[0] != sig.HashTag[0] || hashBytes[1] != sig.HashTag[1] {
 		return errors.SignatureError("hash tag doesn't match")
 	}
 
