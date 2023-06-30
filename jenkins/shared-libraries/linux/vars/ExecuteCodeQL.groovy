@@ -38,7 +38,6 @@ def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
     }
     env.SARIF_FILE = sprintf("%s-%s.sarif", repo, language)
     env.QL_PACKS = sprintf("codeql/%s-queries:codeql-suites/%s-security-and-quality.qls", language, language)
-
     sh '''
         if [ "${ENABLE_DEBUG}" = true ]; then
             set -x
@@ -159,22 +158,24 @@ def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
         fi
         echo "CSV of results generated"
 
-        echo "Uploading SARIF file"
-        commit=\$(git rev-parse HEAD)
-        if [ "${INSTALL_CODEQL}" = true ]; then
-            ./codeql/codeql github upload-results \
-            --repository="${ORG}/${REPO}" \
-            --ref="${REF}" \
-            --commit="\$commit" \
-            --sarif="${SARIF_FILE}"
-        else
-            codeql github upload-results \
-            --repository="${ORG}/${REPO}" \
-            --ref="${REF}" \
-            --commit="\$commit" \
-            --sarif="${SARIF_FILE}"
+        if [ "${UPLOAD_RESULTS}" = true ]; then
+            echo "Uploading SARIF file"
+            commit=\$(git rev-parse HEAD)
+            if [ "${INSTALL_CODEQL}" = true ]; then
+                ./codeql/codeql github upload-results \
+                --repository="${ORG}/${REPO}" \
+                --ref="${REF}" \
+                --commit="\$commit" \
+                --sarif="${SARIF_FILE}"
+            else
+                codeql github upload-results \
+                --repository="${ORG}/${REPO}" \
+                --ref="${REF}" \
+                --commit="\$commit" \
+                --sarif="${SARIF_FILE}"
+            fi
+            echo "SARIF file uploaded"
         fi
-        echo "SARIF file uploaded"
 
         echo "Generating Database Bundle"
         if [ "${INSTALL_CODEQL}" = true ]; then
@@ -186,21 +187,23 @@ def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
     """
 
     sh '''
-        echo "Uploading Database Bundle"
-        sizeInBytes=`stat --printf="%s" ${DATABASE_BUNDLE}`
-        if [ "${ENABLE_TLS_NO_VERIFY}" = true ]; then
-            curl --insecure --http1.0 --silent --retry 3 -X POST -H "Content-Type: application/zip" \
-            -H "Content-Length: \$sizeInBytes" \
-            -H "${AUTHORIZATION_HEADER}" \
-            -T "${DATABASE_BUNDLE}" \
-            "https://uploads.github.com/repos/$ORG/$REPO/code-scanning/codeql/databases/${LANGUAGE}?name=${DATABASE_BUNDLE}"
-        else
-            curl --http1.0 --silent --retry 3 -X POST -H "Content-Type: application/zip" \
-            -H "Content-Length: \$sizeInBytes" \
-            -H "${AUTHORIZATION_HEADER}" \
-            -T "${DATABASE_BUNDLE}" \
-            "https://uploads.github.com/repos/$ORG/$REPO/code-scanning/codeql/databases/${LANGUAGE}?name=${DATABASE_BUNDLE}"
+        if [ "${UPLOAD_RESULTS}" = true ]; then
+            echo "Uploading Database Bundle"
+            sizeInBytes=`stat --printf="%s" ${DATABASE_BUNDLE}`
+            if [ "${ENABLE_TLS_NO_VERIFY}" = true ]; then
+                curl --insecure --http1.0 --silent --retry 3 -X POST -H "Content-Type: application/zip" \
+                -H "Content-Length: \$sizeInBytes" \
+                -H "${AUTHORIZATION_HEADER}" \
+                -T "${DATABASE_BUNDLE}" \
+                "https://uploads.github.com/repos/$ORG/$REPO/code-scanning/codeql/databases/${LANGUAGE}?name=${DATABASE_BUNDLE}"
+            else
+                curl --http1.0 --silent --retry 3 -X POST -H "Content-Type: application/zip" \
+                -H "Content-Length: \$sizeInBytes" \
+                -H "${AUTHORIZATION_HEADER}" \
+                -T "${DATABASE_BUNDLE}" \
+                "https://uploads.github.com/repos/$ORG/$REPO/code-scanning/codeql/databases/${LANGUAGE}?name=${DATABASE_BUNDLE}"
+            fi
+            echo "Database Bundle uploaded"
         fi
-        echo "Database Bundle uploaded"
     '''
 }
