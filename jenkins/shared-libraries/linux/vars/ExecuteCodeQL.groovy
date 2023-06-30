@@ -38,6 +38,10 @@ def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
     }
     env.SARIF_FILE = sprintf("%s-%s.sarif", repo, language)
     env.QL_PACKS = sprintf("codeql/%s-queries:codeql-suites/%s-security-and-quality.qls", language, language)
+    if(!env.UPLOAD_RESULTS) {
+        env.UPLOAD_RESULTS = false
+    }
+
     sh '''
         if [ "${ENABLE_DEBUG}" = true ]; then
             set -x
