@@ -38,7 +38,7 @@ def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
     }
     env.SARIF_FILE = sprintf("%s-%s.sarif", repo, language)
     env.QL_PACKS = sprintf("codeql/%s-queries:codeql-suites/%s-security-and-quality.qls", language, language)
-    if(!env.UPLOAD_RESULTS) {
+    if(!env.UPLOAD_RESULTS || env.UPLOAD_RESULTS == "false") {
         env.UPLOAD_RESULTS = false
     }
 
@@ -101,6 +101,12 @@ def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
     '''
 
     sh """
+        if [ "${ENABLE_DEBUG}" = true ]; then
+            set -x
+        else
+            set +x
+        fi
+
         echo "Initializing database"
         if [ ! -f "${CONFIG_FILE}" ]; then
             if [ -z "${BUILD_COMMAND}" ]; then
@@ -191,6 +197,12 @@ def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
     """
 
     sh '''
+        if [ "${ENABLE_DEBUG}" = true ]; then
+            set -x
+        else
+            set +x
+        fi
+
         if [ "${UPLOAD_RESULTS}" = true ]; then
             echo "Uploading Database Bundle"
             sizeInBytes=`stat --printf="%s" ${DATABASE_BUNDLE}`
