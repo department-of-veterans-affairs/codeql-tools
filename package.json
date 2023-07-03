@@ -37,6 +37,6 @@
     "nodemailer": "^6.9.3"
   },
   "devDependencies": {
-    "eslint": "^8.43.0"
+    "eslint": "^8.44.0"
   }
 }
