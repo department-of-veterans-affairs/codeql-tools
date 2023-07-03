@@ -40,6 +40,8 @@ def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
     env.QL_PACKS = sprintf("codeql/%s-queries:codeql-suites/%s-security-and-quality.qls", language, language)
     if(!env.UPLOAD_RESULTS) {
         env.UPLOAD_RESULTS = true
+    } else if(env.UPLOAD_RESULTS && env.UPLOAD_RESULTS == "true") {
+        env.UPLOAD_RESULTS = true
     } else if(env.UPLOAD_RESULTS && env.UPLOAD_RESULTS == "false") {
         env.UPLOAD_RESULTS = false
     }
