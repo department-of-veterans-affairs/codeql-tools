@@ -148,10 +148,17 @@ def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
         echo "Database initialized"
 
         echo "Analyzing database"
-        if [ "${INSTALL_CODEQL}" = true ]; then
-            ./codeql/codeql database analyze "${DATABASE_PATH}" --no-download --sarif-category "ois-${LANGUAGE}" --format sarif-latest --output "${SARIF_FILE}" "${QL_PACKS}"
+        if [ "${PWD}" != "${WORKSPACE}" ]; then
+            SUBDIR=$( echo ${PWD} | awk -F'/' '{print $NF}' )
+            SUBDIR="-${SUBDIR}"
         else
-            codeql database analyze "${DATABASE_PATH}" --no-download --sarif-category "ois-${LANGUAGE}" --format sarif-latest --output "${SARIF_FILE}" "${QL_PACKS}"
+            SUBDIR=''
+        fi
+
+        if [ "${INSTALL_CODEQL}" = true ]; then
+            ./codeql/codeql database analyze "${DATABASE_PATH}" --no-download --sarif-category "ois-${LANGUAGE}${SUBDIR}" --format sarif-latest --output "${SARIF_FILE}" "${QL_PACKS}"
+        else
+            codeql database analyze "${DATABASE_PATH}" --no-download --sarif-category "ois-${LANGUAGE}${SUBDIR}" --format sarif-latest --output "${SARIF_FILE}" "${QL_PACKS}"
         fi
         echo "Database analyzed"
 
