@@ -150,7 +150,7 @@ def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
         echo "Check if PWD matches WORKSPACE"
         if [ "${PWD}" != "${WORKSPACE}" ]; then
             SUBDIR=\$( echo ${PWD} | awk -F'/' '{print \$NF}' )
-            SUBDIR="-${SUBDIR}"
+            SUBDIR="-\${SUBDIR}"
         else
             SUBDIR=''
         fi
