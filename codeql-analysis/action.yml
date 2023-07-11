@@ -127,9 +127,16 @@ runs:
         working-directory: ${{ inputs.path }}
 
     - name: Perform CodeQL Analysis
+      if: inputs.path == '.'
       uses: github/codeql-action/analyze@v2
       with:
         category: ois-${{ inputs.language }}
+
+    - name: Perform CodeQL Analysis
+      if: inputs.path != '.'
+      uses: github/codeql-action/analyze@v2
+      with:
+        category: ois-${{ inputs.language }}-${{ inputs.path }}
 
     - name: Generate CodeQL Results CSV
       if: runner.os != 'Windows'
