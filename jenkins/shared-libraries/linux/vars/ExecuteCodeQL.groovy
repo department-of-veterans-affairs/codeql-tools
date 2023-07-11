@@ -148,7 +148,7 @@ def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
         echo "Database initialized"
 
         echo "Analyzing database"
-        if [ "${PWD}" != "${WORKSPACE}" ]; then
+        if [ "${PWD}" != "\${WORKSPACE}" ]; then
             SUBDIR=$( echo ${PWD} | awk -F'/' '{print $NF}' )
             SUBDIR="-${SUBDIR}"
         else
