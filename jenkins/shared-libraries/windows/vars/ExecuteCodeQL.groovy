@@ -121,9 +121,21 @@ def call(Org, Repo, Branch, Language, BuildCommand, Token, InstallCodeQL) {
         }
         Write-Output "Database initialized"
 
+        Write-Output "Check if the current directory matches \$Env:WORKSPACE"
+        Write-Output "WORKSPACE: \$Env:WORKSPACE."
+        Write-Output "Current working directory: \$PWD."
+        if (\$Env:WORKSPACE -eq \$PWD) {
+            Write-Output "The current directory and \$Env:WORKSPACE match."
+        } else {
+            Write-Output "The current directory and \$Env:WORKSPACE do NOT match."
+            \$Env:CWD =  Split-Path \$Env:CWD -Leaf
+            \$Env:CWD =  "-\$Env:CWD"
+        }
+        Write-Output "Check if the current directory matches \$Env:WORKSPACE"
+
         Write-Output "Analyzing database"
         if("\$Env:INSTALL_CODEQL" -eq "true") {
-            .\\codeql\\codeql database analyze --download "\$Env:DATABASE_PATH" --sarif-category "ois-\$Env:LANGUAGE" --format sarif-latest --output "\$Env:SARIF_FILE" "\$Env:QL_PACKS"
+            .\\codeql\\codeql database analyze --download "\$Env:DATABASE_PATH" --sarif-category "ois-\$Env:LANGUAGE\$Env:CWD" --format sarif-latest --output "\$Env:SARIF_FILE" "\$Env:QL_PACKS"
         } else {
             codeql database analyze --download "\$Env:DATABASE_PATH" --sarif-category "ois-\$Env:LANGUAGE" --format sarif-latest --output "\$Env:SARIF_FILE" "\$Env:QL_PACKS"
         }
