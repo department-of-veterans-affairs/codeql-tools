@@ -16,6 +16,7 @@ jobs:
       fail-fast: false
       matrix:
         language:
+          - go
           - javascript
         runner:
           - ubuntu-8-cores-latest
