@@ -18,8 +18,8 @@ jobs:
       fail-fast: false
       matrix:
         language:
-          - javascript
           - go
+          - javascript
         runner:
           - ubuntu-8-cores-latest
     steps:
