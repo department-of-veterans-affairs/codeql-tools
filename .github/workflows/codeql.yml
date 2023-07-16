@@ -19,6 +19,7 @@ jobs:
       matrix:
         language:
           - javascript
+          - go
         runner:
           - ubuntu-8-cores-latest
     steps:
