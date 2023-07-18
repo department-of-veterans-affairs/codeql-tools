@@ -6,7 +6,7 @@ def call(Org, Repo, Branch, Language, BuildCommand, Token, InstallCodeQL) {
     if(branch == "") {
         env.BRANCH = env.GIT_BRANCH
     } else {
-        env.BRANCH = branch
+        env.BRANCH = Branch
     }
     env.BUILD_COMMAND = BuildCommand
     env.CONFIG_FILE = ".github\\codeql.yml"
@@ -49,6 +49,7 @@ def call(Org, Repo, Branch, Language, BuildCommand, Token, InstallCodeQL) {
         }
 
         \$output = Get-Content \$json_file -Raw -ErrorAction SilentlyContinue | ConvertFrom-Json
+
 
         if("\$Env:INSTALL_CODEQL" -eq "false") {
             Write-Output "Skipping installation of CodeQL"
