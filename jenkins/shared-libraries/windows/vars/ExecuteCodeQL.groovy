@@ -44,15 +44,11 @@ def call(Org, Repo, Branch, Language, BuildCommand, Token, InstallCodeQL) {
 
         Write-Output "Validating .github\\emass.json"
         if (!(Test-Path \$json_file)) {
-          Write-Output "Error: .github\\emass.json not found, please refer to the OIS documentation on creating the emass.json file"
-          Exit 1
+            Write-Output "Error: .github\\emass.json not found, please refer to the OIS documentation on creating the emass.json file"
+            Exit 1
         }
 
         \$output = Get-Content \$json_file -Raw -ErrorAction SilentlyContinue | ConvertFrom-Json
-        # if (!$?) {
-        #   Write-Output "Error: malformed emass.json file, please refer to the OIS documentation on creating the emass.json file"
-        #   Exit 4
-        # }
 
         if("\$Env:INSTALL_CODEQL" -eq "false") {
             Write-Output "Skipping installation of CodeQL"
