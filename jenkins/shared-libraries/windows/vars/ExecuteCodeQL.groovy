@@ -3,7 +3,7 @@ import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream
 
 def call(Org, Repo, Branch, Language, BuildCommand, Token, InstallCodeQL) {
     env.AUTHORIZATION_HEADER = sprintf("token %s", Token)
-    if(branch == "") {
+    if(Branch == "") {
         env.BRANCH = env.GIT_BRANCH
     } else {
         env.BRANCH = Branch
