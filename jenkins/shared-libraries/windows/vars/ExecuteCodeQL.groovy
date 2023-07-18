@@ -49,7 +49,7 @@ def call(Org, Repo, Branch, Language, BuildCommand, Token, InstallCodeQL) {
         }
 
         \$output = Get-Content \$json_file -Raw -ErrorAction SilentlyContinue | ConvertFrom-Json
-        if (!\$?) {
+        if (!$?) {
           Write-Output "Error: malformed emass.json file, please refer to the OIS documentation on creating the emass.json file"
           Exit 4
         }
