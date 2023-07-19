@@ -86,7 +86,7 @@ def call(Org, Repo, Branch, Language, BuildCommand, Token, InstallCodeQL) {
     powershell """
         Write-Output "Initializing database"
 
-        if (!(Test-Path \$Env.CONFIG_FILE)) {
+        if (!(Test-Path \$Env:CONFIG_FILE)) {
             if ("\$Env:BUILD_COMMAND" -eq "") {
                 Write-Output "No build command specified, using default"
                 if("\$Env:INSTALL_CODEQL" -eq "true") {
