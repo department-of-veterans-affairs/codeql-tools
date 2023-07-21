@@ -177,14 +177,10 @@ def call(Org, Repo, Branch, Language, BuildCommand, Token, InstallCodeQL) {
 
         Write-Output "Database Path: \$Env:DATABASE_PATH"
         Write-Output "Database Bundle: \$Env:DATABASE_BUNDLE"
-        if("\$Env:UPLOAD_RESULTS" -eq "true") {
-            Write-Output "Uploading Database Bundle"
-            \$Headers = @{
-                "Content-Length" = "\$((Get-Item \"\$Env:DATABASE_BUNDLE\").Length)"
-                "Authorization" = "\$Env:AUTHORIZATION_HEADER"
-            }
-            Invoke-RestMethod -ContentType "application/zip" -Headers \$Headers -Method Post -InFile "\$Env:DATABASE_BUNDLE" -Uri "\$Env:UPLOAD_URL"
-            Write-Output "Database Bundle uploaded"
+        if (Test-Path "\$Env:DATABASE_BUNDLE") {
+            Write-Output "Database Bundle: \$Env:DATABASE_BUNDLE is here"
+        } else {
+            Write-Output "Database Bundle: \$Env:DATABASE_BUNDLE is NOT here"
         }
     """
 }
