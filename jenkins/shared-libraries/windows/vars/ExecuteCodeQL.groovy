@@ -42,8 +42,8 @@ def call(Org, Repo, Branch, Language, BuildCommand, Token, InstallCodeQL) {
     powershell """
         Write-Output "WORKSPACE: \$Env:WORKSPACE"
         Set-Location -Path \$Env:WORKSPACE
-        
-        \$json_file = "\$Env:WORKSPACE\.github\\emass.json"
+
+        \$json_file = "\$Env:WORKSPACE\\.github\\emass.json"
 
         Write-Output "Validating \$json_file"
         if (!(Test-Path \$json_file)) {
