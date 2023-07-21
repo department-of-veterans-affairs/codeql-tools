@@ -40,9 +40,12 @@ def call(Org, Repo, Branch, Language, BuildCommand, Token, InstallCodeQL) {
     }
 
     powershell """
-        \$json_file = ".github\\emass.json"
+        Write-Output "WORKSPACE: \$Env:WORKSPACE"
+        Set-Location -Path \$Env:WORKSPACE
+        
+        \$json_file = "\$Env:WORKSPACE\.github\\emass.json"
 
-        Write-Output "Validating .github\\emass.json"
+        Write-Output "Validating \$json_file"
         if (!(Test-Path \$json_file)) {
             Write-Output "Error: .github\\emass.json not found, please refer to the OIS documentation on creating the emass.json file"
             Exit 1
