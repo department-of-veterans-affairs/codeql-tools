@@ -91,7 +91,7 @@ def call(Org, Repo, Branch, Language, BuildCommand, Token, InstallCodeQL) {
         Write-Output "Initializing database"
         Write-Output "CodeQL Config file: \$Env:CONFIG_FILE"
 
-        "\$Env:WORKSPACE\\codeql\\codeql" database create "\$Env:DATABASE_PATH" --language "\$Env:LANGUAGE" --source-root .
+        "\$Env:WORKSPACE\\codeql\\codeql" --help
     """
 }
 
