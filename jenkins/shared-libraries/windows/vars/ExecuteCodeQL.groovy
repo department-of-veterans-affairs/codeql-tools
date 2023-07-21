@@ -177,7 +177,7 @@ def call(Org, Repo, Branch, Language, BuildCommand, Token, InstallCodeQL) {
 
         Write-Output "Database Path: \$Env:DATABASE_PATH"
         Write-Output "Database Bundle: \$Env:DATABASE_BUNDLE"
-        if (Test-Path "\$Env:DATABASE_BUNDLE") {
+        if (Test-Path "\$Env:DATABASE_PATH\\\$Env:DATABASE_BUNDLE") {
             Write-Output "Database Bundle: \$Env:DATABASE_BUNDLE is here"
         } else {
             Write-Output "Database Bundle: \$Env:DATABASE_BUNDLE is NOT here"
