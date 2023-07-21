@@ -92,7 +92,7 @@ def call(Org, Repo, Branch, Language, BuildCommand, Token, InstallCodeQL) {
         Write-Output "CodeQL Config file: \$Env:CONFIG_FILE"
         if (Test-Path -Path "\$Env:WORKSPACE\\codeql\\codeql") {
             "Path exists!"
-            "\$Env:WORKSPACE\\codeql\\codeql --help" 
+            "\$Env:WORKSPACE\\codeql\\codeql database create \$Env:DATABASE_PATH --language \$Env:LANGUAGE --source-root ."
         } else {
             "Path doesn't exist."
         }
