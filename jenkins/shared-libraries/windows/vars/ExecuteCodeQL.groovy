@@ -166,8 +166,13 @@ def call(Org, Repo, Branch, Language, BuildCommand, Token, InstallCodeQL) {
             Write-Output "SARIF file uploaded"
         }
 
+        if (Test-Path "\$Env:DATABASE_PATH") {
+            dir "\$Env:DATABASE_PATH"
+        } else {
+            Write-Output "Path NOT here"
+        }
+
         Write-Output "Generating Database Bundle"
-        (\$pwd)
         \$DatabaseBundle = "\$Env:DATABASE_BUNDLE"
         if("\$Env:INSTALL_CODEQL" -eq "true") {
             "\$Env:WORKSPACE\\codeql\\codeql database bundle \$Env:DATABASE_PATH --output \$Env:DATABASE_BUNDLE"
@@ -176,11 +181,7 @@ def call(Org, Repo, Branch, Language, BuildCommand, Token, InstallCodeQL) {
         }
         Write-Output "Database Bundle Generated"
         
-        if (Test-Path "\$Env:DATABASE_PATH") {
-            dir "\$Env:DATABASE_PATH"
-        } else {
-            Write-Output "Path NOT here"
-        }
+
 
     """
 }
