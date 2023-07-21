@@ -136,7 +136,7 @@ def call(Org, Repo, Branch, Language, BuildCommand, Token, InstallCodeQL) {
 
         Write-Output "Analyzing database"
         if("\$Env:INSTALL_CODEQL" -eq "true") {
-            .\\codeql\\codeql database analyze --download "\$Env:DATABASE_PATH" --sarif-category "ois-\$Env:LANGUAGE\$Env:CWD" --format sarif-latest --output "\$Env:SARIF_FILE" "\$Env:QL_PACKS"
+            \$Env:WORKSPACE\\codeql\\codeql database analyze --download "\$Env:DATABASE_PATH" --sarif-category "ois-\$Env:LANGUAGE\$Env:CWD" --format sarif-latest --output "\$Env:SARIF_FILE" "\$Env:QL_PACKS"
         } else {
             codeql database analyze --download "\$Env:DATABASE_PATH" --sarif-category "ois-\$Env:LANGUAGE" --format sarif-latest --output "\$Env:SARIF_FILE" "\$Env:QL_PACKS"
         }
@@ -144,7 +144,7 @@ def call(Org, Repo, Branch, Language, BuildCommand, Token, InstallCodeQL) {
 
         Write-Output "Generating CSV of results"
         if("\$Env:INSTALL_CODEQL" -eq "true") {
-            .\\codeql\\codeql database interpret-results "\$Env:DATABASE_PATH" --format=csv --output="codeql-scan-results-\$Env:LANGUAGE.csv" "\$Env:QL_PACKS"
+            \$Env:WORKSPACE\\codeql\\codeql database interpret-results "\$Env:DATABASE_PATH" --format=csv --output="codeql-scan-results-\$Env:LANGUAGE.csv" "\$Env:QL_PACKS"
         } else {
             codeql database interpret-results "\$Env:DATABASE_PATH" --format=csv --output="codeql-scan-results-\$Env:LANGUAGE.csv" "\$Env:QL_PACKS"
         }
@@ -154,7 +154,7 @@ def call(Org, Repo, Branch, Language, BuildCommand, Token, InstallCodeQL) {
             Write-Output "Uploading SARIF file"
             \$Commit = "\$(git rev-parse HEAD)"
             if("\$Env:INSTALL_CODEQL" -eq "true") {
-                .\\codeql\\codeql github upload-results --repository "\$Env:ORG/\$Env:REPO"  --ref "\$Env:REF" --commit "\$Commit" --sarif="\$Env:SARIF_FILE"
+                \$Env:WORKSPACE\\codeql\\codeql github upload-results --repository "\$Env:ORG/\$Env:REPO"  --ref "\$Env:REF" --commit "\$Commit" --sarif="\$Env:SARIF_FILE"
             } else {
                 codeql github upload-results --repository "\$Env:ORG/\$Env:REPO"  --ref "\$Env:REF" --commit "\$Commit" --sarif="\$Env:SARIF_FILE"
             }
@@ -164,7 +164,7 @@ def call(Org, Repo, Branch, Language, BuildCommand, Token, InstallCodeQL) {
         Write-Output "Generating Database Bundle"
         \$DatabaseBundle = "\$Env:DATABASE_BUNDLE"
         if("\$Env:INSTALL_CODEQL" -eq "true") {
-            .\\codeql\\codeql database bundle "\$Env:DATABASE_PATH" --output "\$Env:DATABASE_BUNDLE"
+            \$Env:WORKSPACE\\codeql\\codeql database bundle "\$Env:DATABASE_PATH" --output "\$Env:DATABASE_BUNDLE"
         } else {
             codeql database bundle "\$Env:DATABASE_PATH" --output "\$Env:DATABASE_BUNDLE"
         }
