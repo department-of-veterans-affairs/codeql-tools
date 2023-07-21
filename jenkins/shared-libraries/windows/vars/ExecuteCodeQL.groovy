@@ -3,7 +3,6 @@ import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream
 
 def call(Org, Repo, Branch, Language, BuildCommand, Token, InstallCodeQL) {
     env.AUTHORIZATION_HEADER = sprintf("token %s", Token)
-    echo "WORKSPACE: ${env.WORKSPACE}"
     if(Branch == "") {
         env.BRANCH = env.GIT_BRANCH
     } else {
@@ -96,14 +95,14 @@ def call(Org, Repo, Branch, Language, BuildCommand, Token, InstallCodeQL) {
             if ("\$Env:BUILD_COMMAND" -eq "") {
                 Write-Output "No build command specified, using default"
                 if("\$Env:INSTALL_CODEQL" -eq "true") {
-                    \$Env:WORKSPACE\\codeql\\codeql database create "\$Env:DATABASE_PATH" --language "\$Env:LANGUAGE" --source-root .
+                    "\$Env:WORKSPACE\\codeql\\codeql" database create "\$Env:DATABASE_PATH" --language "\$Env:LANGUAGE" --source-root .
                 } else {
                     codeql database create "\$Env:DATABASE_PATH" --language "\$Env:LANGUAGE" --source-root .
                 }
             } else {
                 Write-Output "Build command specified, using '\$Env:BUILD_COMMAND'"
                 if("\$Env:INSTALL_CODEQL" -eq "true") {
-                    \$Env:WORKSPACE\\codeql\\codeql database create "\$Env:DATABASE_PATH" --language "\$Env:LANGUAGE" --source-root . --command "\$Env:BUILD_COMMAND"
+                    "\$Env:WORKSPACE\\codeql\\codeql" database create "\$Env:DATABASE_PATH" --language "\$Env:LANGUAGE" --source-root . --command "\$Env:BUILD_COMMAND"
                 } else {
                     codeql database create "\$Env:DATABASE_PATH" --language "\$Env:LANGUAGE" --source-root . --command "\$Env:BUILD_COMMAND"
                 }
@@ -112,14 +111,14 @@ def call(Org, Repo, Branch, Language, BuildCommand, Token, InstallCodeQL) {
             if ("\$Env:BUILD_COMMAND" -eq "") {
                 Write-Output "No build command specified, using default"
                 if("\$Env:INSTALL_CODEQL" -eq "true") {
-                    \$Env:WORKSPACE\\codeql\\codeql database create "\$Env:DATABASE_PATH" --language "\$Env:LANGUAGE" --codescanning-config "\$Env:CONFIG_FILE" --source-root .
+                    "\$Env:WORKSPACE\\codeql\\codeql" database create "\$Env:DATABASE_PATH" --language "\$Env:LANGUAGE" --codescanning-config "\$Env:CONFIG_FILE" --source-root .
                 } else {
                     codeql database create "\$Env:DATABASE_PATH" --language "\$Env:LANGUAGE" --codescanning-config "\$Env:CONFIG_FILE" --source-root .
                 }
             } else {
                 Write-Output "Build command specified, using '\$Env:BUILD_COMMAND'"
                 if("\$Env:INSTALL_CODEQL" -eq "true") {
-                    \$Env:WORKSPACE\\codeql\\codeql database create "\$Env:DATABASE_PATH" --language "\$Env:LANGUAGE" --codescanning-config "\$Env:CONFIG_FILE" --source-root . --command "\$Env:BUILD_COMMAND"
+                    "\$Env:WORKSPACE\\codeql\\codeql" database create "\$Env:DATABASE_PATH" --language "\$Env:LANGUAGE" --codescanning-config "\$Env:CONFIG_FILE" --source-root . --command "\$Env:BUILD_COMMAND"
                 } else {
                     codeql database create "\$Env:DATABASE_PATH" --language "\$Env:LANGUAGE" --codescanning-config "\$Env:CONFIG_FILE" --source-root . --command "\$Env:BUILD_COMMAND"
                 }
@@ -143,7 +142,7 @@ def call(Org, Repo, Branch, Language, BuildCommand, Token, InstallCodeQL) {
 
         Write-Output "Analyzing database"
         if("\$Env:INSTALL_CODEQL" -eq "true") {
-            \$Env:WORKSPACE\\codeql\\codeql database analyze --download "\$Env:DATABASE_PATH" --sarif-category "ois-\$Env:LANGUAGE\$Env:SEP\$Env:CWD" --format sarif-latest --output "\$Env:SARIF_FILE" "\$Env:QL_PACKS"
+            "\$Env:WORKSPACE\\codeql\\codeql" database analyze --download "\$Env:DATABASE_PATH" --sarif-category "ois-\$Env:LANGUAGE\$Env:SEP\$Env:CWD" --format sarif-latest --output "\$Env:SARIF_FILE" "\$Env:QL_PACKS"
         } else {
             codeql database analyze --download "\$Env:DATABASE_PATH" --sarif-category "ois-\$Env:LANGUAGE" --format sarif-latest --output "\$Env:SARIF_FILE" "\$Env:QL_PACKS"
         }
@@ -151,7 +150,7 @@ def call(Org, Repo, Branch, Language, BuildCommand, Token, InstallCodeQL) {
 
         Write-Output "Generating CSV of results"
         if("\$Env:INSTALL_CODEQL" -eq "true") {
-            \$Env:WORKSPACE\\codeql\\codeql database interpret-results "\$Env:DATABASE_PATH" --format=csv --output="codeql-scan-results-\$Env:LANGUAGE.csv" "\$Env:QL_PACKS"
+            "\$Env:WORKSPACE\\codeql\\codeql" database interpret-results "\$Env:DATABASE_PATH" --format=csv --output="codeql-scan-results-\$Env:LANGUAGE.csv" "\$Env:QL_PACKS"
         } else {
             codeql database interpret-results "\$Env:DATABASE_PATH" --format=csv --output="codeql-scan-results-\$Env:LANGUAGE.csv" "\$Env:QL_PACKS"
         }
@@ -161,7 +160,7 @@ def call(Org, Repo, Branch, Language, BuildCommand, Token, InstallCodeQL) {
             Write-Output "Uploading SARIF file"
             \$Commit = "\$(git rev-parse HEAD)"
             if("\$Env:INSTALL_CODEQL" -eq "true") {
-                \$Env:WORKSPACE\\codeql\\codeql github upload-results --repository "\$Env:ORG/\$Env:REPO"  --ref "\$Env:REF" --commit "\$Commit" --sarif="\$Env:SARIF_FILE"
+                "\$Env:WORKSPACE\\codeql\\codeql" github upload-results --repository "\$Env:ORG/\$Env:REPO"  --ref "\$Env:REF" --commit "\$Commit" --sarif="\$Env:SARIF_FILE"
             } else {
                 codeql github upload-results --repository "\$Env:ORG/\$Env:REPO"  --ref "\$Env:REF" --commit "\$Commit" --sarif="\$Env:SARIF_FILE"
             }
@@ -171,7 +170,7 @@ def call(Org, Repo, Branch, Language, BuildCommand, Token, InstallCodeQL) {
         Write-Output "Generating Database Bundle"
         \$DatabaseBundle = "\$Env:DATABASE_BUNDLE"
         if("\$Env:INSTALL_CODEQL" -eq "true") {
-            \$Env:WORKSPACE\\codeql\\codeql database bundle "\$Env:DATABASE_PATH" --output "\$Env:DATABASE_BUNDLE"
+            "\$Env:WORKSPACE\\codeql\\codeql" database bundle "\$Env:DATABASE_PATH" --output "\$Env:DATABASE_BUNDLE"
         } else {
             codeql database bundle "\$Env:DATABASE_PATH" --output "\$Env:DATABASE_BUNDLE"
         }
