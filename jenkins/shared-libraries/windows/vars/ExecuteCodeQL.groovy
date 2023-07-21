@@ -166,8 +166,8 @@ def call(Org, Repo, Branch, Language, BuildCommand, Token, InstallCodeQL) {
             Write-Output "SARIF file uploaded"
         }
 
-        if (Test-Path "\$Env:DATABASE_PATH") {
-            dir "\$Env:DATABASE_PATH"
+        if (Test-Path "\$Env:WORKSPACE\$Env:DATABASE_PATH") {
+            dir "\$Env:WORKSPACE\$Env:DATABASE_PATH"
         } else {
             Write-Output "Path NOT here"
         }
