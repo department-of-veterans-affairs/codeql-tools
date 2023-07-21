@@ -166,7 +166,7 @@ def call(Org, Repo, Branch, Language, BuildCommand, Token, InstallCodeQL) {
             Write-Output "SARIF file uploaded"
         }
 
-        dir
+        dir "\$Env:WORKSPACE"
 
         Write-Output "Generating Database Bundle"
         \$DatabaseBundle = "\$Env:DATABASE_BUNDLE"
