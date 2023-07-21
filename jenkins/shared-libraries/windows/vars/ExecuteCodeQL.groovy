@@ -169,6 +169,7 @@ def call(Org, Repo, Branch, Language, BuildCommand, Token, InstallCodeQL) {
         Write-Output "Generating Database Bundle"
         \$DatabaseBundle = "\$Env:DATABASE_BUNDLE"
         if("\$Env:INSTALL_CODEQL" -eq "true") {
+            Get-Location
             "\$Env:WORKSPACE\\codeql\\codeql database bundle \$Env:DATABASE_PATH --output \$Env:DATABASE_BUNDLE"
         } else {
             codeql database bundle "\$Env:DATABASE_PATH" --output "\$Env:DATABASE_BUNDLE"
