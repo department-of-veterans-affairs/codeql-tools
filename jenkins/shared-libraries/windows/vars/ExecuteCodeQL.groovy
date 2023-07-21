@@ -90,7 +90,7 @@ def call(Org, Repo, Branch, Language, BuildCommand, Token, InstallCodeQL) {
         Write-Output "WORKSPACE: \$Env:WORKSPACE"
         Write-Output "Initializing database"
         Write-Output "CodeQL Config file: \$Env:CONFIG_FILE"
-        "dir \$Env:WORKSPACE"
+        "dir \$Env:WORKSPACE\\codeql"
 
         
     """
