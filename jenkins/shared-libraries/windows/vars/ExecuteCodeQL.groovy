@@ -9,7 +9,7 @@ def call(Org, Repo, Branch, Language, BuildCommand, Token, InstallCodeQL) {
         env.BRANCH = Branch
     }
     env.BUILD_COMMAND = BuildCommand
-    env.CONFIG_FILE = "env.WORKSPACE\\.github\\codeql-config.yml"
+    env.CONFIG_FILE = "${env.WORKSPACE}\\.github\\codeql-config.yml"
     env.DATABASE_BUNDLE = sprintf("%s-database.zip", Language)
     env.DATABASE_PATH = sprintf("%s-%s", Repo, Language)
     env.GITHUB_TOKEN = Token
