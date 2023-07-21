@@ -3,6 +3,7 @@ import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream
 
 def call(Org, Repo, Branch, Language, BuildCommand, Token, InstallCodeQL) {
     env.AUTHORIZATION_HEADER = sprintf("token %s", Token)
+    echo "WORKSPACE: ${env.WORKSPACE}"
     if(Branch == "") {
         env.BRANCH = env.GIT_BRANCH
     } else {
@@ -87,6 +88,7 @@ def call(Org, Repo, Branch, Language, BuildCommand, Token, InstallCodeQL) {
     """
 
     powershell """
+        Write-Output "WORKSPACE: \$Env:WORKSPACE"
         Write-Output "Initializing database"
         Write-Output "CodeQL Config file: \$Env:CONFIG_FILE"
 
@@ -131,16 +133,17 @@ def call(Org, Repo, Branch, Language, BuildCommand, Token, InstallCodeQL) {
         if (\$Env:WORKSPACE -eq \$PWD) {
             Write-Output "The current directory and \$Env:WORKSPACE match."
             \$Env:CWD = ""
+            \$Env:SEP = ""
         } else {
             Write-Output "The current directory and \$Env:WORKSPACE do NOT match."
             \$Env:CWD =  Split-Path \$Env:PWD -Leaf
-            \$Env:CWD =  "-\$Env:CWD"
+            \$Env:SEP = "-"
         }
         Write-Output "Check if the current directory matches \$Env:WORKSPACE"
 
         Write-Output "Analyzing database"
         if("\$Env:INSTALL_CODEQL" -eq "true") {
-            \$Env:WORKSPACE\\codeql\\codeql database analyze --download "\$Env:DATABASE_PATH" --sarif-category "ois-\$Env:LANGUAGE\$Env:CWD" --format sarif-latest --output "\$Env:SARIF_FILE" "\$Env:QL_PACKS"
+            \$Env:WORKSPACE\\codeql\\codeql database analyze --download "\$Env:DATABASE_PATH" --sarif-category "ois-\$Env:LANGUAGE\$Env:SEP\$Env:CWD" --format sarif-latest --output "\$Env:SARIF_FILE" "\$Env:QL_PACKS"
         } else {
             codeql database analyze --download "\$Env:DATABASE_PATH" --sarif-category "ois-\$Env:LANGUAGE" --format sarif-latest --output "\$Env:SARIF_FILE" "\$Env:QL_PACKS"
         }
