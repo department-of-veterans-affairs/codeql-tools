@@ -173,17 +173,9 @@ def call(Org, Repo, Branch, Language, BuildCommand, Token, InstallCodeQL) {
         } else {
             codeql database bundle "\$Env:DATABASE_PATH" --output "\$Env:DATABASE_BUNDLE"
         }
-        Write-Output "Database Bundle generated"
+        Write-Output "Database Bundle Generated"
 
-        if("\$Env:UPLOAD_RESULTS" -eq "true") {
-            Write-Output "Uploading Database Bundle"
-            \$Headers = @{
-                "Content-Length" = "\$((Get-Item \$Env:DATABASE_BUNDLE).Length)"
-                "Authorization" = "\$Env:AUTHORIZATION_HEADER"
-            }
-            Invoke-RestMethod -ContentType "application/zip" -Headers \$Headers -Method Post -InFile "\$Env:DATABASE_BUNDLE" -Uri "\$Env:UPLOAD_URL"
-            Write-Output "Database Bundle uploaded"
-        }
+
     """
 }
 
