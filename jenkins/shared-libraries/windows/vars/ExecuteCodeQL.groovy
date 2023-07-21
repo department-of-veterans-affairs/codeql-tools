@@ -175,6 +175,12 @@ def call(Org, Repo, Branch, Language, BuildCommand, Token, InstallCodeQL) {
             codeql database bundle "\$Env:DATABASE_PATH" --output "\$Env:DATABASE_BUNDLE"
         }
         Write-Output "Database Bundle Generated"
+        
+        if (Test-Path "\$Env:DATABASE_PATH") {
+            dir "\$Env:DATABASE_PATH"
+        } else {
+            Write-Output "Path NOT here"
+        }
 
     """
 }
