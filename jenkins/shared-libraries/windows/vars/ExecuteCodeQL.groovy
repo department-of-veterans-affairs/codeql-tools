@@ -139,13 +139,13 @@ def call(Org, Repo, Branch, Language, BuildCommand, Token, InstallCodeQL) {
             \$Env:SEP = ""
         } else {
             Write-Output "The current directory and \$Env:WORKSPACE do NOT match."
-            \$Env:CWD = "Split-Path \$Env:PWD -Leaf"
+            \$Env:CWD = "\$(Split-Path \$Env:PWD -Leaf)"
             \$Env:SEP = "-"
         }
         Write-Output "Check if the current directory matches \$Env:WORKSPACE"
 
         Write-Output "Analyzing database"
-        Write-Output "sarif category ois-\$Env:LANGUAGE\$Env:SEP\$Env:CWD"
+        Write-Output "sarif category: ois-\$Env:LANGUAGE\$Env:SEP\$Env:CWD"
 
         if("\$Env:INSTALL_CODEQL" -eq "true") {
             .\\codeql\\codeql database analyze --download "\$Env:DATABASE_PATH" --sarif-category "ois-\$Env:LANGUAGE\$Env:SEP\$Env:CWD" --format sarif-latest --output "\$Env:SARIF_FILE" "\$Env:QL_PACKS"
@@ -190,9 +190,6 @@ def call(Org, Repo, Branch, Language, BuildCommand, Token, InstallCodeQL) {
             Invoke-RestMethod -ContentType "application/zip" -Headers \$Headers -Method Post -InFile "\$Env:DATABASE_BUNDLE" -Uri "\$Env:UPLOAD_URL"
             Write-Output "Database Bundle Uploaded"
         }
-
-        dir \$pwd
-        dir \$pwd\\\$Env:DATABASE_PATH
     """
 }
 
