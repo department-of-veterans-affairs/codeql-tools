@@ -41,7 +41,8 @@ def call(Org, Repo, Branch, Language, BuildCommand, Token, InstallCodeQL) {
 
     powershell """
         Write-Output "WORKSPACE: \$Env:WORKSPACE"
-        Set-Location -Path \$Env:WORKSPACE
+        Write-Output "PWD: \$pwd"
+        Set-Location -Path "\$pwd"
 
         \$json_file = "\$Env:WORKSPACE\\.github\\emass.json"
 
@@ -76,10 +77,10 @@ def call(Org, Repo, Branch, Language, BuildCommand, Token, InstallCodeQL) {
             Invoke-WebRequest -Method Get -OutFile "codeql.tgz" -Uri "https://github.com/github/codeql-action/releases/download/\$Id/codeql-bundle-win64.tar.gz"
 
             Write-Output "Extracting CodeQL archive"
-            tar -xf codeql.tgz --directory "\$Env:WORKSPACE"
+            tar -xf codeql.tgz --directory "\$pwd"
 
             Write-Output "Removing CodeQL bundle archive"
-            Remove-Item "\$Env:WORKSPACE\\codeql.tgz"
+            Remove-Item "\$pwd\\codeql.tgz"
             \$ProgressPreference = 'Continue'
 
             Write-Output "CodeQL installed"
@@ -88,11 +89,13 @@ def call(Org, Repo, Branch, Language, BuildCommand, Token, InstallCodeQL) {
 
     powershell """
         Write-Output "WORKSPACE: \$Env:WORKSPACE"
-        Write-Output "Initializing database"
+        Write-Output "PWD: \$pwd"
+        Set-Location -Path "\$pwd"
         Write-Output "CodeQL config file: \$Env:CONFIG_FILE"
         Write-Output "CodeQL database path: \$Env:DATABASE_PATH"
         Write-Output "CodeQL database bundle: \$Env:DATABASE_BUNDLE"
 
+        Write-Output "Initializing database"
         .\\codeql\\codeql database create "\$Env:DATABASE_PATH" --language "\$Env:LANGUAGE" --source-root .
         dir \$pwd
     """
