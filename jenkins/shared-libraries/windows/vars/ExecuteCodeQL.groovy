@@ -94,7 +94,6 @@ def call(Org, Repo, Branch, Language, BuildCommand, Token, InstallCodeQL) {
         Write-Output "CodeQL database bundle: \$Env:DATABASE_BUNDLE"
         
         Write-Output "Initializing database"
-        
         if (!(Test-Path "\$Env:CONFIG_FILE")) {
             if ("\$Env:BUILD_COMMAND" -eq "") {
                 Write-Output "No build command specified, using default"
