@@ -161,6 +161,36 @@ def call(Org, Repo, Branch, Language, BuildCommand, Token, InstallCodeQL) {
         }
         Write-Output "CSV of results generated"
 
+        if("\$Env:UPLOAD_RESULTS" -eq "true") {
+            Write-Output "Uploading SARIF file"
+            \$Commit = "\$(git rev-parse HEAD)"
+            if("\$Env:INSTALL_CODEQL" -eq "true") {
+                .\\codeql\\codeql github upload-results --repository "\$Env:ORG/\$Env:REPO"  --ref "\$Env:REF" --commit "\$Commit" --sarif="\$Env:SARIF_FILE"
+            } else {
+                codeql github upload-results --repository "\$Env:ORG/\$Env:REPO"  --ref "\$Env:REF" --commit "\$Commit" --sarif="\$Env:SARIF_FILE"
+            }
+            Write-Output "SARIF file uploaded"
+        }
+
+        Write-Output "Generating Database Bundle"
+        \$DatabaseBundle = "\$Env:DATABASE_BUNDLE"
+        if("\$Env:INSTALL_CODEQL" -eq "true") {
+            .\\codeql\\codeql database bundle "\$Env:DATABASE_PATH" --output "\$Env:DATABASE_BUNDLE"
+        } else {
+            codeql database bundle "\$Env:DATABASE_PATH" --output "\$Env:DATABASE_BUNDLE"
+        }
+        Write-Output "Database Bundle Generated"
+
+        if("\$Env:UPLOAD_RESULTS" -eq "true") {
+            Write-Output "Uploading Database Bundle"
+            \$Headers = @{
+                "Content-Length" = "\$((Get-Item \$Env:DATABASE_BUNDLE).Length)"
+                "Authorization" = "\$Env:AUTHORIZATION_HEADER"
+            }
+            Invoke-RestMethod -ContentType "application/zip" -Headers \$Headers -Method Post -InFile "\$Env:DATABASE_BUNDLE" -Uri "\$Env:UPLOAD_URL"
+            Write-Output "Database Bundle Uploaded"
+        }
+
         dir \$pwd
         dir \$pwd\\\$Env:DATABASE_PATH
     """
