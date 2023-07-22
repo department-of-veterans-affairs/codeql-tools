@@ -160,7 +160,7 @@ def call(Org, Repo, Branch, Language, BuildCommand, Token, InstallCodeQL) {
         Write-Output "CSV of results generated"
 
         dir \$pwd
-        dir \$pwd\\\$Env:DATABASE_BUNDLE
+        dir \$pwd\\\$Env:DATABASE_PATH
     """
 }
 
