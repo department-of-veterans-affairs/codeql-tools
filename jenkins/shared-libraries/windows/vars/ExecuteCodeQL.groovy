@@ -174,7 +174,7 @@ def call(Org, Repo, Branch, Language, BuildCommand, Token, InstallCodeQL) {
             codeql database bundle "\$Env:DATABASE_PATH" --output "\$Env:DATABASE_BUNDLE"
         }
         Write-Output "Database Bundle Generated"
-        dir "\$Env:WORKSPACE"
+        dir "\$pwd\\js"
 
         if("\$Env:UPLOAD_RESULTS" -eq "true") {
             Write-Output "Uploading Database Bundle"
