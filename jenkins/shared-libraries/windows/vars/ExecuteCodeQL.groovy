@@ -173,7 +173,7 @@ def call(Org, Repo, Branch, Language, BuildCommand, Token, InstallCodeQL) {
         } else {
             codeql database bundle "\$Env:DATABASE_PATH" --output "\$Env:DATABASE_BUNDLE"
         }
-        dir "\$pwd"
+        dir "\$Env.WORKSPACE"
         Write-Output "Database Bundle Generated"
         
 
