@@ -99,14 +99,14 @@ def call(Org, Repo, Branch, Language, BuildCommand, Token, InstallCodeQL) {
             if ("\$Env:BUILD_COMMAND" -eq "") {
                 Write-Output "No build command specified, using default"
                 if("\$Env:INSTALL_CODEQL" -eq "true") {
-                    ".\\codeql\\codeql" database create "\$Env:DATABASE_PATH" --language "\$Env:LANGUAGE" --source-root .
+                    .\\codeql\\codeql database create "\$Env:DATABASE_PATH" --language "\$Env:LANGUAGE" --source-root .
                 } else {
                     codeql database create "\$Env:DATABASE_PATH" --language "\$Env:LANGUAGE" --source-root .
                 }
             } else {
                 Write-Output "Build command specified, using '\$Env:BUILD_COMMAND'"
                 if("\$Env:INSTALL_CODEQL" -eq "true") {
-                    ".\\codeql\\codeql" database create "\$Env:DATABASE_PATH" --language "\$Env:LANGUAGE" --source-root . --command "\$Env:BUILD_COMMAND"
+                    .\\codeql\\codeql database create "\$Env:DATABASE_PATH" --language "\$Env:LANGUAGE" --source-root . --command "\$Env:BUILD_COMMAND"
                 } else {
                     codeql database create "\$Env:DATABASE_PATH" --language "\$Env:LANGUAGE" --source-root . --command "\$Env:BUILD_COMMAND"
                 }
@@ -115,14 +115,14 @@ def call(Org, Repo, Branch, Language, BuildCommand, Token, InstallCodeQL) {
             if ("\$Env:BUILD_COMMAND" -eq "") {
                 Write-Output "No build command specified, using default"
                 if("\$Env:INSTALL_CODEQL" -eq "true") {
-                    ".\\codeql\\codeql" database create "\$Env:DATABASE_PATH" --language "\$Env:LANGUAGE" --codescanning-config "\$Env:CONFIG_FILE" --source-root ."
+                    .\\codeql\\codeql database create "\$Env:DATABASE_PATH" --language "\$Env:LANGUAGE" --codescanning-config "\$Env:CONFIG_FILE" --source-root ."
                 } else {
                     codeql database create "\$Env:DATABASE_PATH" --language "\$Env:LANGUAGE" --codescanning-config "\$Env:CONFIG_FILE" --source-root .
                 }
             } else {
                 Write-Output "Build command specified, using '\$Env:BUILD_COMMAND'"
                 if("\$Env:INSTALL_CODEQL" -eq "true") {
-                    ".\\codeql\\codeql" database create "\$Env:DATABASE_PATH" --language "\$Env:LANGUAGE" --codescanning-config "\$Env:CONFIG_FILE" --source-root . --command "\$Env:BUILD_COMMAND"
+                    .\\codeql\\codeql database create "\$Env:DATABASE_PATH" --language "\$Env:LANGUAGE" --codescanning-config "\$Env:CONFIG_FILE" --source-root . --command "\$Env:BUILD_COMMAND"
                 } else {
                     codeql database create "\$Env:DATABASE_PATH" --language "\$Env:LANGUAGE" --codescanning-config "\$Env:CONFIG_FILE" --source-root . --command "\$Env:BUILD_COMMAND"
                 }
