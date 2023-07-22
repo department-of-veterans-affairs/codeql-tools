@@ -139,7 +139,7 @@ def call(Org, Repo, Branch, Language, BuildCommand, Token, InstallCodeQL) {
             \$Env:SEP = ""
         } else {
             Write-Output "The current directory and \$Env:WORKSPACE do NOT match."
-            \$Env:CWD = "\$(Split-Path \$Env:PWD -Leaf)"
+            \$Env:CWD = Split-Path "\$Env:PWD" -Leaf
             \$Env:SEP = "-"
         }
         Write-Output "Check if the current directory matches \$Env:WORKSPACE"
