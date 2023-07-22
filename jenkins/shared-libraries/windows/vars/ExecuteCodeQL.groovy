@@ -145,6 +145,8 @@ def call(Org, Repo, Branch, Language, BuildCommand, Token, InstallCodeQL) {
         Write-Output "Check if the current directory matches \$Env:WORKSPACE"
 
         Write-Output "Analyzing database"
+        Write-Output "sarif category ois-\$Env:LANGUAGE\$Env:SEP\$Env:CWD"
+
         if("\$Env:INSTALL_CODEQL" -eq "true") {
             .\\codeql\\codeql database analyze --download "\$Env:DATABASE_PATH" --sarif-category "ois-\$Env:LANGUAGE\$Env:SEP\$Env:CWD" --format sarif-latest --output "\$Env:SARIF_FILE" "\$Env:QL_PACKS"
         } else {
@@ -153,7 +155,7 @@ def call(Org, Repo, Branch, Language, BuildCommand, Token, InstallCodeQL) {
         Write-Output "Database analyzed"
         Write-Output "Generating CSV of results"
         if("\$Env:INSTALL_CODEQL" -eq "true") {
-           .\\codeql\\codeql database interpret-results "\$Env:DATABASE_PATH" --format=csv --output="codeql-scan-results-\$Env:LANGUAGE.csv" "\$Env:QL_PACKS"
+            .\\codeql\\codeql database interpret-results "\$Env:DATABASE_PATH" --format=csv --output="codeql-scan-results-\$Env:LANGUAGE.csv" "\$Env:QL_PACKS"
         } else {
             codeql database interpret-results "\$Env:DATABASE_PATH" --format=csv --output="codeql-scan-results-\$Env:LANGUAGE.csv" "\$Env:QL_PACKS"
         }
