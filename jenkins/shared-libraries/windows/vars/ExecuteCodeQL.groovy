@@ -95,7 +95,7 @@ def call(Org, Repo, Branch, Language, BuildCommand, Token, InstallCodeQL) {
             if ("\$Env:BUILD_COMMAND" -eq "") {
                 Write-Output "No build command specified, using default"
                 if("\$Env:INSTALL_CODEQL" -eq "true") {
-                    "\$Env:WORKSPACE\\codeql\\codeql database create \$Env:DATABASE_PATH --language \$Env:LANGUAGE --source-root ."
+                    "\$Env:WORKSPACE\\codeql\\codeql database create \"\$Env:DATABASE_PATH\" --language \"\$Env:LANGUAGE\" --source-root ."
                 } else {
                     codeql database create "\$Env:DATABASE_PATH" --language "\$Env:LANGUAGE" --source-root .
                 }
