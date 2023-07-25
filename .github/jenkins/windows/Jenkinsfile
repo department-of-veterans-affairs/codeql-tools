@@ -1,4 +1,4 @@
-@Library('codeql-windows')_
+@Library('codeql-windows@add-path')_
 
 pipeline {
     agent { label 'windows' }

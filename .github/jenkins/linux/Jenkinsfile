@@ -1,4 +1,4 @@
-@Library('codeql-linux')_
+@Library('codeql-linux@add-path')_
 
 pipeline {
     agent { label 'linux' }
