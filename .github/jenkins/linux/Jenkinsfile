@@ -1,5 +1,15 @@
 @Library('codeql-linux-dev')_
 
+void setBuildStatus(String message, String state) {
+  step([
+      $class: "GitHubCommitStatusSetter",
+      reposSource: [$class: "ManuallyEnteredRepositorySource", url: "https://github.com/department-of-veterans-affairs/codeql-tools"],
+      contextSource: [$class: "ManuallyEnteredCommitContextSource", context: "ci/jenkins/codeql-linux"],
+      errorHandlers: [[$class: "ChangingBuildStatusErrorHandler", result: "UNSTABLE"]],
+      statusResultSource: [ $class: "ConditionalStatusResultSource", results: [[$class: "AnyBuildResult", message: message, state: state]] ]
+  ]);
+}
+
 pipeline {
     agent { label 'linux' }
 
@@ -34,6 +44,12 @@ pipeline {
     post {
         always {
             cleanWs()
+        }
+        success {
+            setBuildStatus("Build succeeded", "SUCCESS");
+        }
+        failure {
+            setBuildStatus("Build failed", "FAILURE");
         }
     }
 }
