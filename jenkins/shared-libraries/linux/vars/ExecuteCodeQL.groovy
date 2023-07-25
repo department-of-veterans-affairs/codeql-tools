@@ -151,6 +151,8 @@ def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
         fi
         echo "Database initialized"
 
+        echo "WORKSPACE: ${WORKSPACE}"
+        echo "PWD: ${PWD}"
         echo "Check if PWD matches WORKSPACE"
         if [ "${PWD}" = "${WORKSPACE}" ]; then
             echo "The current directory and ${WORKSPACE} match."
@@ -159,7 +161,6 @@ def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
         else
             echo "The current directory and ${WORKSPACE} do NOT match."
             SUBDIR=\$( echo ${PWD} | awk -F'/' '{print \$NF}' )
-            SUBDIR="\${SUBDIR}"
             SEP='-'
         fi
         echo "Sarif Category: ois-${LANGUAGE}\${SEP}\${SUBDIR}"
