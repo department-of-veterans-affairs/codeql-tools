@@ -11,7 +11,7 @@ void setBuildStatus(String message, String state) {
 }
 
 pipeline {
-    agent { label 'linux' }
+    agent { label 'linux' } 
 
     stages {
         stage('CodeQL - Javascript') {
