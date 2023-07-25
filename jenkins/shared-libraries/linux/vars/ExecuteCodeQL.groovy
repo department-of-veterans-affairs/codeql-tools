@@ -14,7 +14,6 @@ def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
     env.CONFIG_FILE = "${env.WORKSPACE}/.github/codeql.yml"
     env.DATABASE_BUNDLE = sprintf("%s-database.zip", language)
     env.DATABASE_PATH = sprintf("%s-%s", repo, language)
-    env.CWD = "${env.PWD}"
     if(!env.ENABLE_DEBUG) {
         env.ENABLE_DEBUG = false
     }
@@ -48,8 +47,10 @@ def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
     }
 
     sh '''
+        echo "${PWD}" > ./envs.txt
+        CWD=$( cat ./envs.txt )
         echo "WORKSPACE: ${WORKSPACE}"
-        echo "CWD: ${CWD}"
+        echo "CWD: ${CWD}" 
         echo "CodeQL config file: ${CONFIG_FILE}"
         echo "CodeQL database path: ${DATABASE_PATH}"
         echo "CodeQL database bundle: ${DATABASE_BUNDLE}"
@@ -151,7 +152,8 @@ def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
             fi
         fi
         echo "Database initialized"
-
+        
+        CWD=$( cat ./envs.txt )
         echo "WORKSPACE: ${WORKSPACE}"
         echo "CWD: ${CWD}"
         echo "Check if CWD matches WORKSPACE"
