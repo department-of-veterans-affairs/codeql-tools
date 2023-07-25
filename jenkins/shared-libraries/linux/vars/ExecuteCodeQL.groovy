@@ -152,7 +152,7 @@ def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
         echo "Database initialized"
 
         echo "Check if PWD matches WORKSPACE"
-        if [ "${PWD}" == "${WORKSPACE}" ]; then
+        if [ "${PWD}" = "${WORKSPACE}" ]; then
             echo "The current directory and ${WORKSPACE} match."
             SUBDIR=''
             SEP=''
@@ -162,7 +162,7 @@ def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
             SUBDIR="\${SUBDIR}"
             SEP='-'
         fi
-        echo "Sarif Category: ${LANGUAGE}\${SEP}\${SUBDIR}"
+        echo "Sarif Category: ois-${LANGUAGE}\${SEP}\${SUBDIR}"
 
         echo "Analyzing database"
         if [ "${INSTALL_CODEQL}" = true ]; then
