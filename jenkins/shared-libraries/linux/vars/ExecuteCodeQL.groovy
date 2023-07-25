@@ -153,6 +153,7 @@ def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
         fi
         echo "Database initialized"
         
+        cat ./envs.txt
         CWD=\$( cat ./envs.txt )
         echo "WORKSPACE: ${WORKSPACE}"
         echo "CWD: ${CWD}"
