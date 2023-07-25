@@ -11,7 +11,7 @@ def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
         env.BRANCH = branch
     }
     env.BUILD_COMMAND = buildCommand
-    env.CONFIG_FILE = ".github/codeql.yml"
+    env.CONFIG_FILE = "${env.WORKSPACE}/.github/codeql.yml"
     env.DATABASE_BUNDLE = sprintf("%s-database.zip", language)
     env.DATABASE_PATH = sprintf("%s-%s", repo, language)
     if(!env.ENABLE_DEBUG) {
@@ -47,13 +47,17 @@ def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
     }
 
     sh '''
+        echo "WORKSPACE: ${WORKSPACE}"
+        echo "PWD: ${PWD}"
+        echo "CodeQL config file: ${CONFIG_FILE}"
+        echo "CodeQL database path: ${DATABASE_PATH}"
+        echo "CodeQL database bundle: ${DATABASE_BUNDLE}"
+
         if [ "${ENABLE_DEBUG}" = true ]; then
             set -x
         else
             set +x
         fi
-
-        cd "${WORKSPACE}"
 
         echo "Validating emass.json"
         json_file="${WORKSPACE}/.github/emass.json"
