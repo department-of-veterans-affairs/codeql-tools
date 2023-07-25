@@ -11,7 +11,7 @@ pipeline {
                 withCredentials([string(credentialsId: 'github-token', variable: 'TOKEN')]) {
                     ExecuteCodeQL('department-of-veterans-affairs', 'codeql-tools', env.GIT_BRANCH, 'javascript', '', env.TOKEN, true)
                 }
-                sh "mv codeql-scan-results-javascript.csv codeql-scan-results-javascript-windows.csv"
+                powershell "Rename-Item -Path codeql-scan-results-javascript.csv -NewName codeql-scan-results-javascript-windows.csv"
                 archiveArtifacts artifacts: 'codeql-scan-results-javascript-windows.csv', fingerprint: true
             }
         }
@@ -24,7 +24,7 @@ pipeline {
                     withCredentials([string(credentialsId: 'github-token', variable: 'TOKEN')]) {
                         ExecuteCodeQL('department-of-veterans-affairs', 'codeql-tools', env.GIT_BRANCH, 'javascript', '', env.TOKEN, true)
                     }
-                    sh "mv codeql-scan-results-javascript.csv codeql-scan-results-javascript-windows-subdir.csv"
+                    powershell "Rename-Item -Path codeql-scan-results-javascript.csv -NewName codeql-scan-results-javascript-windows-subdir.csv"
                     archiveArtifacts artifacts: 'codeql-scan-results-javascript-windows-subdir.csv', fingerprint: true
                 }
             }
