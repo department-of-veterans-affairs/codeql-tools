@@ -1,0 +1,41 @@
+@Library('codeql-linux')_
+
+pipeline {
+    agent { node { label 'Windows' } }
+
+    stages {
+        stage('CodeQL - Javascript') {
+            agent { label 'windows' }
+            steps{
+                cleanWs()
+                checkout scm
+                withCredentials([string(credentialsId: 'github-token', variable: 'TOKEN')]) {
+                    ExecuteCodeQL('department-of-veterans-affairs', 'codeql-tools', env.GIT_BRANCH, 'javascript', '', env.TOKEN, true)
+                }
+                sh "mv codeql-scan-results-javascript.csv codeql-scan-results-javascript-windows.csv"
+                archiveArtifacts artifacts: 'codeql-scan-results-javascript-windows.csv', fingerprint: true
+            }
+        }
+
+        stage('CodeQL with Subdirectories - Javascript') {
+            agent { label 'windows' }
+            steps{
+                cleanWs()
+                checkout scm
+                dir('verify-scans') {
+                    withCredentials([string(credentialsId: 'github-token', variable: 'TOKEN')]) {
+                        ExecuteCodeQL('department-of-veterans-affairs', 'codeql-tools', env.GIT_BRANCH, 'javascript', '', env.TOKEN, true)
+                    }
+                    sh "mv codeql-scan-results-javascript.csv codeql-scan-results-javascript-windows-subdir.csv"
+                    archiveArtifacts artifacts: 'codeql-scan-results-javascript-windows-subdir.csv', fingerprint: true
+                }
+            }
+        }
+    }
+
+    post {
+        always {
+            cleanWs()
+        }
+    }
+}

@@ -1,0 +1,41 @@
+@Library('codeql-linux')_
+
+pipeline {
+    agent { node { label 'linux' } }
+
+    stages {
+        stage('CodeQL - Javascript') {
+            agent { label 'linux' }
+            steps{
+                cleanWs()
+                checkout scm
+                withCredentials([string(credentialsId: 'github-token', variable: 'TOKEN')]) {
+                    ExecuteCodeQL('department-of-veterans-affairs', 'codeql-tools', env.GIT_BRANCH, 'javascript', '', env.TOKEN, true)
+                }
+                sh "mv codeql-scan-results-javascript.csv codeql-scan-results-javascripts-linux.csv"
+                archiveArtifacts artifacts: 'codeql-scan-results-javascripts-linux.csv', fingerprint: true
+            }
+        }
+
+        stage('CodeQL with Subdirectories - Javascript') {
+            agent { label 'linux' }
+            steps{
+                cleanWs()
+                checkout scm
+                dir('verify-scans') {
+                    withCredentials([string(credentialsId: 'github-token', variable: 'TOKEN')]) {
+                        ExecuteCodeQL('department-of-veterans-affairs', 'codeql-tools', env.GIT_BRANCH, 'javascript', '', env.TOKEN, true)
+                    }
+                    sh "mv codeql-scan-results-javascript.csv codeql-scan-results-javascript-linux-subdir.csv"
+                    archiveArtifacts artifacts: 'codeql-scan-results-javascript-linux-subdir.csv', fingerprint: true
+                }
+            }
+        }
+    }
+
+    post {
+        always {
+            cleanWs()
+        }
+    }
+}
