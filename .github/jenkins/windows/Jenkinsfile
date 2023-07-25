@@ -1,7 +1,7 @@
-@Library('codeql-linux')_
+@Library('codeql-windows')_
 
 pipeline {
-    agent { label 'Windows' }
+    agent { label 'windows' }
 
     stages {
         stage('CodeQL - Javascript') {
