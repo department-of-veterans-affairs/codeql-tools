@@ -48,7 +48,7 @@ def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
 
     sh '''
         echo "${PWD}" > ./envs.txt
-        CWD=$( cat ./envs.txt )
+        CWD=\$( cat ./envs.txt )
         echo "WORKSPACE: ${WORKSPACE}"
         echo "CWD: ${CWD}" 
         echo "CodeQL config file: ${CONFIG_FILE}"
@@ -153,7 +153,7 @@ def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
         fi
         echo "Database initialized"
         
-        CWD=$( cat ./envs.txt )
+        CWD=\$( cat ./envs.txt )
         echo "WORKSPACE: ${WORKSPACE}"
         echo "CWD: ${CWD}"
         echo "Check if CWD matches WORKSPACE"
