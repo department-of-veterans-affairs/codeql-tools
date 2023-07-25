@@ -162,13 +162,13 @@ def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
             SUBDIR="\${SUBDIR}"
             SEP='-'
         fi
-        echo "Sarif Category: ${LANGUAGE}${SEP}${SUBDIR}"
+        echo "Sarif Category: ${LANGUAGE}\${SEP}\${SUBDIR}"
 
         echo "Analyzing database"
         if [ "${INSTALL_CODEQL}" = true ]; then
-            ./codeql/codeql database analyze "${DATABASE_PATH}" --no-download --sarif-category "ois-${LANGUAGE}${SEP}${SUBDIR}" --format sarif-latest --output "${SARIF_FILE}" "${QL_PACKS}"
+            ./codeql/codeql database analyze "${DATABASE_PATH}" --no-download --sarif-category "ois-${LANGUAGE}\${SEP}\${SUBDIR}" --format sarif-latest --output "${SARIF_FILE}" "${QL_PACKS}"
         else
-            codeql database analyze "${DATABASE_PATH}" --no-download --sarif-category "ois-${LANGUAGE}${SEP}${SUBDIR}" --format sarif-latest --output "${SARIF_FILE}" "${QL_PACKS}"
+            codeql database analyze "${DATABASE_PATH}" --no-download --sarif-category "ois-${LANGUAGE}\${SEP}\${SUBDIR}" --format sarif-latest --output "${SARIF_FILE}" "${QL_PACKS}"
         fi
         echo "Database analyzed"
 
