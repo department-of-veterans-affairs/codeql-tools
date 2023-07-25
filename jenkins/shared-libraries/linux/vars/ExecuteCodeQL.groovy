@@ -151,8 +151,6 @@ def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
         fi
         echo "Database initialized"
 
-        cat ./envs.txt
-
         echo "WORKSPACE: ${WORKSPACE}"
         echo "PWD: \${PWD}"
         echo "Check if PWD matches WORKSPACE"
