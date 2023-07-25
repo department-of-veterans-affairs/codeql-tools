@@ -56,16 +56,16 @@ def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
         cd "${WORKSPACE}"
 
         echo "Validating emass.json"
-        json_file=".github/emass.json"
+        json_file="${WORKSPACE}/.github/emass.json"
         if [ ! -f "$json_file" ]; then
-          echo "Error: emass.json not found, please refer to the OIS documentation on creating the emass.json file"
-          exit 1
+            echo "Error: emass.json not found, please refer to the OIS documentation on creating the emass.json file"
+            exit 1
         fi
 
         output=\$(jq '.' "$json_file" 2> /dev/null)
         if [ $? -ne 0 ]; then
-          echo "Error: malformed emass.json file, please refer to the OIS documentation on creating the emass.json file"
-          exit 4
+            echo "Error: malformed emass.json file, please refer to the OIS documentation on creating the emass.json file"
+            exit 4
         fi
 
         if [ "${INSTALL_CODEQL}" = false ]; then
@@ -81,11 +81,11 @@ def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
                 "https://api.github.com/repos/github/codeql-action/releases/latest" | jq -r .tag_name)
 
                 echo "Downloading CodeQL version '\$id'"
-                curl --insecure --silent --retry 3 --location --output "${WORKSPACE}/codeql.tgz" \
+                curl --insecure --silent --retry 3 --location --output "${PWD}/codeql.tgz" \
                 --header "${AUTHORIZATION_HEADER}" \
                 "https://github.com/github/codeql-action/releases/download/\$id/codeql-bundle-linux64.tar.gz"
-                tar -xf "${WORKSPACE}/codeql.tgz" --directory "${WORKSPACE}"
-                rm "${WORKSPACE}/codeql.tgz"
+                tar -xf "${PWD}/codeql.tgz" --directory "${PWD}"
+                rm "${PWD}/codeql.tgz"
             else
                 id=\$(curl --silent --retry 3 --location \
                 --header "${AUTHORIZATION_HEADER}" \
@@ -93,11 +93,11 @@ def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
                 "https://api.github.com/repos/github/codeql-action/releases/latest" | jq -r .tag_name)
 
                 echo "Downloading CodeQL version '\$id'"
-                curl --silent --retry 3 --location --output "${WORKSPACE}/codeql.tgz" \
+                curl --silent --retry 3 --location --output "${PWD}/codeql.tgz" \
                 --header "${AUTHORIZATION_HEADER}" \
                 "https://github.com/github/codeql-action/releases/download/\$id/codeql-bundle-linux64.tar.gz"
-                tar -xf "${WORKSPACE}/codeql.tgz" --directory "${WORKSPACE}"
-                rm "${WORKSPACE}/codeql.tgz"
+                tar -xf "${PWD}/codeql.tgz" --directory "${PWD}"
+                rm "${PWD}/codeql.tgz"
             fi
 
             echo "CodeQL installed"
@@ -116,7 +116,7 @@ def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
             if [ -z "${BUILD_COMMAND}" ]; then
                 echo "No build command, using default"
                 if [ "${INSTALL_CODEQL}" = true ]; then
-                   ./codeql/codeql database create "${DATABASE_PATH}" --language="${LANGUAGE}" --source-root .
+                    ./codeql/codeql database create "${DATABASE_PATH}" --language="${LANGUAGE}" --source-root .
                 else
                     codeql database create "${DATABASE_PATH}" --language="${LANGUAGE}" --source-root .
                 fi
@@ -132,7 +132,7 @@ def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
             if [ -z "${BUILD_COMMAND}" ]; then
                 echo "No build command, using default"
                 if [ "${INSTALL_CODEQL}" = true ]; then
-                   ./codeql/codeql database create "${DATABASE_PATH}" --language="${LANGUAGE}" --codescanning-config "${CONFIG_FILE}" --source-root .
+                    ./codeql/codeql database create "${DATABASE_PATH}" --language="${LANGUAGE}" --codescanning-config "${CONFIG_FILE}" --source-root .
                 else
                     codeql database create "${DATABASE_PATH}" --language="${LANGUAGE}" --codescanning-config "${CONFIG_FILE}" --source-root .
                 fi
@@ -151,13 +151,15 @@ def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
         if [ "${PWD}" != "${WORKSPACE}" ]; then
             SUBDIR=\$( echo ${PWD} | awk -F'/' '{print \$NF}' )
             SUBDIR="-\${SUBDIR}"
+            SEP='-'
         else
             SUBDIR=''
+            SEP=''
         fi
 
         echo "Analyzing database"
         if [ "${INSTALL_CODEQL}" = true ]; then
-            ./codeql/codeql database analyze "${DATABASE_PATH}" --no-download --sarif-category "ois-${LANGUAGE}\${SUBDIR}" --format sarif-latest --output "${SARIF_FILE}" "${QL_PACKS}"
+            ./codeql/codeql database analyze "${DATABASE_PATH}" --no-download --sarif-category "ois-${LANGUAGE}\${SEP}\${SUBDIR}" --format sarif-latest --output "${SARIF_FILE}" "${QL_PACKS}"
         else
             codeql database analyze "${DATABASE_PATH}" --no-download --sarif-category "ois-${LANGUAGE}\${SUBDIR}" --format sarif-latest --output "${SARIF_FILE}" "${QL_PACKS}"
         fi
