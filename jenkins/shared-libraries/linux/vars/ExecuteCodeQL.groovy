@@ -47,10 +47,8 @@ def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
     }
 
     sh '''
-        echo "${PWD}" > ./envs.txt
-        CWD=\$( cat ./envs.txt )
         echo "WORKSPACE: ${WORKSPACE}"
-        echo "CWD: ${CWD}" 
+        echo "PWD: ${PWD}" 
         echo "CodeQL config file: ${CONFIG_FILE}"
         echo "CodeQL database path: ${DATABASE_PATH}"
         echo "CodeQL database bundle: ${DATABASE_BUNDLE}"
@@ -87,11 +85,11 @@ def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
                 "https://api.github.com/repos/github/codeql-action/releases/latest" | jq -r .tag_name)
 
                 echo "Downloading CodeQL version '\$id'"
-                curl --insecure --silent --retry 3 --location --output "${CWD}/codeql.tgz" \
+                curl --insecure --silent --retry 3 --location --output "${PWD}/codeql.tgz" \
                 --header "${AUTHORIZATION_HEADER}" \
                 "https://github.com/github/codeql-action/releases/download/\$id/codeql-bundle-linux64.tar.gz"
-                tar -xf "${CWD}/codeql.tgz" --directory "${CWD}"
-                rm "${CWD}/codeql.tgz"
+                tar -xf "${PWD}/codeql.tgz" --directory "${PWD}"
+                rm "${PWD}/codeql.tgz"
             else
                 id=\$(curl --silent --retry 3 --location \
                 --header "${AUTHORIZATION_HEADER}" \
@@ -99,11 +97,11 @@ def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
                 "https://api.github.com/repos/github/codeql-action/releases/latest" | jq -r .tag_name)
 
                 echo "Downloading CodeQL version '\$id'"
-                curl --silent --retry 3 --location --output "${CWD}/codeql.tgz" \
+                curl --silent --retry 3 --location --output "${PWD}/codeql.tgz" \
                 --header "${AUTHORIZATION_HEADER}" \
                 "https://github.com/github/codeql-action/releases/download/\$id/codeql-bundle-linux64.tar.gz"
-                tar -xf "${CWD}/codeql.tgz" --directory "${CWD}"
-                rm "${CWD}/codeql.tgz"
+                tar -xf "${PWD}/codeql.tgz" --directory "${PWD}"
+                rm "${PWD}/codeql.tgz"
             fi
 
             echo "CodeQL installed"
@@ -156,15 +154,15 @@ def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
         cat ./envs.txt
 
         echo "WORKSPACE: ${WORKSPACE}"
-        echo "PWD: ${PWD}"
-        echo "Check if CWD matches WORKSPACE"
-        if [ "${PWD}" = "${WORKSPACE}" ]; then
+        echo "PWD: \${PWD}"
+        echo "Check if PWD matches WORKSPACE"
+        if [ "\${PWD}" = "${WORKSPACE}" ]; then
             echo "The current directory and ${WORKSPACE} match."
             SUBDIR=''
             SEP=''
         else
             echo "The current directory and ${WORKSPACE} do NOT match."
-            SUBDIR=\$( echo ${PWD} | awk -F'/' '{print \$NF}' )
+            SUBDIR=\$( echo \${PWD} | awk -F'/' '{print \$NF}' )
             SEP='-'
         fi
         echo "Sarif Category: ois-${LANGUAGE}\${SEP}\${SUBDIR}"
