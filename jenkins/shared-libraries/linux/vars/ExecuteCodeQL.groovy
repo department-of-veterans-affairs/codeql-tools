@@ -154,17 +154,17 @@ def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
         echo "Database initialized"
 
         cat ./envs.txt
-        CWD="\${PWD}"
+
         echo "WORKSPACE: ${WORKSPACE}"
-        echo "CWD: ${CWD}"
+        echo "PWD: ${PWD}"
         echo "Check if CWD matches WORKSPACE"
-        if [ "${CWD}" = "${WORKSPACE}" ]; then
+        if [ "${PWD}" = "${WORKSPACE}" ]; then
             echo "The current directory and ${WORKSPACE} match."
             SUBDIR=''
             SEP=''
         else
             echo "The current directory and ${WORKSPACE} do NOT match."
-            SUBDIR=\$( echo ${CWD} | awk -F'/' '{print \$NF}' )
+            SUBDIR=\$( echo ${PWD} | awk -F'/' '{print \$NF}' )
             SEP='-'
         fi
         echo "Sarif Category: ois-${LANGUAGE}\${SEP}\${SUBDIR}"
