@@ -14,6 +14,7 @@ def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
     env.CONFIG_FILE = "${env.WORKSPACE}/.github/codeql.yml"
     env.DATABASE_BUNDLE = sprintf("%s-database.zip", language)
     env.DATABASE_PATH = sprintf("%s-%s", repo, language)
+    env.CWD = "${env.PWD}"
     if(!env.ENABLE_DEBUG) {
         env.ENABLE_DEBUG = false
     }
@@ -48,7 +49,7 @@ def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
 
     sh '''
         echo "WORKSPACE: ${WORKSPACE}"
-        echo "PWD: ${PWD}"
+        echo "CWD: ${CWD}"
         echo "CodeQL config file: ${CONFIG_FILE}"
         echo "CodeQL database path: ${DATABASE_PATH}"
         echo "CodeQL database bundle: ${DATABASE_BUNDLE}"
@@ -85,11 +86,11 @@ def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
                 "https://api.github.com/repos/github/codeql-action/releases/latest" | jq -r .tag_name)
 
                 echo "Downloading CodeQL version '\$id'"
-                curl --insecure --silent --retry 3 --location --output "${PWD}/codeql.tgz" \
+                curl --insecure --silent --retry 3 --location --output "${CWD}/codeql.tgz" \
                 --header "${AUTHORIZATION_HEADER}" \
                 "https://github.com/github/codeql-action/releases/download/\$id/codeql-bundle-linux64.tar.gz"
-                tar -xf "${PWD}/codeql.tgz" --directory "${PWD}"
-                rm "${PWD}/codeql.tgz"
+                tar -xf "${CWD}/codeql.tgz" --directory "${CWD}"
+                rm "${CWD}/codeql.tgz"
             else
                 id=\$(curl --silent --retry 3 --location \
                 --header "${AUTHORIZATION_HEADER}" \
@@ -97,11 +98,11 @@ def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
                 "https://api.github.com/repos/github/codeql-action/releases/latest" | jq -r .tag_name)
 
                 echo "Downloading CodeQL version '\$id'"
-                curl --silent --retry 3 --location --output "${PWD}/codeql.tgz" \
+                curl --silent --retry 3 --location --output "${CWD}/codeql.tgz" \
                 --header "${AUTHORIZATION_HEADER}" \
                 "https://github.com/github/codeql-action/releases/download/\$id/codeql-bundle-linux64.tar.gz"
-                tar -xf "${PWD}/codeql.tgz" --directory "${PWD}"
-                rm "${PWD}/codeql.tgz"
+                tar -xf "${CWD}/codeql.tgz" --directory "${CWD}"
+                rm "${CWD}/codeql.tgz"
             fi
 
             echo "CodeQL installed"
@@ -152,15 +153,15 @@ def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
         echo "Database initialized"
 
         echo "WORKSPACE: ${WORKSPACE}"
-        echo "PWD: ${PWD}"
-        echo "Check if PWD matches WORKSPACE"
-        if [ "${PWD}" = "${WORKSPACE}" ]; then
+        echo "CWD: ${CWD}"
+        echo "Check if CWD matches WORKSPACE"
+        if [ "${CWD}" = "${WORKSPACE}" ]; then
             echo "The current directory and ${WORKSPACE} match."
             SUBDIR=''
             SEP=''
         else
             echo "The current directory and ${WORKSPACE} do NOT match."
-            SUBDIR=\$( echo ${PWD} | awk -F'/' '{print \$NF}' )
+            SUBDIR=\$( echo ${CWD} | awk -F'/' '{print \$NF}' )
             SEP='-'
         fi
         echo "Sarif Category: ois-${LANGUAGE}\${SEP}\${SUBDIR}"
