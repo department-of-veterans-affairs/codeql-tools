@@ -1,11 +1,10 @@
 @Library('codeql-linux')_
 
 pipeline {
-    agent { node { label 'linux' } }
+    agent { label 'linux' }
 
     stages {
         stage('CodeQL - Javascript') {
-            agent { label 'linux' }
             steps{
                 cleanWs()
                 checkout scm
@@ -18,7 +17,6 @@ pipeline {
         }
 
         stage('CodeQL with Subdirectories - Javascript') {
-            agent { label 'linux' }
             steps{
                 cleanWs()
                 checkout scm
