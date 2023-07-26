@@ -1,4 +1,4 @@
-
+@Library('codeql-windows-dev')_
 
 pipeline {
     agent { label 'windows' }
@@ -7,7 +7,6 @@ pipeline {
         stage('CodeQL - Javascript') {
             steps{
                 cleanWs()
-                library 'codeql-windows-dev'
                 checkout scm
                 withCredentials([string(credentialsId: 'github-token', variable: 'TOKEN')]) {
                     ExecuteCodeQL('department-of-veterans-affairs', 'codeql-tools', env.GIT_BRANCH, 'javascript', '', env.TOKEN, true)
@@ -20,7 +19,6 @@ pipeline {
         stage('CodeQL with Subdirectories - Javascript') {
             steps{
                 cleanWs()
-                library 'codeql-windows-dev'
                 checkout scm
                 dir('verify-scans') {
                     withCredentials([string(credentialsId: 'github-token', variable: 'TOKEN')]) {
