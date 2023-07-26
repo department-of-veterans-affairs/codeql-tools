@@ -47,11 +47,11 @@ def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
     }
 
     sh '''
-        echo "WORKSPACE: ${WORKSPACE}"
-        echo "PWD: ${PWD}" 
+        echo “Current Jenkins Workspace: ${WORKSPACE}”
+        echo “Current working directory: ${PWD}”
         echo "CodeQL config file: ${CONFIG_FILE}"
-        echo "CodeQL database path: ${DATABASE_PATH}"
-        echo "CodeQL database bundle: ${DATABASE_BUNDLE}"
+        echo “CodeQL database path: ${DATABASE_PATH}”
+        echo “CodeQL database bundle file name: ${DATABASE_BUNDLE}”
 
         if [ "${ENABLE_DEBUG}" = true ]; then
             set -x
@@ -151,19 +151,19 @@ def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
         fi
         echo "Database initialized"
 
-        echo "WORKSPACE: ${WORKSPACE}"
-        echo "PWD: \${PWD}"
-        echo "Check if PWD matches WORKSPACE"
+        echo “Current Jenkins Workspace: ${WORKSPACE}”
+        echo “Current working directory: \${PWD}”
+        echo "Check if current working directory and Jenkins workspace are the same directory"
         if [ "\${PWD}" = "${WORKSPACE}" ]; then
-            echo "The current directory and ${WORKSPACE} match."
+            echo "TThe current working directory and Jenkins workspace match"
             SUBDIR=''
             SEP=''
         else
-            echo "The current directory and ${WORKSPACE} do NOT match."
+            echo "The current working directory and Jenkins workspace do not match, updating the SARIF category value to deduplicate Code Scanning results"
             SUBDIR=\$( echo \${PWD} | awk -F'/' '{print \$NF}' )
             SEP='-'
         fi
-        echo "Sarif Category: ois-${LANGUAGE}\${SEP}\${SUBDIR}"
+        echo "The SARIF category has been configured to ois-${LANGUAGE}\${SEP}\${SUBDIR}"
 
         echo "Analyzing database"
         if [ "${INSTALL_CODEQL}" = true ]; then
