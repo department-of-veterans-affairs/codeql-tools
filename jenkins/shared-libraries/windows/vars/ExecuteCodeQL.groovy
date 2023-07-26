@@ -87,11 +87,11 @@ def call(Org, Repo, Branch, Language, BuildCommand, Token, InstallCodeQL) {
     """
 
     powershell """
-        Write-Output "WORKSPACE: \$Env:WORKSPACE"
-        Write-Output "PWD: \$pwd"
+        Write-Output "Current Jenkins Workspace: \$Env:WORKSPACE"
+        Write-Output "Current working directory: \$pwd"
         Write-Output "CodeQL config file: \$Env:CONFIG_FILE"
         Write-Output "CodeQL database path: \$Env:DATABASE_PATH"
-        Write-Output "CodeQL database bundle: \$Env:DATABASE_BUNDLE"
+        Write-Output "CodeQL database bundle file name: \$Env:DATABASE_BUNDLE"
         
         Write-Output "Initializing database"
         if (!(Test-Path "\$Env:CONFIG_FILE")) {
@@ -129,23 +129,21 @@ def call(Org, Repo, Branch, Language, BuildCommand, Token, InstallCodeQL) {
         }
         Write-Output "Database initialized"
 
-        Write-Output "Check if the current directory matches \$Env:WORKSPACE"
-        Write-Output "WORKSPACE: \$Env:WORKSPACE."
-        Write-Output "Current working directory: \$PWD."
+        Write-Output "Check if current working directory and Jenkins workspace are the same directory"
+        Write-Output "Current Jenkins Workspace: \$Env:WORKSPACE"
+        Write-Output "Current working directory: \$PWD"
         if (\$Env:WORKSPACE -eq \$PWD) {
-            Write-Output "The current directory and \$Env:WORKSPACE match."
+            Write-Output "The current directory and \$Env:WORKSPACE match"
             \$Env:CWD = ""
             \$Env:SEP = ""
         } else {
-            Write-Output "The current directory and \$Env:WORKSPACE do NOT match."
+            Write-Output "The current working directory and Jenkins workspace do not match, updating the SARIF category value to deduplicate Code Scanning results"
             \$Env:CWD = Split-Path "\$PWD" -Leaf
             \$Env:SEP = "-"
         }
-        Write-Output "Check if the current directory matches \$Env:WORKSPACE"
+        Write-Output "The SARIF category has been configured to ois-\$Env:LANGUAGE\$Env:SEP\$Env:CWD"
 
-        Write-Output "Analyzing database"
-        Write-Output "sarif category: ois-\$Env:LANGUAGE\$Env:SEP\$Env:CWD"
-
+        Write-Output "Analyzing database"       
         if("\$Env:INSTALL_CODEQL" -eq "true") {
             .\\codeql\\codeql database analyze --download "\$Env:DATABASE_PATH" --sarif-category "ois-\$Env:LANGUAGE\$Env:SEP\$Env:CWD" --format sarif-latest --output "\$Env:SARIF_FILE" "\$Env:QL_PACKS"
         } else {
