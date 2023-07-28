@@ -36,7 +36,7 @@ func CalculateMissingLanguages(expectedLanguages, actualLanguages []string) []st
 func MapLanguages(languages map[string]int) []string {
 	mappedLanguages := make([]string, len(languages))
 	for language := range languages {
-		switch language {
+		switch strings.ToLower(language) {
 		case "c":
 		case "c++":
 			mappedLanguages = append(mappedLanguages, "cpp")
