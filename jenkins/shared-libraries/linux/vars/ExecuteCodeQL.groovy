@@ -47,17 +47,17 @@ def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
     }
 
     sh '''
-        echo “Current Jenkins Workspace: ${WORKSPACE}”
-        echo “Current working directory: ${PWD}”
-        echo "CodeQL config file: ${CONFIG_FILE}"
-        echo “CodeQL database path: ${DATABASE_PATH}”
-        echo “CodeQL database bundle file name: ${DATABASE_BUNDLE}”
-
         if [ "${ENABLE_DEBUG}" = true ]; then
             set -x
         else
             set +x
         fi
+
+        echo “Current Jenkins Workspace: ${WORKSPACE}”
+        echo “Current working directory: ${PWD}”
+        echo "CodeQL config file: ${CONFIG_FILE}"
+        echo “CodeQL database path: ${DATABASE_PATH}”
+        echo “CodeQL database bundle file name: ${DATABASE_BUNDLE}”
 
         echo "Validating emass.json"
         json_file="${WORKSPACE}/.github/emass.json"
