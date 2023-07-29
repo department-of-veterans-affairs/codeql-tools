@@ -1,7 +1,11 @@
 @Library('codeql-linux-dev')_
 
 pipeline {
-    agent { label 'linux' } 
+    agent { label 'linux' }
+
+    options {
+        disableConcurrentBuilds(abortPrevious: true)
+    }
 
     stages {
         stage('CodeQL - Javascript') {
