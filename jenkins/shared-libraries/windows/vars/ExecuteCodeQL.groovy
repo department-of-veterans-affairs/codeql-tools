@@ -92,7 +92,7 @@ def call(Org, Repo, Branch, Language, BuildCommand, Token, InstallCodeQL) {
         Write-Output "CodeQL config file: \$Env:CONFIG_FILE"
         Write-Output "CodeQL database path: \$Env:DATABASE_PATH"
         Write-Output "CodeQL database bundle file name: \$Env:DATABASE_BUNDLE"
-        
+
         Write-Output "Initializing database"
         if (!(Test-Path "\$Env:CONFIG_FILE")) {
             if ("\$Env:BUILD_COMMAND" -eq "") {
@@ -129,9 +129,7 @@ def call(Org, Repo, Branch, Language, BuildCommand, Token, InstallCodeQL) {
         }
         Write-Output "Database initialized"
 
-        Write-Output "Check if current working directory and Jenkins workspace are the same directory"
-        Write-Output "Current Jenkins Workspace: \$Env:WORKSPACE"
-        Write-Output "Current working directory: \$PWD"
+        Write-Output "Checking if current working directory and Jenkins workspace are the same directory"
         if (\$Env:WORKSPACE -eq \$PWD) {
             Write-Output "The current directory and \$Env:WORKSPACE match"
             \$Env:CWD = ""
@@ -143,7 +141,7 @@ def call(Org, Repo, Branch, Language, BuildCommand, Token, InstallCodeQL) {
         }
         Write-Output "The SARIF category has been configured to ois-\$Env:LANGUAGE\$Env:SEP\$Env:CWD"
 
-        Write-Output "Analyzing database"       
+        Write-Output "Analyzing database"
         if("\$Env:INSTALL_CODEQL" -eq "true") {
             .\\codeql\\codeql database analyze --download "\$Env:DATABASE_PATH" --sarif-category "ois-\$Env:LANGUAGE\$Env:SEP\$Env:CWD" --format sarif-latest --output "\$Env:SARIF_FILE" "\$Env:QL_PACKS"
         } else {
