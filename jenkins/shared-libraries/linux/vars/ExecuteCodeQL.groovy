@@ -155,7 +155,7 @@ def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
         echo “Current working directory: \${PWD}”
         echo "Check if current working directory and Jenkins workspace are the same directory"
         if [ "\${PWD}" = "${WORKSPACE}" ]; then
-            echo "TThe current working directory and Jenkins workspace match"
+            echo "The current working directory and Jenkins workspace match"
             SUBDIR=''
             SEP=''
         else
