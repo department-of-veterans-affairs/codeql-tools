@@ -3,6 +3,10 @@
 pipeline {
     agent { label 'windows' }
 
+    options {
+        disableConcurrentBuilds(abortPrevious: true)
+    }
+
     stages {
         stage('CodeQL - Javascript') {
             steps{
