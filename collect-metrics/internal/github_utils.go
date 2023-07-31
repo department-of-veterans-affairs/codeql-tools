@@ -36,22 +36,27 @@ func CalculateMissingLanguages(expectedLanguages, actualLanguages []string) []st
 func MapLanguages(languages map[string]int) []string {
 	mappedLanguages := make([]string, len(languages))
 	for language := range languages {
-		switch strings.ToLower(language) {
-		case "c":
-		case "c++":
-			mappedLanguages = append(mappedLanguages, "cpp")
-		case "c#":
-			mappedLanguages = append(mappedLanguages, "csharp")
-		case "kotlin":
-			mappedLanguages = append(mappedLanguages, "java")
-		case "typescript":
-			mappedLanguages = append(mappedLanguages, "javascript")
-		default:
-			mappedLanguages = append(mappedLanguages, strings.ToLower(language))
-		}
+		mappedLanguage := MapLanguage(language)
+		mappedLanguages = append(mappedLanguages, mappedLanguage)
 	}
 
 	return uniqueValues(mappedLanguages)
+}
+
+func MapLanguage(language string) string {
+	switch strings.ToLower(language) {
+	case "c":
+	case "c++":
+		return "cpp"
+	case "c#":
+		return "csharp"
+	case "kotlin":
+		return "java"
+	case "typescript":
+		return "javascript"
+	}
+
+	return strings.ToLower(language)
 }
 
 func Includes(a []string, s string) bool {
