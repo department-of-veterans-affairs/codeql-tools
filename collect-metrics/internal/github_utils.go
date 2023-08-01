@@ -45,8 +45,7 @@ func MapLanguages(languages map[string]int) []string {
 
 func MapLanguage(language string) string {
 	switch strings.ToLower(language) {
-	case "c":
-	case "c++":
+	case "c", "c++":
 		return "cpp"
 	case "c#":
 		return "csharp"
