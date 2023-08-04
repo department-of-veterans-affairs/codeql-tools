@@ -27,7 +27,7 @@
     "@actions/core": "^1.10.0",
     "@actions/github": "^5.1.1",
     "@octokit/app": "^13.1.8",
-    "@octokit/plugin-retry": "^5.0.4",
+    "@octokit/plugin-retry": "^6.0.0",
     "@octokit/plugin-throttling": "^6.1.0",
     "@octokit/rest": "^19.0.13",
     "archiver": "^5.3.1",
