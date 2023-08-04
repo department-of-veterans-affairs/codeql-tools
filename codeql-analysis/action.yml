@@ -51,39 +51,7 @@ runs:
       uses: actions/checkout@v3
 
     - name: Validate emass.json
-      if: runner.os != 'Windows'
-      shell: bash
-      run: |
-        json_file=".github/emass.json"
-        
-        echo "Validating emass.json"
-        if [ ! -f "$json_file" ]; then
-          echo "Error: emass.json not found, please refer to the OIS documentation on creating the emass.json file"
-          exit 1
-        fi
-        
-        output=$(jq '.' "$json_file" 2> /dev/null)
-        if [ $? -ne 0 ]; then
-          echo "Error: malformed emass.json file, please refer to the OIS documentation on creating the emass.json file"
-          exit 4
-        fi
-
-    - name: Validate emass.json
-      if: runner.os == 'Windows'
-      shell: powershell
-      run: |
-        $json_file = ".github\emass.json"
-        
-        Write-Output "Validating .github\emass.json"
-        if (!(Test-Path $json_file)) {
-          Write-Output "Error: .github\emass.json not found, please refer to the OIS documentation on creating the emass.json file"
-          Exit 1
-        }
-        $output = Get-Content $json_file -Raw -ErrorAction SilentlyContinue | ConvertFrom-Json
-        if (!$?) {
-          Write-Output "Error: malformed emass.json file, please refer to the OIS documentation on creating the emass.json file"
-          Exit 4
-        }
+      uses: department-of-veterans-affairs/codeql-tools/validate-emass-json@main
 
     - name: Initialize CodeQL
       uses: github/codeql-action/init@v2

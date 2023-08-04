@@ -1,0 +1,22 @@
+name: Validate Monorepo Access
+description: Validates that a monorepo has access to the monorepo features
+author: GitHub Expert Services
+inputs:
+  emass_system_list_credentials:
+    description: The app credentials to use for authentication
+    required: true
+  emass_system_list_path:
+    description: The path to the eMASS System ID List file
+    required: true
+  emass_system_list_repo:
+    description: The repository containing the eMASS System ID List
+    required: true
+  org:
+    description: The slug of the organization
+    required: true
+  repo:
+    description: The slug of the repository
+    required: true
+runs:
+  using: node16
+  main: dist/index.js
