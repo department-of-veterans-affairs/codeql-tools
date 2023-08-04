@@ -72,6 +72,18 @@ def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
             exit 4
         fi
 
+        systemID=\$(jq -r '.systemID' "$json_file")
+        if [ \$systemID -le 0 ]; then
+            echo "Error: systemID '\$systemID' is invalid"
+            exit 5
+        fi
+
+        systemOwnerEmail=\$(jq -r '.systemOwnerEmail' "$json_file")
+        case "\$systemOwnerEmail" in
+            *"@"*) break ;;
+            *)     echo "Error: systemOwnerEmail '\$systemOwnerEmail' is invalid"; exit 6 ;;
+        esac
+
         if [ "${INSTALL_CODEQL}" = false ]; then
             echo "Skipping installation of CodeQL"
         else

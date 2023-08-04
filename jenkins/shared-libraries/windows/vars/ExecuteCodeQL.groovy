@@ -57,6 +57,16 @@ def call(Org, Repo, Branch, Language, BuildCommand, Token, InstallCodeQL) {
             Exit 4
         }
 
+        if (\$output.systemID -le 0) {
+            Write-Output "Error: systemID is invalid"
+            Exit 5
+        }
+
+        if (\$output.systemOwnerEmail -notmatch "@") {
+            Write-Output "Error: systemOwnerEmail is invalid"
+            Exit 6
+        }
+
         if("\$Env:INSTALL_CODEQL" -eq "false") {
             Write-Output "Skipping installation of CodeQL"
         } else {
