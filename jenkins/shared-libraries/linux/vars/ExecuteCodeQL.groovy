@@ -132,32 +132,32 @@ def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
             if [ -z "${BUILD_COMMAND}" ]; then
                 echo "No build command, using default"
                 if [ "${INSTALL_CODEQL}" = true ]; then
-                    ./codeql/codeql database create "${DATABASE_PATH}" --language="${LANGUAGE}" --source-root .
+                    ./codeql/codeql database create "${DATABASE_PATH}" --threads 0 --language="${LANGUAGE}" --source-root .
                 else
-                    codeql database create "${DATABASE_PATH}" --language="${LANGUAGE}" --source-root .
+                    codeql database create "${DATABASE_PATH}" --threads 0 --language="${LANGUAGE}" --source-root .
                 fi
             else
                 echo "Build command specified, using '${BUILD_COMMAND}'"
                 if [ "${INSTALL_CODEQL}" = true ]; then
-                    ./codeql/codeql database create "${DATABASE_PATH}" --language="${LANGUAGE}" --source-root . --command="${BUILD_COMMAND}"
+                    ./codeql/codeql database create "${DATABASE_PATH}" --threads 0 --language="${LANGUAGE}" --source-root . --command="${BUILD_COMMAND}"
                 else
-                    codeql database create "${DATABASE_PATH}" --language="${LANGUAGE}" --source-root . --command="${BUILD_COMMAND}"
+                    codeql database create "${DATABASE_PATH}" --threads 0 --language="${LANGUAGE}" --source-root . --command="${BUILD_COMMAND}"
                 fi
             fi
         else
             if [ -z "${BUILD_COMMAND}" ]; then
                 echo "No build command, using default"
                 if [ "${INSTALL_CODEQL}" = true ]; then
-                    ./codeql/codeql database create "${DATABASE_PATH}" --language="${LANGUAGE}" --codescanning-config "${CONFIG_FILE}" --source-root .
+                    ./codeql/codeql database create "${DATABASE_PATH}" --threads 0 --language="${LANGUAGE}" --codescanning-config "${CONFIG_FILE}" --source-root .
                 else
-                    codeql database create "${DATABASE_PATH}" --language="${LANGUAGE}" --codescanning-config "${CONFIG_FILE}" --source-root .
+                    codeql database create "${DATABASE_PATH}" --threads 0 --language="${LANGUAGE}" --codescanning-config "${CONFIG_FILE}" --source-root .
                 fi
             else
                 echo "Build command specified, using '${BUILD_COMMAND}'"
                 if [ "${INSTALL_CODEQL}" = true ]; then
-                    ./codeql/codeql database create "${DATABASE_PATH}" --language="${LANGUAGE}" --codescanning-config "${CONFIG_FILE}" --source-root . --command="${BUILD_COMMAND}"
+                    ./codeql/codeql database create "${DATABASE_PATH}" --threads 0 --language="${LANGUAGE}" --codescanning-config "${CONFIG_FILE}" --source-root . --command="${BUILD_COMMAND}"
                 else
-                    codeql database create "${DATABASE_PATH}" --language="${LANGUAGE}" --codescanning-config "${CONFIG_FILE}" --source-root . --command="${BUILD_COMMAND}"
+                    codeql database create "${DATABASE_PATH}" --threads 0 --language="${LANGUAGE}" --codescanning-config "${CONFIG_FILE}" --source-root . --command="${BUILD_COMMAND}"
                 fi
             fi
         fi
@@ -177,9 +177,9 @@ def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
 
         echo "Analyzing database"
         if [ "${INSTALL_CODEQL}" = true ]; then
-            ./codeql/codeql database analyze "${DATABASE_PATH}" --no-download --sarif-category "ois-${LANGUAGE}\${SEP}\${SUBDIR}" --format sarif-latest --output "${SARIF_FILE}" "${QL_PACKS}"
+            ./codeql/codeql database analyze "${DATABASE_PATH}" --no-download --threads 0 --sarif-category "ois-${LANGUAGE}\${SEP}\${SUBDIR}" --format sarif-latest --output "${SARIF_FILE}" "${QL_PACKS}"
         else
-            codeql database analyze "${DATABASE_PATH}" --no-download --sarif-category "ois-${LANGUAGE}\${SEP}\${SUBDIR}" --format sarif-latest --output "${SARIF_FILE}" "${QL_PACKS}"
+            codeql database analyze "${DATABASE_PATH}" --no-download --threads 0 --sarif-category "ois-${LANGUAGE}\${SEP}\${SUBDIR}" --format sarif-latest --output "${SARIF_FILE}" "${QL_PACKS}"
         fi
         echo "Database analyzed"
 
