@@ -67,6 +67,8 @@ def call(Org, Repo, Branch, Language, BuildCommand, Token, InstallCodeQL) {
             Exit 6
         }
 
+
+        \$ProgressPreference = 'SilentlyContinue'
         if("\$Env:INSTALL_CODEQL" -eq "false") {
             Write-Output "Skipping installation of CodeQL"
         } else {
@@ -108,32 +110,32 @@ def call(Org, Repo, Branch, Language, BuildCommand, Token, InstallCodeQL) {
             if ("\$Env:BUILD_COMMAND" -eq "") {
                 Write-Output "No build command specified, using default"
                 if("\$Env:INSTALL_CODEQL" -eq "true") {
-                    .\\codeql\\codeql database create "\$Env:DATABASE_PATH" --language "\$Env:LANGUAGE" --source-root .
+                    .\\codeql\\codeql database create "\$Env:DATABASE_PATH" --threads 0 --language "\$Env:LANGUAGE" --source-root .
                 } else {
-                    codeql database create "\$Env:DATABASE_PATH" --language "\$Env:LANGUAGE" --source-root .
+                    codeql database create "\$Env:DATABASE_PATH" --threads 0 --language "\$Env:LANGUAGE" --source-root .
                 }
             } else {
                 Write-Output "Build command specified, using '\$Env:BUILD_COMMAND'"
                 if("\$Env:INSTALL_CODEQL" -eq "true") {
-                    .\\codeql\\codeql database create "\$Env:DATABASE_PATH" --language "\$Env:LANGUAGE" --source-root . --command "\$Env:BUILD_COMMAND"
+                    .\\codeql\\codeql database create "\$Env:DATABASE_PATH" --threads 0 --language "\$Env:LANGUAGE" --source-root . --command "\$Env:BUILD_COMMAND"
                 } else {
-                    codeql database create "\$Env:DATABASE_PATH" --language "\$Env:LANGUAGE" --source-root . --command "\$Env:BUILD_COMMAND"
+                    codeql database create "\$Env:DATABASE_PATH" --threads 0 --language "\$Env:LANGUAGE" --source-root . --command "\$Env:BUILD_COMMAND"
                 }
             }
         } else {
             if ("\$Env:BUILD_COMMAND" -eq "") {
                 Write-Output "No build command specified, using default"
                 if("\$Env:INSTALL_CODEQL" -eq "true") {
-                    .\\codeql\\codeql database create "\$Env:DATABASE_PATH" --language "\$Env:LANGUAGE" --codescanning-config "\$Env:CONFIG_FILE" --source-root .
+                    .\\codeql\\codeql database create "\$Env:DATABASE_PATH" --threads 0 --language "\$Env:LANGUAGE" --codescanning-config "\$Env:CONFIG_FILE" --source-root .
                 } else {
-                    codeql database create "\$Env:DATABASE_PATH" --language "\$Env:LANGUAGE" --codescanning-config "\$Env:CONFIG_FILE" --source-root .
+                    codeql database create "\$Env:DATABASE_PATH" --threads 0 --language "\$Env:LANGUAGE" --codescanning-config "\$Env:CONFIG_FILE" --source-root .
                 }
             } else {
                 Write-Output "Build command specified, using '\$Env:BUILD_COMMAND'"
                 if("\$Env:INSTALL_CODEQL" -eq "true") {
-                    .\\codeql\\codeql database create "\$Env:DATABASE_PATH" --language "\$Env:LANGUAGE" --codescanning-config "\$Env:CONFIG_FILE" --source-root . --command "\$Env:BUILD_COMMAND"
+                    .\\codeql\\codeql database create "\$Env:DATABASE_PATH" --threads 0 --language "\$Env:LANGUAGE" --codescanning-config "\$Env:CONFIG_FILE" --source-root . --command "\$Env:BUILD_COMMAND"
                 } else {
-                    codeql database create "\$Env:DATABASE_PATH" --language "\$Env:LANGUAGE" --codescanning-config "\$Env:CONFIG_FILE" --source-root . --command "\$Env:BUILD_COMMAND"
+                    codeql database create "\$Env:DATABASE_PATH" --threads 0 --language "\$Env:LANGUAGE" --codescanning-config "\$Env:CONFIG_FILE" --source-root . --command "\$Env:BUILD_COMMAND"
                 }
             }
         }
@@ -153,9 +155,9 @@ def call(Org, Repo, Branch, Language, BuildCommand, Token, InstallCodeQL) {
 
         Write-Output "Analyzing database"
         if("\$Env:INSTALL_CODEQL" -eq "true") {
-            .\\codeql\\codeql database analyze --download "\$Env:DATABASE_PATH" --sarif-category "ois-\$Env:LANGUAGE\$Env:SEP\$Env:CWD" --format sarif-latest --output "\$Env:SARIF_FILE" "\$Env:QL_PACKS"
+            .\\codeql\\codeql database analyze --download "\$Env:DATABASE_PATH" --threads 0 --sarif-category "ois-\$Env:LANGUAGE\$Env:SEP\$Env:CWD" --format sarif-latest --output "\$Env:SARIF_FILE" "\$Env:QL_PACKS"
         } else {
-            codeql database analyze --download "\$Env:DATABASE_PATH" --sarif-category "ois-\$Env:LANGUAGE" --format sarif-latest --output "\$Env:SARIF_FILE" "\$Env:QL_PACKS"
+            codeql database analyze --download "\$Env:DATABASE_PATH" --threads 0 --sarif-category "ois-\$Env:LANGUAGE" --format sarif-latest --output "\$Env:SARIF_FILE" "\$Env:QL_PACKS"
         }
         Write-Output "Database analyzed"
         Write-Output "Generating CSV of results"
