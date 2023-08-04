@@ -28,7 +28,7 @@
     "@actions/github": "^5.1.1",
     "@octokit/app": "^13.1.8",
     "@octokit/plugin-retry": "^5.0.4",
-    "@octokit/plugin-throttling": "^6.1.0",
+    "@octokit/plugin-throttling": "^7.0.0",
     "@octokit/rest": "^19.0.13",
     "archiver": "^5.3.1",
     "axios": "^1.4.0",
