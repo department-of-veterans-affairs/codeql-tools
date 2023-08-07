@@ -57,7 +57,7 @@ def call(Org, Repo, Branch, Language, BuildCommand, Token, InstallCodeQL) {
             Exit 4
         }
 
-        if (\$output.systemID -le 0) {
+        if (\$output.systemID -le 0 -and \$output.systemID -ne -1) {
             Write-Output "Error: systemID is invalid"
             Exit 5
         }

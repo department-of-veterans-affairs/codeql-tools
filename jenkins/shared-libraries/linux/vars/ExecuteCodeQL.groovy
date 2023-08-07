@@ -73,7 +73,7 @@ def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
         fi
 
         systemID=\$(jq -r '.systemID' "$json_file")
-        if [ \$systemID -le 0 ]; then
+        if [ \$systemID -le 0 ] && [ \$systemID -ne -1 ]; then
             echo "Error: systemID '\$systemID' is invalid"
             exit 5
         fi
