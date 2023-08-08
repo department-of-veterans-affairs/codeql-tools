@@ -1,8 +1,3 @@
-import org.apache.commons.compress.archivers.tar.TarArchiveInputStream
-import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream
-import java.nio.file.Files
-import java.nio.file.Paths
-
 def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
     env.AUTHORIZATION_HEADER = sprintf("Authorization: token %s", token)
     if(branch == "") {
@@ -80,7 +75,7 @@ def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
 
         systemOwnerEmail=\$(jq -r '.systemOwnerEmail' "$json_file")
         case "\$systemOwnerEmail" in
-            *"@"*) break ;;
+            *"@"*) echo "Valid eMASS SystemOwnerEmail";;
             *)     echo "Error: systemOwnerEmail '\$systemOwnerEmail' is invalid"; exit 6 ;;
         esac
 
@@ -97,11 +92,11 @@ def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
                 "https://api.github.com/repos/github/codeql-action/releases/latest" | jq -r .tag_name)
 
                 echo "Downloading CodeQL version '\$id'"
-                curl --insecure --silent --retry 3 --location --output "${PWD}/codeql.tgz" \
+                curl --insecure --silent --retry 3 --location --output "${WORKSPACE}/codeql.tgz" \
                 --header "${AUTHORIZATION_HEADER}" \
                 "https://github.com/github/codeql-action/releases/download/\$id/codeql-bundle-linux64.tar.gz"
-                tar -xf "${PWD}/codeql.tgz" --directory "${PWD}"
-                rm "${PWD}/codeql.tgz"
+                tar -xf "${WORKSPACE}/codeql.tgz" --directory "${WORKSPACE}"
+                rm "${WORKSPACE}/codeql.tgz"
             else
                 id=\$(curl --silent --retry 3 --location \
                 --header "${AUTHORIZATION_HEADER}" \
@@ -109,11 +104,11 @@ def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
                 "https://api.github.com/repos/github/codeql-action/releases/latest" | jq -r .tag_name)
 
                 echo "Downloading CodeQL version '\$id'"
-                curl --silent --retry 3 --location --output "${PWD}/codeql.tgz" \
+                curl --silent --retry 3 --location --output "${WORKSPACE}/codeql.tgz" \
                 --header "${AUTHORIZATION_HEADER}" \
                 "https://github.com/github/codeql-action/releases/download/\$id/codeql-bundle-linux64.tar.gz"
-                tar -xf "${PWD}/codeql.tgz" --directory "${PWD}"
-                rm "${PWD}/codeql.tgz"
+                tar -xf "${WORKSPACE}/codeql.tgz" --directory "${WORKSPACE}"
+                rm "${WORKSPACE}/codeql.tgz"
             fi
 
             echo "CodeQL installed"
@@ -127,38 +122,33 @@ def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
             set +x
         fi
 
+        command="codeql"
+        if [ ! -x "\$(command -v \$command)" ]; then
+            echo "CodeQL CLI not found on PATH, checking if local copy exists"
+            if [ ! -f "${WORKSPACE}/codeql/codeql" ]; then
+                echo "CodeQL CLI not found in local copy, please add the CodeQL CLI to your PATH or use the 'InstallCodeQL' command to download it"
+                exit 1
+            fi
+            echo "Using local copy of CodeQL CLI"
+            command="${WORKSPACE}/codeql/codeql"
+        fi
+
         echo "Initializing database"
         if [ ! -f "${CONFIG_FILE}" ]; then
             if [ -z "${BUILD_COMMAND}" ]; then
                 echo "No build command, using default"
-                if [ "${INSTALL_CODEQL}" = true ]; then
-                    ./codeql/codeql database create "${DATABASE_PATH}" --threads 0 --language="${LANGUAGE}" --source-root .
-                else
-                    codeql database create "${DATABASE_PATH}" --threads 0 --language="${LANGUAGE}" --source-root .
-                fi
+                "\$command" database create "${DATABASE_PATH}" --threads 0 --language="${LANGUAGE}" --source-root .
             else
                 echo "Build command specified, using '${BUILD_COMMAND}'"
-                if [ "${INSTALL_CODEQL}" = true ]; then
-                    ./codeql/codeql database create "${DATABASE_PATH}" --threads 0 --language="${LANGUAGE}" --source-root . --command="${BUILD_COMMAND}"
-                else
-                    codeql database create "${DATABASE_PATH}" --threads 0 --language="${LANGUAGE}" --source-root . --command="${BUILD_COMMAND}"
-                fi
+                "\$command" database create "${DATABASE_PATH}" --threads 0 --language="${LANGUAGE}" --source-root . --command="${BUILD_COMMAND}"
             fi
         else
             if [ -z "${BUILD_COMMAND}" ]; then
                 echo "No build command, using default"
-                if [ "${INSTALL_CODEQL}" = true ]; then
-                    ./codeql/codeql database create "${DATABASE_PATH}" --threads 0 --language="${LANGUAGE}" --codescanning-config "${CONFIG_FILE}" --source-root .
-                else
-                    codeql database create "${DATABASE_PATH}" --threads 0 --language="${LANGUAGE}" --codescanning-config "${CONFIG_FILE}" --source-root .
-                fi
+                "\$command" database create "${DATABASE_PATH}" --threads 0 --language="${LANGUAGE}" --codescanning-config "${CONFIG_FILE}" --source-root .
             else
                 echo "Build command specified, using '${BUILD_COMMAND}'"
-                if [ "${INSTALL_CODEQL}" = true ]; then
-                    ./codeql/codeql database create "${DATABASE_PATH}" --threads 0 --language="${LANGUAGE}" --codescanning-config "${CONFIG_FILE}" --source-root . --command="${BUILD_COMMAND}"
-                else
-                    codeql database create "${DATABASE_PATH}" --threads 0 --language="${LANGUAGE}" --codescanning-config "${CONFIG_FILE}" --source-root . --command="${BUILD_COMMAND}"
-                fi
+                "\$command" database create "${DATABASE_PATH}" --threads 0 --language="${LANGUAGE}" --codescanning-config "${CONFIG_FILE}" --source-root . --command="${BUILD_COMMAND}"
             fi
         fi
         echo "Database initialized"
@@ -176,55 +166,31 @@ def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
         echo "The SARIF category has been configured to ois-${LANGUAGE}\${SEP}\${SUBDIR}"
 
         echo "Analyzing database"
-        if [ "${INSTALL_CODEQL}" = true ]; then
-            ./codeql/codeql database analyze "${DATABASE_PATH}" --no-download --threads 0 --sarif-category "ois-${LANGUAGE}\${SEP}\${SUBDIR}" --format sarif-latest --output "${SARIF_FILE}" "${QL_PACKS}"
-        else
-            codeql database analyze "${DATABASE_PATH}" --no-download --threads 0 --sarif-category "ois-${LANGUAGE}\${SEP}\${SUBDIR}" --format sarif-latest --output "${SARIF_FILE}" "${QL_PACKS}"
-        fi
+        "\$command" database analyze "${DATABASE_PATH}" --threads 0 --no-download --sarif-category "ois-${LANGUAGE}\${SEP}\${SUBDIR}" --format sarif-latest --output "${SARIF_FILE}" "${QL_PACKS}"
         echo "Database analyzed"
 
         if [ "${ENABLE_CODEQL_DEBUG}" = true ]; then
             echo "Checking for failed extractions"
-            if [ "${INSTALL_CODEQL}" = true ]; then
-                ./codeql/codeql bqrs decode "${DATABASE_PATH}/results/codeql/${LANGUAGE}-queries/Diagnostics/ExtractionErrors.bqrs"
-            else
-                codeql bqrs decode "${DATABASE_PATH}/results/codeql/${LANGUAGE}-queries/Diagnostics/ExtractionErrors.bqrs"
-            fi
+            "\$command" bqrs decode "${DATABASE_PATH}/results/codeql/${LANGUAGE}-queries/Diagnostics/ExtractionErrors.bqrs"
         fi
 
         echo "Generating CSV of results"
-        if [ "${INSTALL_CODEQL}" = true ]; then
-            ./codeql/codeql database interpret-results "${DATABASE_PATH}" --format=csv --output="codeql-scan-results-${LANGUAGE}.csv" "${QL_PACKS}"
-        else
-            codeql database interpret-results "${DATABASE_PATH}" --format=csv --output="codeql-scan-results-${LANGUAGE}.csv" "${QL_PACKS}"
-        fi
+        "\$command" database interpret-results "${DATABASE_PATH}" --threads 0 --format=csv --output="codeql-scan-results-${LANGUAGE}.csv" "${QL_PACKS}"
         echo "CSV of results generated"
 
         if [ "${UPLOAD_RESULTS}" = true ]; then
             echo "Uploading SARIF file"
             commit=\$(git rev-parse HEAD)
-            if [ "${INSTALL_CODEQL}" = true ]; then
-                ./codeql/codeql github upload-results \
-                --repository="${ORG}/${REPO}" \
-                --ref="${REF}" \
-                --commit="\$commit" \
-                --sarif="${SARIF_FILE}"
-            else
-                codeql github upload-results \
-                --repository="${ORG}/${REPO}" \
-                --ref="${REF}" \
-                --commit="\$commit" \
-                --sarif="${SARIF_FILE}"
-            fi
+            "\$command" github upload-results \
+            --repository="${ORG}/${REPO}" \
+            --ref="${REF}" \
+            --commit="\$commit" \
+            --sarif="${SARIF_FILE}"
             echo "SARIF file uploaded"
         fi
 
         echo "Generating Database Bundle"
-        if [ "${INSTALL_CODEQL}" = true ]; then
-            ./codeql/codeql database bundle "${DATABASE_PATH}" --output "${DATABASE_BUNDLE}"
-        else
-            codeql database bundle "${DATABASE_PATH}" --output "${DATABASE_BUNDLE}"
-        fi
+        "\$command" database bundle "${DATABASE_PATH}" --output "${DATABASE_BUNDLE}"
         echo "Database Bundle generated"
     """
 
