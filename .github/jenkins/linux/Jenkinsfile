@@ -13,7 +13,6 @@ pipeline {
                 cleanWs()
                 checkout scm
                 withCredentials([string(credentialsId: 'github-token', variable: 'TOKEN')]) {
-                    sh "env | sort"
                     ExecuteCodeQL('department-of-veterans-affairs', 'codeql-tools', env.GIT_BRANCH, 'javascript', '', env.TOKEN, true)
                 }
                 sh "mv codeql-scan-results-javascript.csv codeql-scan-results-javascript-linux.csv"
@@ -27,7 +26,6 @@ pipeline {
                 checkout scm
                 dir('verify-scans') {
                     withCredentials([string(credentialsId: 'github-token', variable: 'TOKEN')]) {
-                        sh "env | sort"
                         ExecuteCodeQL('department-of-veterans-affairs', 'codeql-tools', env.GIT_BRANCH, 'javascript', '', env.TOKEN, true)
                     }
                     sh "mv codeql-scan-results-javascript.csv codeql-scan-results-javascript-linux-subdir.csv"
