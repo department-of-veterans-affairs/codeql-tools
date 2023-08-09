@@ -77,11 +77,11 @@ def call(Org, Repo, Branch, Language, BuildCommand, Token, InstallCodeQL) {
             Write-Output "Retrieving latest CodeQL release"
             \$Headers = @{
                 "Authorization" = "\$Env:AUTHORIZATION_HEADER"
-                "Accept" = "application/vnd.github+json"
+                "Accept" = "application/vnd.github.raw"
             }
-            \$Request = Invoke-WebRequest -UseBasicParsing -Method Get -Headers  \$Headers -Uri "https://api.github.com/repos/github/codeql-action/releases/latest"
-            \$Json = \$Request.Content | ConvertFrom-Json
-            \$Id = \$Json.tag_name
+            \$Request = Invoke-WebRequest -UseBasicParsing -Method Get -Headers  \$Headers -Uri "https://api.github.com/repos/github/codeql-action/contents/src/defaults.json"
+            \$Json = \$Request | ConvertFrom-Json
+            \$Id = \$Json.bundleVersion
 
             Write-Output "Downloading CodeQL archive for version '\$Id'"
             \$ProgressPreference = 'SilentlyContinue'
