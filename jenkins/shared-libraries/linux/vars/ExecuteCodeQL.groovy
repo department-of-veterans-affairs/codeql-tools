@@ -88,8 +88,8 @@ def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
             if [ "${ENABLE_TLS_NO_VERIFY}" = true ]; then
                 id=\$(curl --insecure --silent --retry 3 --location \
                 --header "${AUTHORIZATION_HEADER}" \
-                --header "Accept: application/vnd.github+json" \
-                "https://api.github.com/repos/github/codeql-action/releases/latest" | jq -r .tag_name)
+                --header "Accept: application/vnd.github.raw" \
+                "https://api.github.com/repos/github/codeql-action/contents/src/defaults.json" | jq -r .bundleVersion)
 
                 echo "Downloading CodeQL version '\$id'"
                 curl --insecure --silent --retry 3 --location --output "${WORKSPACE}/codeql.tgz" \
@@ -100,8 +100,8 @@ def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
             else
                 id=\$(curl --silent --retry 3 --location \
                 --header "${AUTHORIZATION_HEADER}" \
-                --header "Accept: application/vnd.github+json" \
-                "https://api.github.com/repos/github/codeql-action/releases/latest" | jq -r .tag_name)
+                --header "Accept: application/vnd.github.raw" \
+                "https://api.github.com/repos/github/codeql-action/contents/src/defaults.json" | jq -r .bundleVersion)
 
                 echo "Downloading CodeQL version '\$id'"
                 curl --silent --retry 3 --location --output "${WORKSPACE}/codeql.tgz" \
