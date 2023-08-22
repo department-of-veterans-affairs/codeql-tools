@@ -142,7 +142,7 @@ const processRepository = async (octokit, mailer, config, repository, codeQLVers
         }
 
         core.info(`[${repository.name}]: Retrieving existing CodeQL analyses`)
-        const analyses = await listCodeQLAnalyses(octokit, repository.owner.login, repository.name, repository.default_branch, config.days_to_scan)
+        const analyses = await listCodeQLAnalyses(octokit, repository.owner.login, repository.name, repository.default_branch, config.days_to_scan, requiredLanguages)
         if (analyses.languages.length > 0) {
             core.info(`[${repository.name}]: Analyses found, validating 'emass-promotion' app is installed on repository`)
             const installed = await isAppInstalled(emassPromotionInstallationClient, repository.owner.login, repository.name)
@@ -460,7 +460,7 @@ const validateCodeQLDatabase = (octokit, createdAt, range) => {
     return diffDays <= range
 }
 
-const listCodeQLAnalyses = async (octokit, owner, repo, branch, range) => {
+const listCodeQLAnalyses = async (octokit, owner, repo, branch, range, requiredLanguages) => {
     try {
         const analyses = await octokit.paginate('GET /repos/{owner}/{repo}/code-scanning/analyses', {
             owner: owner,
@@ -499,7 +499,10 @@ const listCodeQLAnalyses = async (octokit, owner, repo, branch, range) => {
             if (!analysis.category.toLowerCase().startsWith('ois-')) {
                 continue
             }
-            let language = analysis.category.split('-')[1].split('-')[0]
+            let language = analysis.category.split('-')[1].split('-')[0].trim().toLowerCase()
+            if(!requiredLanguages.includes(language)) {
+                continue
+            }
             if (language === 'kotlin') {
                 language = 'java'
             }
