@@ -2,8 +2,8 @@
 build: build-collect-metrics
 
 .PHONY: build-collect-metrics
-build-configure-codeql:
-	echo "Building configure-codeql"
+ build-collect-metrics:
+	echo "Building Collect Metrics"
 	go build -o bin/collect-metrics ./collect-metrics/cmd
 
 .PHONY: docker

@@ -13,14 +13,6 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func init() {
-	logrus.SetLevel(logrus.InfoLevel)
-	debug := strings.ToLower(strings.TrimSpace(os.Getenv("DEBUG"))) == "true"
-	if debug {
-		logrus.SetLevel(logrus.DebugLevel)
-	}
-}
-
 type CustomFormatter struct{}
 
 func (f *CustomFormatter) Format(entry *logrus.Entry) ([]byte, error) {
@@ -41,6 +33,11 @@ func main() {
 
 	globalLogger := logrus.New()
 	globalLogger.SetFormatter(&CustomFormatter{})
+	globalLogger.SetLevel(logrus.InfoLevel)
+	debug := strings.ToLower(strings.TrimSpace(os.Getenv("DEBUG"))) == "true"
+	if debug {
+		globalLogger.SetLevel(logrus.DebugLevel)
+	}
 
 	adminClient := utils.NewGitHubClient(config.AdminToken)
 

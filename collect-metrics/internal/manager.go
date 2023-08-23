@@ -99,14 +99,14 @@ func (m *Manager) ProcessRepository(repo *github.Repository) (*State, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to retrieve supported CodeQL languages, skipping repo: %v", err)
 	}
-	logger.Debugf("Supported CodeQL languages retrieved")
+	logger.Debugf("Supported CodeQL languages retrieved: %s", strings.Join(expectedLanguages, ", "))
 
 	logger.Info("Retrieving recent CodeQL analyses")
 	recentAnalyses, err := m.ListCodeQLAnalyses(org, name, defaultBranch, expectedLanguages)
 	if err != nil {
 		return nil, fmt.Errorf("failed to retrieve recent CodeQL analyses, skipping repo: %v", err)
 	}
-	logger.Debugf("Recent CodeQL analyses retrieved")
+	logger.Debugf("Recent CodeQL analyses retrieved: %v", recentAnalyses)
 
 	logger.Info("Validating scans performed with latest CodeQL version")
 	if len(recentAnalyses.Versions) > 0 {
@@ -120,18 +120,18 @@ func (m *Manager) ProcessRepository(repo *github.Repository) (*State, error) {
 
 	logger.Infof("Retrieving missing CodeQL languages")
 	missingLanguages := CalculateMissingLanguages(expectedLanguages, recentAnalyses.Languages)
-	logger.Debugf("Missing CodeQL languages retrieved: %v", missingLanguages)
+	logger.Debugf("Missing CodeQL languages retrieved: %s", strings.Join(missingLanguages, ", "))
 
 	logger.Infof("Retrieving support CodeQL database languags")
 	databaseLanguages, err := m.ListCodeQLDatabaseLanguages(org, name)
 	if err != nil {
 		return nil, fmt.Errorf("failed to retrieve supported CodeQL database languages, skipping repo: %v", err)
 	}
-	logger.Debugf("Supported CodeQL database languages retrieved")
+	logger.Debugf("Supported CodeQL database languages retrieved: %s", strings.Join(databaseLanguages, ", "))
 
 	logger.Infof("Calculating missing CodeQL database languages")
 	missingDatabaseLanguages := CalculateMissingLanguages(expectedLanguages, databaseLanguages)
-	logger.Debugf("Missing CodeQL database languages calculated: %v", missingDatabaseLanguages)
+	logger.Debugf("Missing CodeQL database languages calculated: %s", strings.Join(missingDatabaseLanguages, ", "))
 
 	logger.Infof("Checking if repository monorepo")
 	isMonorepo := Includes(m.MonorepoList.Repos, name)
@@ -165,11 +165,11 @@ func (m *Manager) ProcessRepository(repo *github.Repository) (*State, error) {
 	logger.Debugf("Open dependabot alert count retrieved")
 
 	logger.Infof("Retrieving open codescanning alert count")
-	openCodescanningAlertCount, err := m.GetCodeScanningAlertCount(org, name)
+	openCodeScanningAlertCount, err := m.GetCodeScanningAlertCount(org, name)
 	if err != nil {
 		logger.Warnf("failed to retrieve open codescanning alert count, skipping repo: %v", err)
 	} else {
-		state.CodeScanningAlertCount = openCodescanningAlertCount
+		state.CodeScanningAlertCount = openCodeScanningAlertCount
 	}
 	logger.Debugf("Open codescanning alert count retrieved")
 
