@@ -55,7 +55,7 @@ func (m *Manager) GetCodeQLConfig(owner, repo, path string) (*CodeQLConfig, erro
 	}
 
 	var config CodeQLConfig
-	err = json.Unmarshal([]byte(decodedContent), &config)
+	err = yaml.Unmarshal([]byte(decodedContent), &config)
 	if err != nil {
 		return nil, fmt.Errorf("failed to unmarshal file content: %v", err)
 	}
