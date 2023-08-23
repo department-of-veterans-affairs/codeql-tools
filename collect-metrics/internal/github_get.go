@@ -42,7 +42,7 @@ func (m *Manager) GetCodeQLConfig(owner, repo, path string) (*CodeQLConfig, erro
 		if resp.StatusCode == http.StatusNotFound {
 			return &CodeQLConfig{
 				BuildCommands:     map[string]string{},
-				ExcludedLanguages: []string{},
+				ExcludedLanguages: []ExcludedLanguage{},
 			}, nil
 		}
 

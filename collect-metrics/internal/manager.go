@@ -94,8 +94,15 @@ func (m *Manager) ProcessRepository(repo *github.Repository) (*State, error) {
 	}
 	logger.Debugf("CodeQL Configuration File retrieved: %v", codeqlConfig)
 
+	var excludedLanguages []string
+	if codeqlConfig != nil {
+		for _, language := range codeqlConfig.ExcludedLanguages {
+			excludedLanguages = append(excludedLanguages, strings.ToLower(language.Name))
+		}
+	}
+
 	logger.Infof("Retrieving supported CodeQL languages")
-	expectedLanguages, err := m.ListExpectedCodeQLLanguages(org, name, codeqlConfig.ExcludedLanguages)
+	expectedLanguages, err := m.ListExpectedCodeQLLanguages(org, name, excludedLanguages)
 	if err != nil {
 		return nil, fmt.Errorf("failed to retrieve supported CodeQL languages, skipping repo: %v", err)
 	}

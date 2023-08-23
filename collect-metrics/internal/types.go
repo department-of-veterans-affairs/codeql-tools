@@ -38,8 +38,13 @@ type EMASSConfig struct {
 }
 
 type CodeQLConfig struct {
-	ExcludedLanguages []string          `yaml:"excluded_languages"`
-	BuildCommands     map[string]string `yaml:"build_commands"`
+	ExcludedLanguages []ExcludedLanguage `yaml:"excluded_languages"`
+	BuildCommands     map[string]string  `yaml:"build_commands"`
+}
+
+type ExcludedLanguage struct {
+	Name   string `yaml:"name"`
+	Reason string `yaml:"reason"`
 }
 
 type codeQLDatabase struct {
