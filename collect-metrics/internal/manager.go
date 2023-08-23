@@ -92,7 +92,7 @@ func (m *Manager) ProcessRepository(repo *github.Repository) (*State, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to retrieve CodeQL Configuration File, skipping repo: %v", err)
 	}
-	logger.Debugf("CodeQL Configuration File retrieved")
+	logger.Debugf("CodeQL Configuration File retrieved: %v", codeqlConfig)
 
 	logger.Infof("Retrieving supported CodeQL languages")
 	expectedLanguages, err := m.ListExpectedCodeQLLanguages(org, name, codeqlConfig.ExcludedLanguages)
