@@ -13,7 +13,8 @@ const main = async () => {
         const emass = JSON.parse(fs.readFileSync('.github/emass.json', 'utf8'))
 
         core.info('Validating eMASS System ID')
-        if(!Number.isInteger(emass.systemID) && Number(emass.systemID) <= 0 && Number(emass.systemID) !== -1) {
+        const systemID = Number(emass.systemID)
+        if(!isInteger(emass.systemID) && systemID <= 0 && systemID !== -1) {
             core.setFailed(`eMASS System ID '${emass.systemID}' is not valid`)
             process.exit(1)
         }
@@ -26,6 +27,11 @@ const main = async () => {
     } catch (e) {
         core.setFailed(`Failed validating emass.json: ${e.message}`)
     }
+}
+
+const isInteger = (value) => {
+    const regex = /"systemID"\s*:\s*["']?(-?\d+)["']?(?![.\d])/;
+    return value.match(regex) !== null
 }
 
 main().catch(e => {
