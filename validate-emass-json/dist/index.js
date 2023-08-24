@@ -2863,11 +2863,13 @@ const main = async () => {
         }
 
         core.info('Retrieving local emass data')
-        const emass = JSON.parse(fs.readFileSync('.github/emass.json', 'utf8'))
+        const data = fs.readFileSync('.github/emass.json', 'utf8')
+        const emass = JSON.parse(data)
 
         core.info('Validating eMASS System ID')
-        if(!Number.isInteger(emass.systemID) && Number(emass.systemID) <= 0 && Number(emass.systemID) !== -1) {
-            core.setFailed(`eMASS System ID '${emass.systemID}' is not valid`)
+        const systemID = Number(emass.systemID)
+        if(!isInteger(data) || (systemID <= 0 && systemID !== -1)) {
+            core.setFailed(`eMASS System ID in .github/emass.json is not valid`)
             process.exit(1)
         }
 
@@ -2879,6 +2881,11 @@ const main = async () => {
     } catch (e) {
         core.setFailed(`Failed validating emass.json: ${e.message}`)
     }
+}
+
+const isInteger = (value) => {
+    const regex = /"systemID"\s*:\s*["']?(-?\d+)["']?(?![.\d])/;
+    return value.match(regex) !== null
 }
 
 main().catch(e => {
