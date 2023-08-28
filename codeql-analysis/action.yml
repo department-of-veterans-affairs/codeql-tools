@@ -61,6 +61,7 @@ runs:
         debug: ${{ inputs.debug }}
         languages: ${{ inputs.language }}
         queries: security-and-quality
+        tools: latest
 
     - name: Parse Build Steps
       id: build-steps
