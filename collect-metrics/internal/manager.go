@@ -165,7 +165,7 @@ func (m *Manager) ProcessRepository(repo *github.Repository) (*State, error) {
 	logger.Infof("Retrieving open dependabot alert count")
 	openDependabotAlertCount, err := m.GetDependabotAlertCount(org, name)
 	if err != nil {
-		logger.Warnf("failed to retrieve open dependabot alert count, skipping repo: %v", err)
+		logger.Warnf("Failed to retrieve open dependabot alert count, skipping repo: %v", err)
 	} else {
 		state.DependabotAlertCount = openDependabotAlertCount
 	}
@@ -174,7 +174,7 @@ func (m *Manager) ProcessRepository(repo *github.Repository) (*State, error) {
 	logger.Infof("Retrieving open codescanning alert count")
 	openCodeScanningAlertCount, err := m.GetCodeScanningAlertCount(org, name)
 	if err != nil {
-		logger.Warnf("failed to retrieve open codescanning alert count, skipping repo: %v", err)
+		logger.Warnf("Failed to retrieve open codescanning alert count, skipping repo: %v", err)
 	} else {
 		state.CodeScanningAlertCount = openCodeScanningAlertCount
 	}
@@ -183,7 +183,7 @@ func (m *Manager) ProcessRepository(repo *github.Repository) (*State, error) {
 	logger.Infof("Retrieving open secret scanning alert count")
 	openSecretScanningAlertCount, err := m.GetSecretScanningAlertCount(org, name)
 	if err != nil {
-		logger.Warnf("failed to retrieve open secret scanning alert count, skipping repo: %v", err)
+		logger.Warnf("Failed to retrieve open secret scanning alert count, skipping repo: %v", err)
 	} else {
 		state.SecretScanningAlertCount = openSecretScanningAlertCount
 	}
