@@ -30,7 +30,7 @@
     "@octokit/plugin-retry": "^5.0.4",
     "@octokit/plugin-throttling": "^6.1.0",
     "@octokit/rest": "^19.0.13",
-    "archiver": "^5.3.1",
+    "archiver": "^6.0.0",
     "axios": "^1.4.0",
     "axios-retry": "^3.5.1",
     "js-yaml": "^4.1.0",
