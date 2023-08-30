@@ -1,6 +1,6 @@
 {
   "name": "codeql-tools",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "A collection of tools for managing the enablement of GitHub Advanced Security CodeQL",
   "main": "index.js",
   "scripts": {
