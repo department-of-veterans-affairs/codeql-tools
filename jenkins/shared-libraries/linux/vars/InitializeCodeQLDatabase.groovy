@@ -1,6 +1,6 @@
 def call(repo, language, buildCommand) {
     env.BUILD_COMMAND = buildCommand
-    env.CONFIG_FILE = "${env.WORKSPACE}/.github/codeql.yml"
+    env.CONFIG_FILE = "${env.WORKSPACE}/.github/codeql-config.yml"
     env.DATABASE_PATH = sprintf("%s-%s", repo, language)
     if(!env.ENABLE_DEBUG) {
         env.ENABLE_DEBUG = false

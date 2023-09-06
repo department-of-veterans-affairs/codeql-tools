@@ -6,7 +6,7 @@ def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
         env.BRANCH = branch
     }
     env.BUILD_COMMAND = buildCommand
-    env.CONFIG_FILE = "${env.WORKSPACE}/.github/codeql.yml"
+    env.CONFIG_FILE = "${env.WORKSPACE}/.github/codeql-config.yml"
     env.DATABASE_BUNDLE = sprintf("%s-database.zip", language)
     env.DATABASE_PATH = sprintf("%s-%s", repo, language)
     if(!env.ENABLE_DEBUG) {
