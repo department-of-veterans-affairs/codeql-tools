@@ -1,4 +1,14 @@
 def call(repo, language) {
+    if(!env.CODEQL_RAM) {
+        env.CODEQL_RAM_FLAG = ""
+    } else {
+        env.CODEQL_RAM_FLAG = sprintf("--ram %s", env.CODEQL_RAM.trim())
+    }
+    if(!env.CODEQL_THREADS) {
+        env.CODEQL_THREADS_FLAG = "--threads 0"
+    } else {
+        env.CODEQL_THREADS_FLAG = sprintf("--threads %s", env.CODEQL_THREADS.trim())
+    }
     env.DATABASE_BUNDLE = sprintf("%s-database.zip", language)
     env.DATABASE_PATH = sprintf("%s-%s", repo, language)
     if(!env.ENABLE_DEBUG) {
@@ -53,7 +63,7 @@ def call(repo, language) {
         echo "The SARIF category has been configured to ois-${LANGUAGE}\${SEP}\${SUBDIR}"
 
         echo "Analyzing database"
-        "\$command" database analyze "${DATABASE_PATH}" --no-download --threads 0 --sarif-category "ois-${LANGUAGE}\${SEP}\${SUBDIR}" --format sarif-latest --output "${SARIF_FILE}" "${QL_PACKS}"
+        "\$command" database analyze "${DATABASE_PATH}" --no-download ${CODEQL_THREADS_FLAG} ${CODEQL_RAM_FLAG} --sarif-category "ois-${LANGUAGE}\${SEP}\${SUBDIR}" --format sarif-latest --output "${SARIF_FILE}" "${QL_PACKS}"
         echo "Database analyzed"
 
         if [ "${ENABLE_CODEQL_DEBUG}" = true ]; then

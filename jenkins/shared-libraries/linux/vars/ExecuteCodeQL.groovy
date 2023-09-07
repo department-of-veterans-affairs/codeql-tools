@@ -6,6 +6,16 @@ def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
         env.BRANCH = branch
     }
     env.BUILD_COMMAND = buildCommand
+    if(!env.CODEQL_RAM) {
+        env.CODEQL_RAM_FLAG = ""
+    } else {
+        env.CODEQL_RAM_FLAG = sprintf("--ram %s", env.CODEQL_RAM.trim())
+    }
+    if(!env.CODEQL_THREADS) {
+        env.CODEQL_THREADS_FLAG = "--threads 0"
+    } else {
+        env.CODEQL_THREADS_FLAG = sprintf("--threads %s", env.CODEQL_THREADS.trim())
+    }
     env.CONFIG_FILE = "${env.WORKSPACE}/.github/codeql-config.yml"
     env.DATABASE_BUNDLE = sprintf("%s-database.zip", language)
     env.DATABASE_PATH = sprintf("%s-%s", repo, language)
@@ -137,18 +147,18 @@ def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
         if [ ! -f "${CONFIG_FILE}" ]; then
             if [ -z "${BUILD_COMMAND}" ]; then
                 echo "No build command, using default"
-                "\$command" database create "${DATABASE_PATH}" --threads 0 --language="${LANGUAGE}" --source-root .
+                "\$command" database create "${DATABASE_PATH}" ${CODEQL_THREADS_FLAG} ${CODEQL_RAM_FLAG} --language="${LANGUAGE}" --source-root .
             else
                 echo "Build command specified, using '${BUILD_COMMAND}'"
-                "\$command" database create "${DATABASE_PATH}" --threads 0 --language="${LANGUAGE}" --source-root . --command="${BUILD_COMMAND}"
+                "\$command" database create "${DATABASE_PATH}" ${CODEQL_THREADS_FLAG} ${CODEQL_RAM_FLAG} --language="${LANGUAGE}" --source-root . --command="${BUILD_COMMAND}"
             fi
         else
             if [ -z "${BUILD_COMMAND}" ]; then
                 echo "No build command, using default"
-                "\$command" database create "${DATABASE_PATH}" --threads 0 --language="${LANGUAGE}" --codescanning-config "${CONFIG_FILE}" --source-root .
+                "\$command" database create "${DATABASE_PATH}" ${CODEQL_THREADS_FLAG} ${CODEQL_RAM_FLAG} --language="${LANGUAGE}" --codescanning-config "${CONFIG_FILE}" --source-root .
             else
                 echo "Build command specified, using '${BUILD_COMMAND}'"
-                "\$command" database create "${DATABASE_PATH}" --threads 0 --language="${LANGUAGE}" --codescanning-config "${CONFIG_FILE}" --source-root . --command="${BUILD_COMMAND}"
+                "\$command" database create "${DATABASE_PATH}" ${CODEQL_THREADS_FLAG} ${CODEQL_RAM_FLAG} --language="${LANGUAGE}" --codescanning-config "${CONFIG_FILE}" --source-root . --command="${BUILD_COMMAND}"
             fi
         fi
         echo "Database initialized"
@@ -166,7 +176,7 @@ def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
         echo "The SARIF category has been configured to ois-${LANGUAGE}\${SEP}\${SUBDIR}"
 
         echo "Analyzing database"
-        "\$command" database analyze "${DATABASE_PATH}" --threads 0 --no-download --sarif-category "ois-${LANGUAGE}\${SEP}\${SUBDIR}" --format sarif-latest --output "${SARIF_FILE}" "${QL_PACKS}"
+        "\$command" database analyze "${DATABASE_PATH}" ${CODEQL_THREADS_FLAG} ${CODEQL_RAM_FLAG} --no-download --sarif-category "ois-${LANGUAGE}\${SEP}\${SUBDIR}" --format sarif-latest --output "${SARIF_FILE}" "${QL_PACKS}"
         echo "Database analyzed"
 
         if [ "${ENABLE_CODEQL_DEBUG}" = true ]; then
@@ -175,7 +185,7 @@ def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
         fi
 
         echo "Generating CSV of results"
-        "\$command" database interpret-results "${DATABASE_PATH}" --threads 0 --format=csv --output="codeql-scan-results-${LANGUAGE}.csv" "${QL_PACKS}"
+        "\$command" database interpret-results "${DATABASE_PATH}" ${CODEQL_THREADS_FLAG} --format=csv --output="codeql-scan-results-${LANGUAGE}.csv" "${QL_PACKS}"
         echo "CSV of results generated"
 
         if [ "${UPLOAD_RESULTS}" = true ]; then

@@ -1,5 +1,15 @@
 def call(repo, language, buildCommand) {
     env.BUILD_COMMAND = buildCommand
+    if(!env.CODEQL_RAM) {
+        env.CODEQL_RAM_FLAG = ""
+    } else {
+        env.CODEQL_RAM_FLAG = sprintf("--ram %s", env.CODEQL_RAM.trim())
+    }
+    if(!env.CODEQL_THREADS) {
+        env.CODEQL_THREADS_FLAG = "--threads 0"
+    } else {
+        env.CODEQL_THREADS_FLAG = sprintf("--threads %s", env.CODEQL_THREADS.trim())
+    }
     env.CONFIG_FILE = "${env.WORKSPACE}/.github/codeql-config.yml"
     env.DATABASE_PATH = sprintf("%s-%s", repo, language)
     if(!env.ENABLE_DEBUG) {
@@ -34,16 +44,16 @@ def call(repo, language, buildCommand) {
         if [ "${BUILD_COMMAND}" != "" ]; then
             echo "Invoking build command: ${BUILD_COMMAND}"
             if [ ! -f "${CONFIG_FILE}" ]; then
-                "\$command" database create "${DATABASE_PATH}" --threads 0 --language="${LANGUAGE}" --source-root . --command="${BUILD_COMMAND}"
+                "\$command" database create "${DATABASE_PATH}" ${CODEQL_THREADS_FLAG} ${CODEQL_RAM_FLAG} --language="${LANGUAGE}" --source-root . --command="${BUILD_COMMAND}"
             else
-                "\$command" database create "${DATABASE_PATH}" --threads 0 --language="${LANGUAGE}" --codescanning-config "${CONFIG_FILE}" --source-root . --command="${BUILD_COMMAND}"
+                "\$command" database create "${DATABASE_PATH}" ${CODEQL_THREADS_FLAG} ${CODEQL_RAM_FLAG} --language="${LANGUAGE}" --codescanning-config "${CONFIG_FILE}" --source-root . --command="${BUILD_COMMAND}"
             fi
         elif [ "${COMPILED_LANGUAGE}" = "false" ]; then
             echo "Invoking auto-builder for non-compiled language"
             if [ ! -f "${CONFIG_FILE}" ]; then
-                "\$command" database create "${DATABASE_PATH}" --threads 0 --language="${LANGUAGE}" --source-root .
+                "\$command" database create "${DATABASE_PATH}" ${CODEQL_THREADS_FLAG} ${CODEQL_RAM_FLAG} --language="${LANGUAGE}" --source-root .
             else
-                "\$command" database create "${DATABASE_PATH}" --threads 0 --language="${LANGUAGE}" --codescanning-config "${CONFIG_FILE}" --source-root .
+                "\$command" database create "${DATABASE_PATH}" ${CODEQL_THREADS_FLAG} ${CODEQL_RAM_FLAG} --language="${LANGUAGE}" --codescanning-config "${CONFIG_FILE}" --source-root .
             fi
         else
             echo "Invoking build-tracing for compiled language"
