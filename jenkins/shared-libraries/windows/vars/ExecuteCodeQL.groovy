@@ -9,6 +9,16 @@ def call(Org, Repo, Branch, Language, BuildCommand, Token, InstallCodeQL) {
         env.BRANCH = Branch
     }
     env.BUILD_COMMAND = BuildCommand
+    if(!env.CODEQL_RAM) {
+        env.CODEQL_RAM_FLAG = ""
+    } else {
+        env.CODEQL_RAM_FLAG = sprintf("--ram %s", env.CODEQL_RAM.trim())
+    }
+    if(!env.CODEQL_THREADS) {
+        env.CODEQL_THREADS_FLAG = "--threads 0"
+    } else {
+        env.CODEQL_THREADS_FLAG = sprintf("--threads %s", env.CODEQL_THREADS.trim())
+    }
     env.CONFIG_FILE = "${env.WORKSPACE}\\.github\\codeql-config.yml"
     env.DATABASE_BUNDLE = sprintf("%s-database.zip", Language)
     env.DATABASE_PATH = sprintf("%s-%s", Repo, Language)
@@ -110,32 +120,32 @@ def call(Org, Repo, Branch, Language, BuildCommand, Token, InstallCodeQL) {
             if ("\$Env:BUILD_COMMAND" -eq "") {
                 Write-Output "No build command specified, using default"
                 if("\$Env:INSTALL_CODEQL" -eq "true") {
-                    .\\codeql\\codeql database create "\$Env:DATABASE_PATH" --threads 0 --language "\$Env:LANGUAGE" --source-root .
+                    Invoke-Expression ".\\codeql\\codeql database create '\$Env:DATABASE_PATH' \$Env:CODEQL_THREADS_FLAG \$Env:CODEQL_RAM_FLAG --language '\$Env:LANGUAGE' --source-root ."
                 } else {
-                    codeql database create "\$Env:DATABASE_PATH" --threads 0 --language "\$Env:LANGUAGE" --source-root .
+                    Invoke-Expression "codeql database create '\$Env:DATABASE_PATH' \$Env:CODEQL_THREADS_FLAG \$Env:CODEQL_RAM_FLAG --language '\$Env:LANGUAGE' --source-root ."
                 }
             } else {
                 Write-Output "Build command specified, using '\$Env:BUILD_COMMAND'"
                 if("\$Env:INSTALL_CODEQL" -eq "true") {
-                    .\\codeql\\codeql database create "\$Env:DATABASE_PATH" --threads 0 --language "\$Env:LANGUAGE" --source-root . --command "\$Env:BUILD_COMMAND"
+                    Invoke-Expression ".\\codeql\\codeql database create '\$Env:DATABASE_PATH' \$Env:CODEQL_THREADS_FLAG \$Env:CODEQL_RAM_FLAG --language '\$Env:LANGUAGE' --source-root . --command '\$Env:BUILD_COMMAND'"
                 } else {
-                    codeql database create "\$Env:DATABASE_PATH" --threads 0 --language "\$Env:LANGUAGE" --source-root . --command "\$Env:BUILD_COMMAND"
+                    Invoke-Expression "codeql database create '\$Env:DATABASE_PATH' \$Env:CODEQL_THREADS_FLAG \$Env:CODEQL_RAM_FLAG --language '\$Env:LANGUAGE' --source-root . --command '\$Env:BUILD_COMMAND'"
                 }
             }
         } else {
             if ("\$Env:BUILD_COMMAND" -eq "") {
                 Write-Output "No build command specified, using default"
                 if("\$Env:INSTALL_CODEQL" -eq "true") {
-                    .\\codeql\\codeql database create "\$Env:DATABASE_PATH" --threads 0 --language "\$Env:LANGUAGE" --codescanning-config "\$Env:CONFIG_FILE" --source-root .
+                    Invoke-Expression ".\\codeql\\codeql database create '\$Env:DATABASE_PATH' \$Env:CODEQL_THREADS_FLAG \$Env:CODEQL_RAM_FLAG --language '\$Env:LANGUAGE' --codescanning-config '\$Env:CONFIG_FILE' --source-root ."
                 } else {
-                    codeql database create "\$Env:DATABASE_PATH" --threads 0 --language "\$Env:LANGUAGE" --codescanning-config "\$Env:CONFIG_FILE" --source-root .
+                    Invoke-Expression "codeql database create '\$Env:DATABASE_PATH' \$Env:CODEQL_THREADS_FLAG \$Env:CODEQL_RAM_FLAG --language '\$Env:LANGUAGE' --codescanning-config '\$Env:CONFIG_FILE' --source-root ."
                 }
             } else {
                 Write-Output "Build command specified, using '\$Env:BUILD_COMMAND'"
                 if("\$Env:INSTALL_CODEQL" -eq "true") {
-                    .\\codeql\\codeql database create "\$Env:DATABASE_PATH" --threads 0 --language "\$Env:LANGUAGE" --codescanning-config "\$Env:CONFIG_FILE" --source-root . --command "\$Env:BUILD_COMMAND"
+                    Invoke-Expression ".\\codeql\\codeql database create '\$Env:DATABASE_PATH' \$Env:CODEQL_THREADS_FLAG \$Env:CODEQL_RAM_FLAG --language '\$Env:LANGUAGE' --codescanning-config '\$Env:CONFIG_FILE' --source-root . --command '\$Env:BUILD_COMMAND'"
                 } else {
-                    codeql database create "\$Env:DATABASE_PATH" --threads 0 --language "\$Env:LANGUAGE" --codescanning-config "\$Env:CONFIG_FILE" --source-root . --command "\$Env:BUILD_COMMAND"
+                    Invoke-Expression "codeql database create '\$Env:DATABASE_PATH' \$Env:CODEQL_THREADS_FLAG \$Env:CODEQL_RAM_FLAG --language '\$Env:LANGUAGE' --codescanning-config '\$Env:CONFIG_FILE' --source-root . --command '\$Env:BUILD_COMMAND'"
                 }
             }
         }
@@ -155,16 +165,16 @@ def call(Org, Repo, Branch, Language, BuildCommand, Token, InstallCodeQL) {
 
         Write-Output "Analyzing database"
         if("\$Env:INSTALL_CODEQL" -eq "true") {
-            .\\codeql\\codeql database analyze --no-download "\$Env:DATABASE_PATH" --threads 0 --sarif-category "ois-\$Env:LANGUAGE\$Env:SEP\$Env:CWD" --format sarif-latest --output "\$Env:SARIF_FILE" "\$Env:QL_PACKS"
+            Invoke-Expression ".\\codeql\\codeql database analyze --no-download '\$Env:DATABASE_PATH' \$Env:CODEQL_THREADS_FLAG \$Env:CODEQL_RAM_FLAG --sarif-category 'ois-\$Env:LANGUAGE\$Env:SEP\$Env:CWD' --format sarif-latest --output '\$Env:SARIF_FILE' '\$Env:QL_PACKS'"
         } else {
-            codeql database analyze --no-download "\$Env:DATABASE_PATH" --threads 0 --sarif-category "ois-\$Env:LANGUAGE" --format sarif-latest --output "\$Env:SARIF_FILE" "\$Env:QL_PACKS"
+            Invoke-Expression "codeql database analyze --no-download '\$Env:DATABASE_PATH' \$Env:CODEQL_THREADS_FLAG \$Env:CODEQL_RAM_FLAG --sarif-category 'ois-\$Env:LANGUAGE' --format sarif-latest --output '\$Env:SARIF_FILE' '\$Env:QL_PACKS'"
         }
         Write-Output "Database analyzed"
         Write-Output "Generating CSV of results"
         if("\$Env:INSTALL_CODEQL" -eq "true") {
-            .\\codeql\\codeql database interpret-results "\$Env:DATABASE_PATH" --threads 0 --format=csv --output="codeql-scan-results-\$Env:LANGUAGE.csv" "\$Env:QL_PACKS"
+            Invoke-Expression ".\\codeql\\codeql database interpret-results '\$Env:DATABASE_PATH' \$Env:CODEQL_THREADS_FLAG --format=csv --output='codeql-scan-results-\$Env:LANGUAGE.csv' '\$Env:QL_PACKS'"
         } else {
-            codeql database interpret-results "\$Env:DATABASE_PATH" --threads 0 --format=csv --output="codeql-scan-results-\$Env:LANGUAGE.csv" "\$Env:QL_PACKS"
+            Invoke-Expression "codeql database interpret-results '\$Env:DATABASE_PATH' \$Env:CODEQL_THREADS_FLAG --format=csv --output='codeql-scan-results-\$Env:LANGUAGE.csv' '\$Env:QL_PACKS'"
         }
         Write-Output "CSV of results generated"
 
