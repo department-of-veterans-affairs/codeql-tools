@@ -88,7 +88,7 @@ func (m *Manager) ProcessRepository(repo *github.Repository) (*State, error) {
 	}
 
 	logger.Infof("Retrieving CodeQL Configuration File")
-	codeqlConfig, err := m.GetCodeQLConfig(org, name, defaultBranch)
+	codeqlConfig, err := m.GetCodeQLConfig(org, name, ".github/codeql.yml")
 	if err != nil {
 		return nil, fmt.Errorf("failed to retrieve CodeQL Configuration File, skipping repo: %v", err)
 	}
