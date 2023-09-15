@@ -178,6 +178,8 @@ runs:
         token: ${{ inputs.token }}
     
     - name: Generate GHAS Policy
+      if: runner.os != 'Windows'
+      shell: bash
       run: |
         cat <<EOF >>${{ runner.temp }}/policy.yml
         codescanning:
