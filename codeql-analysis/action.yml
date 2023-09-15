@@ -176,3 +176,19 @@ runs:
         path: ${{ runner.temp }}\codeql_databases\${{ inputs.language }}
         repo: ${{ github.event.repository.name }}
         token: ${{ inputs.token }}
+    
+    - name: Generate GHAS Policy
+      run: |
+        cat <<EOF >>${{ runner.temp }}/policy.yml
+        codescanning:
+          remediate:
+            high: 7
+        EOF
+
+    - name: Advance Security Policy as Code
+      uses: advanced-security/policy-as-code@v2.5.0
+      with:
+        # policy: department-of-veterans-affairs/.github
+        policy-path: ${{ runner.temp }}/policy.yml
+        # policy-branch: main
+        policy-repo-token: ${{ secrets.ADMIN_TOKEN }}
