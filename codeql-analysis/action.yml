@@ -193,4 +193,4 @@ runs:
         # policy: department-of-veterans-affairs/.github
         policy-path: ${{ runner.temp }}/policy.yml
         # policy-branch: main
-        policy-repo-token: ${{ secrets.ADMIN_TOKEN }}
+        # policy-repo-token: ${{ secrets.ADMIN_TOKEN }}
