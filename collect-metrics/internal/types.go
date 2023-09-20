@@ -1,6 +1,7 @@
 package internal
 
 import (
+	"encoding/json"
 	"time"
 )
 
@@ -31,10 +32,10 @@ type CodeQLDefaultVersions struct {
 }
 
 type EMASSConfig struct {
-	SystemID         int64  `json:"systemID"`
-	SystemName       string `json:"systemName"`
-	SystemOwnerEmail string `json:"systemOwnerEmail"`
-	SystemOwnerName  string `json:"systemOwnerName"`
+	SystemID         json.Number `json:"systemID"`
+	SystemName       string      `json:"systemName"`
+	SystemOwnerEmail string      `json:"systemOwnerEmail"`
+	SystemOwnerName  string      `json:"systemOwnerName"`
 }
 
 type CodeQLConfig struct {

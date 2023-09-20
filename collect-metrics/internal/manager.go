@@ -2,6 +2,7 @@ package internal
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"strings"
 
@@ -77,7 +78,7 @@ func (m *Manager) ProcessRepository(repo *github.Repository) (*State, error) {
 		logger.Debugf("Retrieved emass.json")
 
 		logger.Infof("Validating emass.json")
-		if emassConfig.SystemID == 0 {
+		if emassConfig.SystemID == json.Number(rune(0)) {
 			logger.Infof("Repository emass.json contains invalid System ID")
 			state.SystemIDMissing = true
 		}
