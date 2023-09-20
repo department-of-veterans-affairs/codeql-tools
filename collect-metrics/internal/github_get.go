@@ -185,7 +185,7 @@ func (m *Manager) GetDependabotAlertCount(org, repo string) (int, error) {
 	})
 	if err != nil {
 		if resp.StatusCode == http.StatusNotFound {
-			return 0, fmt.Errorf("dependabot alerts not found")
+			return 0, nil
 		}
 		return 0, fmt.Errorf("failed to list alerts: %v", err)
 	}
@@ -202,7 +202,7 @@ func (m *Manager) GetSecretScanningAlertCount(org, repo string) (int, error) {
 	})
 	if err != nil {
 		if resp.StatusCode == http.StatusNotFound {
-			return 0, fmt.Errorf("secretscanning alerts not found")
+			return 0, nil
 		}
 		return 0, fmt.Errorf("failed to list alerts: %v", err)
 	}
@@ -219,7 +219,7 @@ func (m *Manager) GetCodeScanningAlertCount(org, repo string) (int, error) {
 	})
 	if err != nil {
 		if resp.StatusCode == http.StatusNotFound {
-			return 0, fmt.Errorf("codescanning alerts not found")
+			return 0, nil
 		}
 		return 0, fmt.Errorf("failed to list alerts: %v", err)
 	}
