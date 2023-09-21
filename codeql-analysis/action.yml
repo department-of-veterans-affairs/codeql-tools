@@ -108,53 +108,10 @@ runs:
         category: ois-${{ inputs.language }}-${{ inputs.path }}
 
     - name: Generate CodeQL Results CSV
-      if: runner.os == 'Linux'
-      shell: bash
-      run: |
-        set -x
-        database_path="$temp/codeql-scan-results-$language.csv"
-        echo "Generating CodeQL Results CSV at $database_path"
-        if [[ ! -v codeql ]]; then
-          $(realpath $RUNNER_TOOL_CACHE/CodeQL/*/x64/codeql/codeql | head -n 1) database interpret-results $database --format=csv --output="$database_path"
-        else
-          codeql database interpret-results $database --format=csv --output="$database_path"
-        fi
-      env:
-        language: ${{ inputs.language }}
-        database: ${{ runner.temp }}/codeql_databases/${{ inputs.language }}
-        temp: ${{ runner.temp }}
-
-    - name: Generate CodeQL Results CSV
-      if: runner.os == 'macOS'
-      shell: bash
-      run: |
-        database_path="$temp/codeql-scan-results-$language.csv"
-        echo "Generating CodeQL Results CSV at $database_path"
-        ${{ steps.init.outputs.codeql-path }} database interpret-results $database --format=csv --output="$database_path"
-      env:
-        language: ${{ inputs.language }}
-        database: ${{ runner.temp }}/codeql_databases/${{ inputs.language }}
-        temp: ${{ runner.temp }}
-
-    - name: Generate CodeQL Results CSV
-      if: runner.os == 'Windows'
-      shell: powershell
-      run: |
-        $Language = "$Env:language"
-        $DatabasePath = "$Env:database"
-        $Temp = "$Env:temp"
-        $CSVPath = "$Temp\codeql-scan-results-$Language.csv"
-        Write-Output "Generating CodeQL Results CSV at $CSVPath"
-        if (Get-Command codeql -errorAction SilentlyContinue) {
-          codeql database interpret-results "$DatabasePath" --format=csv --output="$CSVPath"
-        } else {
-          $CodeQLCommand = "$((Get-ChildItem $Env:RUNNER_TOOL_CACHE\CodeQL\*\x64\codeql\codeql.exe).fullname | Select-Object -first 1)"
-          & $CodeQLCommand database interpret-results "$DatabasePath" --format=csv --output="$CSVPath"
-        }
-      env:
-        language: ${{ inputs.language }}
-        database: ${{ runner.temp }}\codeql_databases\${{ inputs.language }}
-        temp: ${{ runner.temp }}
+      uses: department-of-veterans-affairs/codeql-tools/generate-csv@csv
+      with:
+        database_name: ${{ inputs.language }}
+        output_path: "${{ runner.temp }}/codeql-scan-results-${{ inputs.language }}.csv"
 
     - name: Upload Artifact
       if: runner.os != 'Windows'

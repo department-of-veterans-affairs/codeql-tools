@@ -1,0 +1,13 @@
+name: Generate CSV
+description: Generates a CSV of SARIF results
+author: GitHub Expert Services
+inputs:
+  database_name:
+    description: The name of the database to generate the CSV for, usually the language
+    required: true
+  output_path:
+    description: The path to write the CSV file to
+    required: true
+runs:
+  using: node16
+  main: dist/index.js

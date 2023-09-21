@@ -33,18 +33,3 @@ jobs:
         with:
           language: ${{ matrix.language }}
           config-file: ${{ matrix.config-file }}
-
-  analyze-rhel:
-    name: Analyze RHEL
-    runs-on: rhel-7
-    permissions:
-      actions: read
-      contents: read
-      security-events: write
-    steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
-      - name: Run Code Scanning
-        uses: ./codeql-analysis
-        with:
-          language: javascript

@@ -1,6 +1,7 @@
 paths-ignore:
   - configure-codeql/dist
   - emass-promotion/dist
+  - generate-csv/dist
   - parse-build-steps/dist
   - upload-database/dist
   - validate-emass-json/dist

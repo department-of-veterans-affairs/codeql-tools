@@ -1,5 +1,6 @@
 codeql/
 node_modules/
+results/
 tmp/
 
 configure-codeql/pull-request-body.txt
@@ -9,4 +10,5 @@ test.sh
 
 **/.env
 **/.envrc
+*.csv
 *.pem
