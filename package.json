@@ -8,6 +8,7 @@
     "build:configure-codeql": "npx rimraf configure-codeql/dist && npx @vercel/ncc build configure-codeql/index.js -o configure-codeql/dist",
     "build:emass-promotion": "npx rimraf emass-promotion/dist && npx @vercel/ncc build emass-promotion/index.js -o emass-promotion/dist",
     "build:enforce-code-scanning-remediation": "npx rimraf enforce-code-scanning-remediation/dist && npx @vercel/ncc build enforce-code-scanning-remediation/index.js -o enforce-code-scanning-remediation/dist",
+    "build:generate-csv": "npx rimraf generate-csv/dist && npx @vercel/ncc build generate-csv/index.js -o generate-csv/dist",
     "build:parse-build-steps": "npx rimraf parse-build-steps/dist && npx @vercel/ncc build parse-build-steps/index.js -o parse-build-steps/dist",
     "build:upload-database": "npx rimraf upload-database/dist && npx @vercel/ncc build upload-database/index.js -o upload-database/dist",
     "build:validate-emass-json": "npx rimraf validate-emass-json/dist && npx @vercel/ncc build validate-emass-json/index.js -o validate-emass-json/dist",
