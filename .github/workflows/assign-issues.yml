@@ -15,4 +15,4 @@ jobs:
         uses: pozil/auto-assign-issue@ec7266a6171afb1fcc99708a1bbb6b70d706f5fb
         with:
           assignees: lindluni
-          allowSelfAssign: false
+          allowSelfAssign: true
