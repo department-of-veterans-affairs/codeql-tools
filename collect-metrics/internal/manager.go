@@ -116,16 +116,6 @@ func (m *Manager) ProcessRepository(repo *github.Repository) (*State, error) {
 	}
 	logger.Debugf("Recent CodeQL analyses retrieved: %v", recentAnalyses)
 
-	logger.Info("Validating scans performed with latest CodeQL version")
-	if len(recentAnalyses.Versions) > 0 {
-		for _, version := range recentAnalyses.Versions {
-			if !Includes(m.LatestCodeQLVersions, version) {
-				state.CLIVersionInvalid = true
-			}
-		}
-	}
-	logger.Debugf("CodeQL CLI versions validated")
-
 	logger.Infof("Retrieving missing CodeQL languages")
 	missingLanguages := CalculateMissingLanguages(expectedLanguages, recentAnalyses.Languages)
 	logger.Debugf("Missing CodeQL languages retrieved: %s", strings.Join(missingLanguages, ", "))

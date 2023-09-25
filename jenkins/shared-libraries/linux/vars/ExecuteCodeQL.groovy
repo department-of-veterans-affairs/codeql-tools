@@ -89,40 +89,34 @@ def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
             *)     echo "Error: systemOwnerEmail '\$systemOwnerEmail' is invalid"; exit 6 ;;
         esac
 
-        if [ "${INSTALL_CODEQL}" = false ]; then
-            echo "Skipping installation of CodeQL"
+        echo "Installing CodeQL"
+        echo "Retrieving latest CodeQL release"
+        if [ "${ENABLE_TLS_NO_VERIFY}" = true ]; then
+            id=\$(curl --insecure --silent --retry 3 --location \
+            --header "${AUTHORIZATION_HEADER}" \
+            --header "Accept: application/vnd.github.raw" \
+            "https://api.github.com/repos/github/codeql-action/contents/src/defaults.json" | jq -r .bundleVersion)
+
+            echo "Downloading CodeQL version '\$id'"
+            curl --insecure --silent --retry 3 --location --output "${WORKSPACE}/codeql.tgz" \
+            --header "${AUTHORIZATION_HEADER}" \
+            "https://github.com/github/codeql-action/releases/download/\$id/codeql-bundle-linux64.tar.gz"
+            tar -xf "${WORKSPACE}/codeql.tgz" --directory "${WORKSPACE}"
+            rm "${WORKSPACE}/codeql.tgz"
         else
-            echo "Installing CodeQL"
+            id=\$(curl --silent --retry 3 --location \
+            --header "${AUTHORIZATION_HEADER}" \
+            --header "Accept: application/vnd.github.raw" \
+            "https://api.github.com/repos/github/codeql-action/contents/src/defaults.json" | jq -r .bundleVersion)
 
-            echo "Retrieving latest CodeQL release"
-            if [ "${ENABLE_TLS_NO_VERIFY}" = true ]; then
-                id=\$(curl --insecure --silent --retry 3 --location \
-                --header "${AUTHORIZATION_HEADER}" \
-                --header "Accept: application/vnd.github.raw" \
-                "https://api.github.com/repos/github/codeql-action/contents/src/defaults.json" | jq -r .bundleVersion)
-
-                echo "Downloading CodeQL version '\$id'"
-                curl --insecure --silent --retry 3 --location --output "${WORKSPACE}/codeql.tgz" \
-                --header "${AUTHORIZATION_HEADER}" \
-                "https://github.com/github/codeql-action/releases/download/\$id/codeql-bundle-linux64.tar.gz"
-                tar -xf "${WORKSPACE}/codeql.tgz" --directory "${WORKSPACE}"
-                rm "${WORKSPACE}/codeql.tgz"
-            else
-                id=\$(curl --silent --retry 3 --location \
-                --header "${AUTHORIZATION_HEADER}" \
-                --header "Accept: application/vnd.github.raw" \
-                "https://api.github.com/repos/github/codeql-action/contents/src/defaults.json" | jq -r .bundleVersion)
-
-                echo "Downloading CodeQL version '\$id'"
-                curl --silent --retry 3 --location --output "${WORKSPACE}/codeql.tgz" \
-                --header "${AUTHORIZATION_HEADER}" \
-                "https://github.com/github/codeql-action/releases/download/\$id/codeql-bundle-linux64.tar.gz"
-                tar -xf "${WORKSPACE}/codeql.tgz" --directory "${WORKSPACE}"
-                rm "${WORKSPACE}/codeql.tgz"
-            fi
-
-            echo "CodeQL installed"
+            echo "Downloading CodeQL version '\$id'"
+            curl --silent --retry 3 --location --output "${WORKSPACE}/codeql.tgz" \
+            --header "${AUTHORIZATION_HEADER}" \
+            "https://github.com/github/codeql-action/releases/download/\$id/codeql-bundle-linux64.tar.gz"
+            tar -xf "${WORKSPACE}/codeql.tgz" --directory "${WORKSPACE}"
+            rm "${WORKSPACE}/codeql.tgz"
         fi
+        echo "CodeQL installed"
     '''
 
     sh """
@@ -132,17 +126,7 @@ def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
             set +x
         fi
 
-        command="codeql"
-        if [ ! -x "\$(command -v \$command)" ]; then
-            echo "CodeQL CLI not found on PATH, checking if local copy exists"
-            if [ ! -f "${WORKSPACE}/codeql/codeql" ]; then
-                echo "CodeQL CLI not found in local copy, please add the CodeQL CLI to your PATH or use the 'InstallCodeQL' command to download it"
-                exit 1
-            fi
-            echo "Using local copy of CodeQL CLI"
-            command="${WORKSPACE}/codeql/codeql"
-        fi
-
+        command="${WORKSPACE}/codeql/codeql"
         echo "Initializing database"
         if [ ! -f "${CONFIG_FILE}" ]; then
             if [ -z "${BUILD_COMMAND}" ]; then

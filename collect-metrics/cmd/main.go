@@ -143,19 +143,17 @@ func generateMetrics(states map[string]*internal.State) *internal.Metric {
 			!state.Ignored &&
 			!state.SystemOwnerEmailMissing &&
 			!state.SystemIDMissing &&
-			!state.CLIVersionInvalid &&
 			len(state.MissingAnalyses) == 0 &&
 			len(state.MissingDatabases) == 0 {
 			metrics.Enabled++
 			continue
 		}
 
-		if (!state.EMASSConfigMissing &&
+		if !state.EMASSConfigMissing &&
 			!state.Archived &&
 			!state.Ignored &&
 			!state.SystemOwnerEmailMissing &&
 			!state.SystemIDMissing &&
-			!state.CLIVersionInvalid) &&
 			(len(state.MissingAnalyses) > 0 ||
 				len(state.MissingDatabases) > 0) {
 			metrics.NonCompliant++

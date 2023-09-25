@@ -80,7 +80,6 @@ type State struct {
 	EMASSConfigMissing      bool     `json:"emass_config_missing"`
 	SystemOwnerEmailMissing bool     `json:"system_owner_email_missing"`
 	SystemIDMissing         bool     `json:"system_id_missing"`
-	CLIVersionInvalid       bool     `json:"cli_version_invalid"`
 	MissingAnalyses         []string `json:"missing_analyses"`
 	MissingDatabases        []string `json:"missing_databases"`
 	Monorepo                bool     `json:"monorepo"`
