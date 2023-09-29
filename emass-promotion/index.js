@@ -1,16 +1,12 @@
 // TODO: Add tests
-// TODO: Add licensing and license headers
 // TODO: Add robust error handling
 // TODO: Add function documentation
 // TODO: Add retry logic
-// TODO: Download SARIF file attached to database only
-// TODO: add error arrays for all error types for reporting
-// TODO: Add logic to create any missing EMASS repositories
-// TOD: Allow default branch to be overridden by metadata file
 const fs = require('fs')
-const core = require('@actions/core')
 const axios = require('axios')
+const yaml = require('js-yaml')
 const {gzip} = require('node-gzip')
+const core = require('@actions/core')
 const axiosRetry = require('axios-retry')
 
 axiosRetry(axios, {
@@ -122,8 +118,15 @@ const processRepository = async (octokit, config, repository, systemIDs, adminCl
             }
         }
 
+        let defaultBranch = repository.default_branch
+        const codeqlConfig = await getFileYAML(octokit, repository.owner.login, repository.name, '.github/codeql.yml')
+        if (codeqlConfig && codeqlConfig.default_branch) {
+            core.info(`[${repository.name}]: CodeQL configuration file contains default branch: ${codeqlConfig.default_branch}`)
+            defaultBranch = codeqlConfig.default_branch
+        }
+
         core.info(`[${repository.name}]: Retrieving recent CodeQL analysis runs`)
-        const codeqlAnalysisRuns = await listCodeQLAnalyses(octokit, repository.owner.login, repository.name, repository.default_branch, config.days_to_scan)
+        const codeqlAnalysisRuns = await listCodeQLAnalyses(octokit, repository.owner.login, repository.name, defaultBranch, config.days_to_scan)
         if (codeqlAnalysisRuns.count === 0) {
             core.warning(`[${repository.name}]: [skipped-sarif-not-found] Skipping repository as it does not contain any new SARIF analyses`)
         } else {
@@ -225,6 +228,27 @@ const getFileJSON = async (octokit, owner, repo, path) => {
         }
 
         return JSON.parse(Buffer.from(response.data.content, 'base64').toString())
+    } catch (e) {
+        if (e.status === 404) {
+            return null
+        }
+        throw new Error(`Error retrieving ${path} for ${owner}/${repo}: ${e.message}`)
+    }
+}
+
+const getFileYAML = async (octokit, owner, repo, path) => {
+    try {
+        const response = await octokit.repos.getContent({
+            owner: owner,
+            repo: repo,
+            path: path
+        })
+
+        if(ENABLE_DEBUG) {
+            core.info(`[TRACE] reusableWorkflowInUse: ${Buffer.from(response.data.content, 'base64').toString()}`)
+        }
+
+        return yaml.load(Buffer.from(response.data.content, 'base64').toString())
     } catch (e) {
         if (e.status === 404) {
             return null

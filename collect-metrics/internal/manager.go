@@ -100,6 +100,11 @@ func (m *Manager) ProcessRepository(repo *github.Repository) (*State, error) {
 		for _, language := range codeqlConfig.ExcludedLanguages {
 			excludedLanguages = append(excludedLanguages, strings.ToLower(language.Name))
 		}
+
+		if codeqlConfig.DefaultBranch != "" {
+			logger.Infof("CodeQL configuration file contains default branch: %s", codeqlConfig.DefaultBranch)
+			defaultBranch = codeqlConfig.DefaultBranch
+		}
 	}
 
 	logger.Infof("Retrieving supported CodeQL languages")

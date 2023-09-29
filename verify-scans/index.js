@@ -95,6 +95,7 @@ const processRepository = async (octokit, mailer, config, repository, codeQLVers
         core.info(`[${repository.name}]: Retrieving codeql.yml file`)
         let codeqlConfig
         let ignoredLanguages = []
+        let defaultBranch = repository.default_branch
         const _codeqlConfigRaw = await getRawFile(octokit, repository.owner.login, repository.name, '.github/codeql.yml')
         if (_codeqlConfigRaw) {
             core.info(`[${repository.name}]: Found codeql.yml file, parsing file`)
@@ -103,6 +104,11 @@ const processRepository = async (octokit, mailer, config, repository, codeQLVers
             if (codeqlConfig.excluded_languages) {
                 core.info(`[${repository.name}]: Parsing ignored languages`)
                 ignoredLanguages = codeqlConfig.excluded_languages.map(language => language.name.toLowerCase())
+            }
+
+            if(codeqlConfig.default_branch) {
+                core.info(`[${repository.name}]: CodeQL configuration file contains default branch: ${codeqlConfig.default_branch}`)
+                defaultBranch = codeqlConfig.default_branch
             }
         }
 
@@ -142,7 +148,7 @@ const processRepository = async (octokit, mailer, config, repository, codeQLVers
         }
 
         core.info(`[${repository.name}]: Retrieving existing CodeQL analyses`)
-        const analyses = await listCodeQLAnalyses(octokit, repository.owner.login, repository.name, repository.default_branch, config.days_to_scan, requiredLanguages)
+        const analyses = await listCodeQLAnalyses(octokit, repository.owner.login, repository.name, defaultBranch, config.days_to_scan, requiredLanguages)
         if (analyses.languages.length > 0) {
             core.info(`[${repository.name}]: Analyses found, validating 'emass-promotion' app is installed on repository`)
             const installed = await isAppInstalled(emassPromotionInstallationClient, repository.owner.login, repository.name)
