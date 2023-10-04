@@ -1,4 +1,5 @@
 const {supportedCodeQLLanguages} = require('../lib/utils')
+const {mapLanguages} = require('./utils')
 
 /**
  * Check if a repository is already configured for CodeQL
@@ -127,7 +128,7 @@ exports.getSupportedCodeQLLanguages = async (octokit, owner, repo) => {
             repo: repo
         })
 
-        return Object.keys(languages).map(language => language.toLowerCase()).filter(language => supportedCodeQLLanguages.includes(language))
+        return mapLanguages(Object.keys(languages).map(language => language.toLowerCase())).filter(language => supportedCodeQLLanguages.includes(language))
     } catch (e) {
         throw new Error(`Failed to retrieve supported CodeQL languages: ${e.message}`)
     }

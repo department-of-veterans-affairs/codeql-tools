@@ -86,8 +86,7 @@ class Manager {
             }
 
             core.info(`[${repository.name}]: Generating CodeQL workflow for supported languages: [${languages.join(', ')}]`)
-            const canonicalLanguages = mapLanguages(languages)
-            const workflow = generateCodeQLWorkflow(canonicalLanguages, repository.default_branch)
+            const workflow = generateCodeQLWorkflow(languages, repository.default_branch)
             const emass = generateEMASSJson()
 
             core.info(`[${repository.name}]: Retrieving SHA for branch ${repository.default_branch}`)
