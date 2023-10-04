@@ -53839,7 +53839,7 @@ const listCodeQLAnalyses = async (octokit, owner, repo, branch, range, requiredL
         const languages = []
         const versions = []
         for (const analysis of analyses) {
-            if (!analysis.category.toLowerCase().startsWith('ois-')) {
+            if (!analysis.category.toLowerCase().startsWith('ois-') && !analysis.category.toLowerCase().startsWith('swa-')) {
                 continue
             }
             let language = analysis.category.split('-')[1].split('-')[0].trim().toLowerCase()
