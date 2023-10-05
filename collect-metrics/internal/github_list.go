@@ -140,7 +140,7 @@ func (m *Manager) ListCodeQLAnalyses(owner, repo, branch string, requiredLanguag
 			}
 			if strings.HasPrefix(analysis.Category, "ois-") {
 				language := strings.TrimPrefix(analysis.Category, "ois-")
-				language = strings.TrimPrefix(analysis.Category, "swa-")
+				language = strings.TrimPrefix(language, "swa-")
 				language = strings.Split(language, "-")[0]
 				analysis.Language = MapLanguage(language)
 				if !Includes(results.Languages, analysis.Language) {

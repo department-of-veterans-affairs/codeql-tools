@@ -4,7 +4,6 @@ const {
     defaultCodeScanningEnabled,
     reusableWorkflowInUse,
     installVerifyScansApp,
-    mapLanguages,
     generateCodeQLWorkflow,
     generateEMASSJson,
     refExists,
