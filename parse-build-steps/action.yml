@@ -7,5 +7,5 @@ inputs:
   language:
     description: The language being scanned
 runs:
-  using: node20
+  using: node16
   main: dist/index.js

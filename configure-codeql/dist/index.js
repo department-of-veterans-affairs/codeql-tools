@@ -3914,7 +3914,7 @@ var import_oauth_app2 = __nccwpck_require__(9889);
 var import_webhooks3 = __nccwpck_require__(2200);
 
 // pkg/dist-src/version.js
-var VERSION = "14.0.1";
+var VERSION = "13.1.8";
 
 // pkg/dist-src/webhooks.js
 var import_core = __nccwpck_require__(524);
@@ -4075,6 +4075,20 @@ function eachRepositoryIterator(app, query) {
 // pkg/dist-src/middleware/node/index.js
 var import_oauth_app = __nccwpck_require__(9889);
 var import_webhooks2 = __nccwpck_require__(2200);
+
+// pkg/dist-src/middleware/node/on-unhandled-request-default.js
+function onUnhandledRequestDefault(request, response) {
+  response.writeHead(404, {
+    "content-type": "application/json"
+  });
+  response.end(
+    JSON.stringify({
+      error: `Unknown route: ${request.method} ${request.url}`
+    })
+  );
+}
+
+// pkg/dist-src/middleware/node/index.js
 function noop() {
 }
 function createNodeMiddleware(app, options = {}) {
@@ -4088,43 +4102,42 @@ function createNodeMiddleware(app, options = {}) {
     options.log
   );
   const optionsWithDefaults = {
+    onUnhandledRequest: onUnhandledRequestDefault,
     pathPrefix: "/api/github",
     ...options,
     log
   };
   const webhooksMiddleware = (0, import_webhooks2.createNodeMiddleware)(app.webhooks, {
     path: optionsWithDefaults.pathPrefix + "/webhooks",
-    log
+    log,
+    onUnhandledRequest: optionsWithDefaults.onUnhandledRequest
   });
   const oauthMiddleware = (0, import_oauth_app.createNodeMiddleware)(app.oauth, {
-    pathPrefix: optionsWithDefaults.pathPrefix + "/oauth"
+    pathPrefix: optionsWithDefaults.pathPrefix + "/oauth",
+    onUnhandledRequest: optionsWithDefaults.onUnhandledRequest
   });
-  return middleware.bind(
-    null,
-    optionsWithDefaults.pathPrefix,
+  return middleware.bind(null, optionsWithDefaults, {
     webhooksMiddleware,
     oauthMiddleware
-  );
+  });
 }
-async function middleware(pathPrefix, webhooksMiddleware, oauthMiddleware, request, response, next) {
+async function middleware(options, { webhooksMiddleware, oauthMiddleware }, request, response, next) {
   const { pathname } = new URL(request.url, "http://localhost");
-  if (pathname.startsWith(`${pathPrefix}/`)) {
-    if (pathname === `${pathPrefix}/webhooks`) {
-      webhooksMiddleware(request, response);
-    } else if (pathname.startsWith(`${pathPrefix}/oauth/`)) {
-      oauthMiddleware(request, response);
-    } else {
-      (0, import_oauth_app.sendNodeResponse)((0, import_oauth_app.unknownRouteResponse)(request), response);
-    }
-    return true;
-  } else {
-    next == null ? void 0 : next();
-    return false;
+  if (pathname === `${options.pathPrefix}/webhooks`) {
+    return webhooksMiddleware(request, response, next);
   }
+  if (pathname.startsWith(`${options.pathPrefix}/oauth/`)) {
+    return oauthMiddleware(request, response, next);
+  }
+  const isExpressMiddleware = typeof next === "function";
+  if (isExpressMiddleware) {
+    return next();
+  }
+  return options.onUnhandledRequest(request, response);
 }
 
 // pkg/dist-src/index.js
-var _App = class _App {
+var App = class {
   static defaults(defaults) {
     const AppWithDefaults = class extends this {
       constructor(...args) {
@@ -4200,8 +4213,7 @@ var _App = class _App {
     );
   }
 };
-_App.VERSION = VERSION;
-var App = _App;
+App.VERSION = VERSION;
 // Annotate the CommonJS export names for ESM import in node:
 0 && (0);
 
@@ -4242,7 +4254,7 @@ __export(dist_src_exports, {
 module.exports = __toCommonJS(dist_src_exports);
 
 // pkg/dist-src/version.js
-var VERSION = "9.0.0";
+var VERSION = "6.1.2";
 
 // pkg/dist-src/normalize-paginated-list-response.js
 function normalizePaginatedListResponse(response) {
@@ -4349,13 +4361,9 @@ var composePaginateRest = Object.assign(paginate, {
 
 // pkg/dist-src/generated/paginating-endpoints.js
 var paginatingEndpoints = [
-  "GET /advisories",
   "GET /app/hook/deliveries",
   "GET /app/installation-requests",
   "GET /app/installations",
-  "GET /assignments/{assignment_id}/accepted_assignments",
-  "GET /classrooms",
-  "GET /classrooms/{classroom_id}/assignments",
   "GET /enterprises/{enterprise}/dependabot/alerts",
   "GET /enterprises/{enterprise}/secret-scanning/alerts",
   "GET /events",
@@ -4375,8 +4383,13 @@ var paginatingEndpoints = [
   "GET /networks/{owner}/{repo}/events",
   "GET /notifications",
   "GET /organizations",
+  "GET /organizations/{org}/personal-access-token-requests",
+  "GET /organizations/{org}/personal-access-token-requests/{pat_request_id}/repositories",
+  "GET /organizations/{org}/personal-access-tokens",
+  "GET /organizations/{org}/personal-access-tokens/{pat_id}/repositories",
   "GET /orgs/{org}/actions/cache/usage-by-repository",
   "GET /orgs/{org}/actions/permissions/repositories",
+  "GET /orgs/{org}/actions/required_workflows",
   "GET /orgs/{org}/actions/runners",
   "GET /orgs/{org}/actions/secrets",
   "GET /orgs/{org}/actions/secrets/{secret_name}/repositories",
@@ -4387,7 +4400,6 @@ var paginatingEndpoints = [
   "GET /orgs/{org}/codespaces",
   "GET /orgs/{org}/codespaces/secrets",
   "GET /orgs/{org}/codespaces/secrets/{secret_name}/repositories",
-  "GET /orgs/{org}/copilot/billing/seats",
   "GET /orgs/{org}/dependabot/alerts",
   "GET /orgs/{org}/dependabot/secrets",
   "GET /orgs/{org}/dependabot/secrets/{secret_name}/repositories",
@@ -4406,16 +4418,10 @@ var paginatingEndpoints = [
   "GET /orgs/{org}/outside_collaborators",
   "GET /orgs/{org}/packages",
   "GET /orgs/{org}/packages/{package_type}/{package_name}/versions",
-  "GET /orgs/{org}/personal-access-token-requests",
-  "GET /orgs/{org}/personal-access-token-requests/{pat_request_id}/repositories",
-  "GET /orgs/{org}/personal-access-tokens",
-  "GET /orgs/{org}/personal-access-tokens/{pat_id}/repositories",
   "GET /orgs/{org}/projects",
   "GET /orgs/{org}/public_members",
   "GET /orgs/{org}/repos",
-  "GET /orgs/{org}/rulesets",
   "GET /orgs/{org}/secret-scanning/alerts",
-  "GET /orgs/{org}/security-advisories",
   "GET /orgs/{org}/teams",
   "GET /orgs/{org}/teams/{team_slug}/discussions",
   "GET /orgs/{org}/teams/{team_slug}/discussions/{discussion_number}/comments",
@@ -4429,10 +4435,12 @@ var paginatingEndpoints = [
   "GET /projects/columns/{column_id}/cards",
   "GET /projects/{project_id}/collaborators",
   "GET /projects/{project_id}/columns",
+  "GET /repos/{org}/{repo}/actions/required_workflows",
   "GET /repos/{owner}/{repo}/actions/artifacts",
   "GET /repos/{owner}/{repo}/actions/caches",
   "GET /repos/{owner}/{repo}/actions/organization-secrets",
   "GET /repos/{owner}/{repo}/actions/organization-variables",
+  "GET /repos/{owner}/{repo}/actions/required_workflows/{required_workflow_id_for_repo}/runs",
   "GET /repos/{owner}/{repo}/actions/runners",
   "GET /repos/{owner}/{repo}/actions/runs",
   "GET /repos/{owner}/{repo}/actions/runs/{run_id}/artifacts",
@@ -4442,7 +4450,6 @@ var paginatingEndpoints = [
   "GET /repos/{owner}/{repo}/actions/variables",
   "GET /repos/{owner}/{repo}/actions/workflows",
   "GET /repos/{owner}/{repo}/actions/workflows/{workflow_id}/runs",
-  "GET /repos/{owner}/{repo}/activity",
   "GET /repos/{owner}/{repo}/assignees",
   "GET /repos/{owner}/{repo}/branches",
   "GET /repos/{owner}/{repo}/check-runs/{check_run_id}/annotations",
@@ -4503,8 +4510,6 @@ var paginatingEndpoints = [
   "GET /repos/{owner}/{repo}/releases",
   "GET /repos/{owner}/{repo}/releases/{release_id}/assets",
   "GET /repos/{owner}/{repo}/releases/{release_id}/reactions",
-  "GET /repos/{owner}/{repo}/rules/branches/{branch}",
-  "GET /repos/{owner}/{repo}/rulesets",
   "GET /repos/{owner}/{repo}/secret-scanning/alerts",
   "GET /repos/{owner}/{repo}/secret-scanning/alerts/{alert_number}/locations",
   "GET /repos/{owner}/{repo}/security-advisories",
@@ -4609,11 +4614,9 @@ paginateRest.VERSION = VERSION;
 
 "use strict";
 
-var __create = Object.create;
 var __defProp = Object.defineProperty;
 var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
 var __getOwnPropNames = Object.getOwnPropertyNames;
-var __getProtoOf = Object.getPrototypeOf;
 var __hasOwnProp = Object.prototype.hasOwnProperty;
 var __export = (target, all) => {
   for (var name in all)
@@ -4627,14 +4630,6 @@ var __copyProps = (to, from, except, desc) => {
   }
   return to;
 };
-var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__getProtoOf(mod)) : {}, __copyProps(
-  // If the importer is in node compatibility mode or this is not an ESM
-  // file that has been converted to a CommonJS file using a Babel-
-  // compatible transform (i.e. "__esModule" has not been set), then set
-  // "default" to the CommonJS "module.exports" for node compatibility.
-  isNodeMode || !mod || !mod.__esModule ? __defProp(target, "default", { value: mod, enumerable: true }) : target,
-  mod
-));
 var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
 
 // pkg/dist-src/index.js
@@ -4650,7 +4645,6 @@ var import_auth_oauth_app = __nccwpck_require__(1258);
 
 // pkg/dist-src/auth.js
 var import_deprecation = __nccwpck_require__(4394);
-var OAuthAppAuth = __toESM(__nccwpck_require__(1258));
 
 // pkg/dist-src/get-app-authentication.js
 var import_universal_github_app_jwt = __nccwpck_require__(5220);
@@ -4914,7 +4908,6 @@ async function auth(state, authOptions) {
 
 // pkg/dist-src/hook.js
 var import_auth_oauth_user = __nccwpck_require__(1183);
-var import_request_error = __nccwpck_require__(297);
 
 // pkg/dist-src/requires-app-auth.js
 var PATHS = [
@@ -5039,7 +5032,7 @@ async function sendRequestWithRetries(state, request, options, createdAt, retrie
 }
 
 // pkg/dist-src/version.js
-var VERSION = "6.0.0";
+var VERSION = "4.0.13";
 
 // pkg/dist-src/index.js
 var import_auth_oauth_user2 = __nccwpck_require__(1183);
@@ -5210,7 +5203,7 @@ async function hook(state, request2, route, parameters) {
 }
 
 // pkg/dist-src/version.js
-var VERSION = "7.0.0";
+var VERSION = "5.0.6";
 
 // pkg/dist-src/index.js
 var import_auth_oauth_user3 = __nccwpck_require__(1183);
@@ -5369,7 +5362,7 @@ async function hook(state, request, route, parameters) {
 }
 
 // pkg/dist-src/version.js
-var VERSION = "6.0.0";
+var VERSION = "4.0.5";
 
 // pkg/dist-src/index.js
 function createOAuthDeviceAuth(options) {
@@ -5453,7 +5446,7 @@ var import_universal_user_agent = __nccwpck_require__(5115);
 var import_request = __nccwpck_require__(5625);
 
 // pkg/dist-src/version.js
-var VERSION = "4.0.0";
+var VERSION = "2.1.2";
 
 // pkg/dist-src/get-authentication.js
 var import_auth_oauth_device = __nccwpck_require__(4311);
@@ -5743,7 +5736,7 @@ var createTokenAuth = function createTokenAuth2(token) {
 /***/ }),
 
 /***/ 3378:
-/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
+/***/ ((module) => {
 
 "use strict";
 
@@ -5781,7 +5774,6 @@ async function auth(reason) {
 }
 
 // pkg/dist-src/is-rate-limit-error.js
-var import_request_error = __nccwpck_require__(297);
 function isRateLimitError(error) {
   if (error.status !== 403) {
     return false;
@@ -5793,7 +5785,6 @@ function isRateLimitError(error) {
 }
 
 // pkg/dist-src/is-abuse-limit-error.js
-var import_request_error2 = __nccwpck_require__(297);
 var REGEX_ABUSE_LIMIT_MESSAGE = /\babuse\b/i;
 function isAbuseLimitError(error) {
   if (error.status !== 403) {
@@ -5888,13 +5879,10 @@ var import_graphql = __nccwpck_require__(1761);
 var import_auth_token = __nccwpck_require__(8712);
 
 // pkg/dist-src/version.js
-var VERSION = "5.0.0";
+var VERSION = "4.2.4";
 
 // pkg/dist-src/index.js
 var Octokit = class {
-  static {
-    this.VERSION = VERSION;
-  }
   static defaults(defaults) {
     const OctokitWithDefaults = class extends this {
       constructor(...args) {
@@ -5917,9 +5905,6 @@ var Octokit = class {
     };
     return OctokitWithDefaults;
   }
-  static {
-    this.plugins = [];
-  }
   /**
    * Attach a plugin (or many) to your Octokit instance.
    *
@@ -5927,14 +5912,12 @@ var Octokit = class {
    * const API = Octokit.plugin(plugin1, plugin2, plugin3, ...)
    */
   static plugin(...newPlugins) {
+    var _a;
     const currentPlugins = this.plugins;
-    const NewOctokit = class extends this {
-      static {
-        this.plugins = currentPlugins.concat(
-          newPlugins.filter((plugin) => !currentPlugins.includes(plugin))
-        );
-      }
-    };
+    const NewOctokit = (_a = class extends this {
+    }, _a.plugins = currentPlugins.concat(
+      newPlugins.filter((plugin) => !currentPlugins.includes(plugin))
+    ), _a);
     return NewOctokit;
   }
   constructor(options = {}) {
@@ -6015,6 +5998,8 @@ var Octokit = class {
     });
   }
 };
+Octokit.VERSION = VERSION;
+Octokit.plugins = [];
 // Annotate the CommonJS export names for ESM import in node:
 0 && (0);
 
@@ -6050,26 +6035,6 @@ __export(dist_src_exports, {
   endpoint: () => endpoint
 });
 module.exports = __toCommonJS(dist_src_exports);
-
-// pkg/dist-src/defaults.js
-var import_universal_user_agent = __nccwpck_require__(5115);
-
-// pkg/dist-src/version.js
-var VERSION = "9.0.0";
-
-// pkg/dist-src/defaults.js
-var userAgent = `octokit-endpoint.js/${VERSION} ${(0, import_universal_user_agent.getUserAgent)()}`;
-var DEFAULTS = {
-  method: "GET",
-  baseUrl: "https://api.github.com",
-  headers: {
-    accept: "application/vnd.github.v3+json",
-    "user-agent": userAgent
-  },
-  mediaType: {
-    format: ""
-  }
-};
 
 // pkg/dist-src/util/lowercase-keys.js
 function lowercaseKeys(object) {
@@ -6121,14 +6086,12 @@ function merge(defaults, route, options) {
   removeUndefinedProperties(options);
   removeUndefinedProperties(options.headers);
   const mergedOptions = mergeDeep(defaults || {}, options);
-  if (options.url === "/graphql") {
-    if (defaults && defaults.mediaType.previews?.length) {
-      mergedOptions.mediaType.previews = defaults.mediaType.previews.filter(
-        (preview) => !mergedOptions.mediaType.previews.includes(preview)
-      ).concat(mergedOptions.mediaType.previews);
-    }
-    mergedOptions.mediaType.previews = (mergedOptions.mediaType.previews || []).map((preview) => preview.replace(/-preview/, ""));
+  if (defaults && defaults.mediaType.previews.length) {
+    mergedOptions.mediaType.previews = defaults.mediaType.previews.filter((preview) => !mergedOptions.mediaType.previews.includes(preview)).concat(mergedOptions.mediaType.previews);
   }
+  mergedOptions.mediaType.previews = mergedOptions.mediaType.previews.map(
+    (preview) => preview.replace(/-preview/, "")
+  );
   return mergedOptions;
 }
 
@@ -6320,20 +6283,18 @@ function parse(options) {
   if (!isBinaryRequest) {
     if (options.mediaType.format) {
       headers.accept = headers.accept.split(/,/).map(
-        (format) => format.replace(
+        (preview) => preview.replace(
           /application\/vnd(\.\w+)(\.v3)?(\.\w+)?(\+json)?$/,
           `application/vnd$1$2.${options.mediaType.format}`
         )
       ).join(",");
     }
-    if (url.endsWith("/graphql")) {
-      if (options.mediaType.previews?.length) {
-        const previewsFromAcceptHeader = headers.accept.match(/[\w-]+(?=-preview)/g) || [];
-        headers.accept = previewsFromAcceptHeader.concat(options.mediaType.previews).map((preview) => {
-          const format = options.mediaType.format ? `.${options.mediaType.format}` : "+json";
-          return `application/vnd.github.${preview}-preview${format}`;
-        }).join(",");
-      }
+    if (options.mediaType.previews.length) {
+      const previewsFromAcceptHeader = headers.accept.match(/[\w-]+(?=-preview)/g) || [];
+      headers.accept = previewsFromAcceptHeader.concat(options.mediaType.previews).map((preview) => {
+        const format = options.mediaType.format ? `.${options.mediaType.format}` : "+json";
+        return `application/vnd.github.${preview}-preview${format}`;
+      }).join(",");
     }
   }
   if (["GET", "HEAD"].includes(method)) {
@@ -6377,6 +6338,27 @@ function withDefaults(oldDefaults, newDefaults) {
   });
 }
 
+// pkg/dist-src/defaults.js
+var import_universal_user_agent = __nccwpck_require__(5115);
+
+// pkg/dist-src/version.js
+var VERSION = "7.0.6";
+
+// pkg/dist-src/defaults.js
+var userAgent = `octokit-endpoint.js/${VERSION} ${(0, import_universal_user_agent.getUserAgent)()}`;
+var DEFAULTS = {
+  method: "GET",
+  baseUrl: "https://api.github.com",
+  headers: {
+    accept: "application/vnd.github.v3+json",
+    "user-agent": userAgent
+  },
+  mediaType: {
+    format: "",
+    previews: []
+  }
+};
+
 // pkg/dist-src/index.js
 var endpoint = withDefaults(null, DEFAULTS);
 // Annotate the CommonJS export names for ESM import in node:
@@ -6416,17 +6398,11 @@ __export(dist_src_exports, {
   withCustomRequest: () => withCustomRequest
 });
 module.exports = __toCommonJS(dist_src_exports);
-var import_request3 = __nccwpck_require__(5625);
+var import_request = __nccwpck_require__(5625);
 var import_universal_user_agent = __nccwpck_require__(5115);
 
 // pkg/dist-src/version.js
-var VERSION = "7.0.1";
-
-// pkg/dist-src/with-defaults.js
-var import_request2 = __nccwpck_require__(5625);
-
-// pkg/dist-src/graphql.js
-var import_request = __nccwpck_require__(5625);
+var VERSION = "5.0.6";
 
 // pkg/dist-src/error.js
 function _buildMessageForResponseErrors(data) {
@@ -6471,9 +6447,7 @@ function graphql(request2, query, options) {
       if (!FORBIDDEN_VARIABLE_OPTIONS.includes(key))
         continue;
       return Promise.reject(
-        new Error(
-          `[@octokit/graphql] "${key}" cannot be used as variable name`
-        )
+        new Error(`[@octokit/graphql] "${key}" cannot be used as variable name`)
       );
     }
   }
@@ -6524,7 +6498,7 @@ function withDefaults(request2, newDefaults) {
 }
 
 // pkg/dist-src/index.js
-var graphql2 = withDefaults(import_request3.request, {
+var graphql2 = withDefaults(import_request.request, {
   headers: {
     "user-agent": `octokit-graphql.js/${VERSION} ${(0, import_universal_user_agent.getUserAgent)()}`
   },
@@ -6581,17 +6555,16 @@ var dist_src_exports = {};
 __export(dist_src_exports, {
   OAuthApp: () => OAuthApp,
   createAWSLambdaAPIGatewayV2Handler: () => createAWSLambdaAPIGatewayV2Handler,
+  createCloudflareHandler: () => createCloudflareHandler,
   createNodeMiddleware: () => createNodeMiddleware,
   createWebWorkerHandler: () => createWebWorkerHandler,
-  handleRequest: () => handleRequest,
-  sendNodeResponse: () => sendResponse,
-  unknownRouteResponse: () => unknownRouteResponse
+  handleRequest: () => handleRequest
 });
 module.exports = __toCommonJS(dist_src_exports);
 var import_auth_oauth_app = __nccwpck_require__(1258);
 
 // pkg/dist-src/version.js
-var VERSION = "6.0.0";
+var VERSION = "4.2.4";
 
 // pkg/dist-src/add-event-handler.js
 function addEventHandler(state, eventName, eventHandler) {
@@ -6939,19 +6912,10 @@ async function deleteAuthorizationWithState(state, options) {
   return response;
 }
 
-// pkg/dist-src/middleware/unknown-route-response.js
-function unknownRouteResponse(request) {
-  return {
-    status: 404,
-    headers: { "content-type": "application/json" },
-    text: JSON.stringify({
-      error: `Unknown route: ${request.method} ${request.url}`
-    })
-  };
-}
-
 // pkg/dist-src/middleware/handle-request.js
+var import_fromentries = __toESM(__nccwpck_require__(6381));
 async function handleRequest(app, { pathPrefix = "/api/github/oauth" }, request) {
+  var _a, _b, _c, _d, _e, _f;
   if (request.method === "OPTIONS") {
     return {
       status: 200,
@@ -6962,25 +6926,21 @@ async function handleRequest(app, { pathPrefix = "/api/github/oauth" }, request)
       }
     };
   }
-  let { pathname } = new URL(request.url, "http://localhost");
-  if (!pathname.startsWith(`${pathPrefix}/`)) {
-    return void 0;
-  }
-  pathname = pathname.slice(pathPrefix.length + 1);
+  const { pathname } = new URL(request.url, "http://localhost");
   const route = [request.method, pathname].join(" ");
   const routes = {
-    getLogin: `GET login`,
-    getCallback: `GET callback`,
-    createToken: `POST token`,
-    getToken: `GET token`,
-    patchToken: `PATCH token`,
-    patchRefreshToken: `PATCH refresh-token`,
-    scopeToken: `POST token/scoped`,
-    deleteToken: `DELETE token`,
-    deleteGrant: `DELETE grant`
+    getLogin: `GET ${pathPrefix}/login`,
+    getCallback: `GET ${pathPrefix}/callback`,
+    createToken: `POST ${pathPrefix}/token`,
+    getToken: `GET ${pathPrefix}/token`,
+    patchToken: `PATCH ${pathPrefix}/token`,
+    patchRefreshToken: `PATCH ${pathPrefix}/refresh-token`,
+    scopeToken: `POST ${pathPrefix}/token/scoped`,
+    deleteToken: `DELETE ${pathPrefix}/token`,
+    deleteGrant: `DELETE ${pathPrefix}/grant`
   };
   if (!Object.values(routes).includes(route)) {
-    return unknownRouteResponse(request);
+    return null;
   }
   let json;
   try {
@@ -6999,7 +6959,7 @@ async function handleRequest(app, { pathPrefix = "/api/github/oauth" }, request)
     };
   }
   const { searchParams } = new URL(request.url, "http://localhost");
-  const query = Object.fromEntries(searchParams);
+  const query = (0, import_fromentries.default)(searchParams);
   const headers = request.headers;
   try {
     if (route === routes.getLogin) {
@@ -7055,7 +7015,7 @@ async function handleRequest(app, { pathPrefix = "/api/github/oauth" }, request)
       };
     }
     if (route === routes.getToken) {
-      const token2 = headers.authorization?.substr("token ".length);
+      const token2 = (_a = headers.authorization) == null ? void 0 : _a.substr("token ".length);
       if (!token2) {
         throw new Error(
           '[@octokit/oauth-app] "Authorization" header is required'
@@ -7075,7 +7035,7 @@ async function handleRequest(app, { pathPrefix = "/api/github/oauth" }, request)
       };
     }
     if (route === routes.patchToken) {
-      const token2 = headers.authorization?.substr("token ".length);
+      const token2 = (_b = headers.authorization) == null ? void 0 : _b.substr("token ".length);
       if (!token2) {
         throw new Error(
           '[@octokit/oauth-app] "Authorization" header is required'
@@ -7093,7 +7053,7 @@ async function handleRequest(app, { pathPrefix = "/api/github/oauth" }, request)
       };
     }
     if (route === routes.patchRefreshToken) {
-      const token2 = headers.authorization?.substr("token ".length);
+      const token2 = (_c = headers.authorization) == null ? void 0 : _c.substr("token ".length);
       if (!token2) {
         throw new Error(
           '[@octokit/oauth-app] "Authorization" header is required'
@@ -7117,7 +7077,7 @@ async function handleRequest(app, { pathPrefix = "/api/github/oauth" }, request)
       };
     }
     if (route === routes.scopeToken) {
-      const token2 = headers.authorization?.substr("token ".length);
+      const token2 = (_d = headers.authorization) == null ? void 0 : _d.substr("token ".length);
       if (!token2) {
         throw new Error(
           '[@octokit/oauth-app] "Authorization" header is required'
@@ -7138,7 +7098,7 @@ async function handleRequest(app, { pathPrefix = "/api/github/oauth" }, request)
       };
     }
     if (route === routes.deleteToken) {
-      const token2 = headers.authorization?.substr("token ".length);
+      const token2 = (_e = headers.authorization) == null ? void 0 : _e.substr("token ".length);
       if (!token2) {
         throw new Error(
           '[@octokit/oauth-app] "Authorization" header is required'
@@ -7152,7 +7112,7 @@ async function handleRequest(app, { pathPrefix = "/api/github/oauth" }, request)
         headers: { "access-control-allow-origin": "*" }
       };
     }
-    const token = headers.authorization?.substr("token ".length);
+    const token = (_f = headers.authorization) == null ? void 0 : _f.substr("token ".length);
     if (!token) {
       throw new Error(
         '[@octokit/oauth-app] "Authorization" header is required'
@@ -7196,17 +7156,46 @@ function sendResponse(octokitResponse, response) {
   response.end(octokitResponse.text);
 }
 
+// pkg/dist-src/middleware/on-unhandled-request-default.js
+function onUnhandledRequestDefault(request) {
+  return {
+    status: 404,
+    headers: { "content-type": "application/json" },
+    text: JSON.stringify({
+      error: `Unknown route: ${request.method} ${request.url}`
+    })
+  };
+}
+
 // pkg/dist-src/middleware/node/index.js
-function createNodeMiddleware(app, options = {}) {
+function onUnhandledRequestDefaultNode(request, response) {
+  const octokitRequest = parseRequest(request);
+  const octokitResponse = onUnhandledRequestDefault(octokitRequest);
+  sendResponse(octokitResponse, response);
+}
+function createNodeMiddleware(app, {
+  pathPrefix,
+  onUnhandledRequest
+} = {}) {
+  if (onUnhandledRequest) {
+    app.octokit.log.warn(
+      "[@octokit/oauth-app] `onUnhandledRequest` is deprecated and will be removed from the next major version."
+    );
+  }
+  onUnhandledRequest ?? (onUnhandledRequest = onUnhandledRequestDefaultNode);
   return async function(request, response, next) {
-    const octokitRequest = await parseRequest(request);
-    const octokitResponse = await handleRequest(app, options, octokitRequest);
+    const octokitRequest = parseRequest(request);
+    const octokitResponse = await handleRequest(
+      app,
+      { pathPrefix },
+      octokitRequest
+    );
     if (octokitResponse) {
       sendResponse(octokitResponse, response);
-      return true;
+    } else if (typeof next === "function") {
+      next();
     } else {
-      next?.();
-      return false;
+      onUnhandledRequest(request, response);
     }
   };
 }
@@ -7231,12 +7220,36 @@ function sendResponse2(octokitResponse) {
 }
 
 // pkg/dist-src/middleware/web-worker/index.js
-function createWebWorkerHandler(app, options = {}) {
+async function onUnhandledRequestDefaultWebWorker(request) {
+  const octokitRequest = parseRequest2(request);
+  const octokitResponse = onUnhandledRequestDefault(octokitRequest);
+  return sendResponse2(octokitResponse);
+}
+function createWebWorkerHandler(app, {
+  pathPrefix,
+  onUnhandledRequest
+} = {}) {
+  if (onUnhandledRequest) {
+    app.octokit.log.warn(
+      "[@octokit/oauth-app] `onUnhandledRequest` is deprecated and will be removed from the next major version."
+    );
+  }
+  onUnhandledRequest ?? (onUnhandledRequest = onUnhandledRequestDefaultWebWorker);
   return async function(request) {
-    const octokitRequest = await parseRequest2(request);
-    const octokitResponse = await handleRequest(app, options, octokitRequest);
-    return octokitResponse ? sendResponse2(octokitResponse) : void 0;
+    const octokitRequest = parseRequest2(request);
+    const octokitResponse = await handleRequest(
+      app,
+      { pathPrefix },
+      octokitRequest
+    );
+    return octokitResponse ? sendResponse2(octokitResponse) : await onUnhandledRequest(request);
   };
+}
+function createCloudflareHandler(...args) {
+  args[0].octokit.log.warn(
+    "[@octokit/oauth-app] `createCloudflareHandler` is deprecated, use `createWebWorkerHandler` instead"
+  );
+  return createWebWorkerHandler(...args);
 }
 
 // pkg/dist-src/middleware/aws-lambda/api-gateway-v2-parse-request.js
@@ -7263,19 +7276,30 @@ function sendResponse3(octokitResponse) {
 }
 
 // pkg/dist-src/middleware/aws-lambda/api-gateway-v2.js
-function createAWSLambdaAPIGatewayV2Handler(app, options = {}) {
+async function onUnhandledRequestDefaultAWSAPIGatewayV2(event) {
+  const request = parseRequest3(event);
+  const response = onUnhandledRequestDefault(request);
+  return sendResponse3(response);
+}
+function createAWSLambdaAPIGatewayV2Handler(app, {
+  pathPrefix,
+  onUnhandledRequest
+} = {}) {
+  if (onUnhandledRequest) {
+    app.octokit.log.warn(
+      "[@octokit/oauth-app] `onUnhandledRequest` is deprecated and will be removed from the next major version."
+    );
+  }
+  onUnhandledRequest ?? (onUnhandledRequest = onUnhandledRequestDefaultAWSAPIGatewayV2);
   return async function(event) {
     const request = parseRequest3(event);
-    const response = await handleRequest(app, options, request);
-    return response ? sendResponse3(response) : void 0;
+    const response = await handleRequest(app, { pathPrefix }, request);
+    return response ? sendResponse3(response) : onUnhandledRequest(event);
   };
 }
 
 // pkg/dist-src/index.js
 var OAuthApp = class {
-  static {
-    this.VERSION = VERSION;
-  }
   static defaults(defaults) {
     const OAuthAppWithDefaults = class extends this {
       constructor(...args) {
@@ -7343,6 +7367,7 @@ var OAuthApp = class {
     this.deleteAuthorization = deleteAuthorizationWithState.bind(null, state);
   }
 };
+OAuthApp.VERSION = VERSION;
 // Annotate the CommonJS export names for ESM import in node:
 0 && (0);
 
@@ -7350,34 +7375,13 @@ var OAuthApp = class {
 /***/ }),
 
 /***/ 7617:
-/***/ ((module) => {
+/***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
 
-var __defProp = Object.defineProperty;
-var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
-var __getOwnPropNames = Object.getOwnPropertyNames;
-var __hasOwnProp = Object.prototype.hasOwnProperty;
-var __export = (target, all) => {
-  for (var name in all)
-    __defProp(target, name, { get: all[name], enumerable: true });
-};
-var __copyProps = (to, from, except, desc) => {
-  if (from && typeof from === "object" || typeof from === "function") {
-    for (let key of __getOwnPropNames(from))
-      if (!__hasOwnProp.call(to, key) && key !== except)
-        __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
-  }
-  return to;
-};
-var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
 
-// pkg/dist-src/index.js
-var dist_src_exports = {};
-__export(dist_src_exports, {
-  oauthAuthorizationUrl: () => oauthAuthorizationUrl
-});
-module.exports = __toCommonJS(dist_src_exports);
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+
 function oauthAuthorizationUrl(options) {
   const clientType = options.clientType || "oauth-app";
   const baseUrl = options.baseUrl || "https://github.com";
@@ -7390,13 +7394,16 @@ function oauthAuthorizationUrl(options) {
     state: options.state || Math.random().toString(36).substr(2),
     url: ""
   };
+
   if (clientType === "oauth-app") {
     const scopes = "scopes" in options ? options.scopes : [];
     result.scopes = typeof scopes === "string" ? scopes.split(/[,\s]+/).filter(Boolean) : scopes;
   }
+
   result.url = urlBuilderAuthorize(`${baseUrl}/login/oauth/authorize`, result);
   return result;
 }
+
 function urlBuilderAuthorize(base, options) {
   const map = {
     allowSignup: "allow_signup",
@@ -7407,20 +7414,24 @@ function urlBuilderAuthorize(base, options) {
     state: "state"
   };
   let url = base;
-  Object.keys(map).filter((k) => options[k] !== null).filter((k) => {
-    if (k !== "scopes")
-      return true;
-    if (options.clientType === "github-app")
-      return false;
+  Object.keys(map) // Filter out keys that are null and remove the url key
+  .filter(k => options[k] !== null) // Filter out empty scopes array
+  .filter(k => {
+    if (k !== "scopes") return true;
+    if (options.clientType === "github-app") return false;
     return !Array.isArray(options[k]) || options[k].length > 0;
-  }).map((key) => [map[key], `${options[key]}`]).forEach(([key, value], index) => {
+  }) // Map Array with the proper URL parameter names and change the value to a string using template strings
+  // @ts-ignore
+  .map(key => [map[key], `${options[key]}`]) // Finally, build the URL
+  .forEach(([key, value], index) => {
     url += index === 0 ? `?` : "&";
     url += `${key}=${encodeURIComponent(value)}`;
   });
   return url;
 }
-// Annotate the CommonJS export names for ESM import in node:
-0 && (0);
+
+exports.oauthAuthorizationUrl = oauthAuthorizationUrl;
+//# sourceMappingURL=index.js.map
 
 
 /***/ }),
@@ -7476,7 +7487,7 @@ __export(dist_src_exports, {
 module.exports = __toCommonJS(dist_src_exports);
 
 // pkg/dist-src/version.js
-var VERSION = "4.0.0";
+var VERSION = "2.0.6";
 
 // pkg/dist-src/get-web-flow-authorization-url.js
 var import_oauth_authorization_url = __nccwpck_require__(7617);
@@ -8014,61 +8025,39 @@ exports.paginatingEndpoints = paginatingEndpoints;
 /***/ }),
 
 /***/ 2626:
-/***/ ((module) => {
+/***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
 
-var __defProp = Object.defineProperty;
-var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
-var __getOwnPropNames = Object.getOwnPropertyNames;
-var __hasOwnProp = Object.prototype.hasOwnProperty;
-var __export = (target, all) => {
-  for (var name in all)
-    __defProp(target, name, { get: all[name], enumerable: true });
-};
-var __copyProps = (to, from, except, desc) => {
-  if (from && typeof from === "object" || typeof from === "function") {
-    for (let key of __getOwnPropNames(from))
-      if (!__hasOwnProp.call(to, key) && key !== except)
-        __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
-  }
-  return to;
-};
-var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
 
-// pkg/dist-src/index.js
-var dist_src_exports = {};
-__export(dist_src_exports, {
-  requestLog: () => requestLog
-});
-module.exports = __toCommonJS(dist_src_exports);
+Object.defineProperty(exports, "__esModule", ({ value: true }));
 
-// pkg/dist-src/version.js
-var VERSION = "4.0.0";
+const VERSION = "1.0.4";
 
-// pkg/dist-src/index.js
+/**
+ * @param octokit Octokit instance
+ * @param options Options passed to Octokit constructor
+ */
+
 function requestLog(octokit) {
   octokit.hook.wrap("request", (request, options) => {
     octokit.log.debug("request", options);
     const start = Date.now();
     const requestOptions = octokit.request.endpoint.parse(options);
     const path = requestOptions.url.replace(options.baseUrl, "");
-    return request(options).then((response) => {
-      octokit.log.info(
-        `${requestOptions.method} ${path} - ${response.status} in ${Date.now() - start}ms`
-      );
+    return request(options).then(response => {
+      octokit.log.info(`${requestOptions.method} ${path} - ${response.status} in ${Date.now() - start}ms`);
       return response;
-    }).catch((error) => {
-      octokit.log.info(
-        `${requestOptions.method} ${path} - ${error.status} in ${Date.now() - start}ms`
-      );
+    }).catch(error => {
+      octokit.log.info(`${requestOptions.method} ${path} - ${error.status} in ${Date.now() - start}ms`);
       throw error;
     });
   });
 }
 requestLog.VERSION = VERSION;
-// Annotate the CommonJS export names for ESM import in node:
-0 && (0);
+
+exports.requestLog = requestLog;
+//# sourceMappingURL=index.js.map
 
 
 /***/ }),
@@ -9228,7 +9217,6 @@ __export(dist_src_exports, {
   retry: () => retry
 });
 module.exports = __toCommonJS(dist_src_exports);
-var import_core = __nccwpck_require__(524);
 
 // pkg/dist-src/error-request.js
 async function errorRequest(state, octokit, error, options) {
@@ -9276,13 +9264,13 @@ async function requestWithGraphqlErrorHandling(state, octokit, request, options)
 }
 
 // pkg/dist-src/index.js
-var VERSION = "6.0.1";
+var VERSION = "4.1.6";
 function retry(octokit, octokitOptions) {
   const state = Object.assign(
     {
       enabled: true,
       retryAfterBaseValue: 1e3,
-      doNotRetry: [400, 401, 403, 404, 422, 451],
+      doNotRetry: [400, 401, 403, 404, 422],
       retries: 3
     },
     octokitOptions.retry
@@ -9311,79 +9299,62 @@ retry.VERSION = VERSION;
 /***/ }),
 
 /***/ 160:
-/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
 "use strict";
 
-var __create = Object.create;
-var __defProp = Object.defineProperty;
-var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
-var __getOwnPropNames = Object.getOwnPropertyNames;
-var __getProtoOf = Object.getPrototypeOf;
-var __hasOwnProp = Object.prototype.hasOwnProperty;
-var __export = (target, all) => {
-  for (var name in all)
-    __defProp(target, name, { get: all[name], enumerable: true });
-};
-var __copyProps = (to, from, except, desc) => {
-  if (from && typeof from === "object" || typeof from === "function") {
-    for (let key of __getOwnPropNames(from))
-      if (!__hasOwnProp.call(to, key) && key !== except)
-        __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
-  }
-  return to;
-};
-var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__getProtoOf(mod)) : {}, __copyProps(
-  // If the importer is in node compatibility mode or this is not an ESM
-  // file that has been converted to a CommonJS file using a Babel-
-  // compatible transform (i.e. "__esModule" has not been set), then set
-  // "default" to the CommonJS "module.exports" for node compatibility.
-  isNodeMode || !mod || !mod.__esModule ? __defProp(target, "default", { value: mod, enumerable: true }) : target,
-  mod
-));
-var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
 
-// pkg/dist-src/index.js
-var dist_src_exports = {};
-__export(dist_src_exports, {
-  throttling: () => throttling
-});
-module.exports = __toCommonJS(dist_src_exports);
-var import_light = __toESM(__nccwpck_require__(4424));
-var import_core = __nccwpck_require__(524);
+Object.defineProperty(exports, "__esModule", ({ value: true }));
 
-// pkg/dist-src/version.js
-var VERSION = "8.0.0";
+function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex['default'] : ex; }
 
-// pkg/dist-src/wrap-request.js
-var noop = () => Promise.resolve();
+var BottleneckLight = _interopDefault(__nccwpck_require__(4424));
+
+const VERSION = "5.2.3";
+
+const noop = () => Promise.resolve();
+// @ts-expect-error
 function wrapRequest(state, request, options) {
   return state.retryLimiter.schedule(doRequest, state, request, options);
 }
+// @ts-expect-error
 async function doRequest(state, request, options) {
   const isWrite = options.method !== "GET" && options.method !== "HEAD";
-  const { pathname } = new URL(options.url, "http://github.test");
+  const {
+    pathname
+  } = new URL(options.url, "http://github.test");
   const isSearch = options.method === "GET" && pathname.startsWith("/search/");
   const isGraphQL = pathname.startsWith("/graphql");
   const retryCount = ~~request.retryCount;
-  const jobOptions = retryCount > 0 ? { priority: 0, weight: 0 } : {};
+  const jobOptions = retryCount > 0 ? {
+    priority: 0,
+    weight: 0
+  } : {};
   if (state.clustering) {
-    jobOptions.expiration = 1e3 * 60;
+    // Remove a job from Redis if it has not completed or failed within 60s
+    // Examples: Node process terminated, client disconnected, etc.
+    // @ts-expect-error
+    jobOptions.expiration = 1000 * 60;
   }
+  // Guarantee at least 1000ms between writes
+  // GraphQL can also trigger writes
   if (isWrite || isGraphQL) {
     await state.write.key(state.id).schedule(jobOptions, noop);
   }
+  // Guarantee at least 3000ms between requests that trigger notifications
   if (isWrite && state.triggersNotification(pathname)) {
     await state.notifications.key(state.id).schedule(jobOptions, noop);
   }
+  // Guarantee at least 2000ms between search requests
   if (isSearch) {
     await state.search.key(state.id).schedule(jobOptions, noop);
   }
   const req = state.global.key(state.id).schedule(jobOptions, request, options);
   if (isGraphQL) {
     const res = await req;
-    if (res.data.errors != null && // @ts-expect-error
-    res.data.errors.some((error) => error.type === "RATE_LIMITED")) {
+    if (res.data.errors != null &&
+    // @ts-expect-error
+    res.data.errors.some(error => error.type === "RATE_LIMITED")) {
       const error = Object.assign(new Error("GraphQL Rate Limit Exceeded"), {
         response: res,
         data: res.data
@@ -9394,41 +9365,37 @@ async function doRequest(state, request, options) {
   return req;
 }
 
-// pkg/dist-src/generated/triggers-notification-paths.js
-var triggers_notification_paths_default = [
-  "/orgs/{org}/invitations",
-  "/orgs/{org}/invitations/{invitation_id}",
-  "/orgs/{org}/teams/{team_slug}/discussions",
-  "/orgs/{org}/teams/{team_slug}/discussions/{discussion_number}/comments",
-  "/repos/{owner}/{repo}/collaborators/{username}",
-  "/repos/{owner}/{repo}/commits/{commit_sha}/comments",
-  "/repos/{owner}/{repo}/issues",
-  "/repos/{owner}/{repo}/issues/{issue_number}/comments",
-  "/repos/{owner}/{repo}/pulls",
-  "/repos/{owner}/{repo}/pulls/{pull_number}/comments",
-  "/repos/{owner}/{repo}/pulls/{pull_number}/comments/{comment_id}/replies",
-  "/repos/{owner}/{repo}/pulls/{pull_number}/merge",
-  "/repos/{owner}/{repo}/pulls/{pull_number}/requested_reviewers",
-  "/repos/{owner}/{repo}/pulls/{pull_number}/reviews",
-  "/repos/{owner}/{repo}/releases",
-  "/teams/{team_id}/discussions",
-  "/teams/{team_id}/discussions/{discussion_number}/comments"
-];
+var triggersNotificationPaths = ["/orgs/{org}/invitations", "/orgs/{org}/invitations/{invitation_id}", "/orgs/{org}/teams/{team_slug}/discussions", "/orgs/{org}/teams/{team_slug}/discussions/{discussion_number}/comments", "/repos/{owner}/{repo}/collaborators/{username}", "/repos/{owner}/{repo}/commits/{commit_sha}/comments", "/repos/{owner}/{repo}/issues", "/repos/{owner}/{repo}/issues/{issue_number}/comments", "/repos/{owner}/{repo}/pulls", "/repos/{owner}/{repo}/pulls/{pull_number}/comments", "/repos/{owner}/{repo}/pulls/{pull_number}/comments/{comment_id}/replies", "/repos/{owner}/{repo}/pulls/{pull_number}/merge", "/repos/{owner}/{repo}/pulls/{pull_number}/requested_reviewers", "/repos/{owner}/{repo}/pulls/{pull_number}/reviews", "/repos/{owner}/{repo}/releases", "/teams/{team_id}/discussions", "/teams/{team_id}/discussions/{discussion_number}/comments"];
 
-// pkg/dist-src/route-matcher.js
 function routeMatcher(paths) {
-  const regexes = paths.map(
-    (path) => path.split("/").map((c) => c.startsWith("{") ? "(?:.+?)" : c).join("/")
-  );
-  const regex2 = `^(?:${regexes.map((r) => `(?:${r})`).join("|")})[^/]*$`;
-  return new RegExp(regex2, "i");
+  // EXAMPLE. For the following paths:
+  /* [
+      "/orgs/{org}/invitations",
+      "/repos/{owner}/{repo}/collaborators/{username}"
+  ] */
+  const regexes = paths.map(path => path.split("/").map(c => c.startsWith("{") ? "(?:.+?)" : c).join("/"));
+  // 'regexes' would contain:
+  /* [
+      '/orgs/(?:.+?)/invitations',
+      '/repos/(?:.+?)/(?:.+?)/collaborators/(?:.+?)'
+  ] */
+  const regex = `^(?:${regexes.map(r => `(?:${r})`).join("|")})[^/]*$`;
+  // 'regex' would contain:
+  /*
+    ^(?:(?:\/orgs\/(?:.+?)\/invitations)|(?:\/repos\/(?:.+?)\/(?:.+?)\/collaborators\/(?:.+?)))[^\/]*$
+       It may look scary, but paste it into https://www.debuggex.com/
+    and it will make a lot more sense!
+  */
+  return new RegExp(regex, "i");
 }
 
-// pkg/dist-src/index.js
-var regex = routeMatcher(triggers_notification_paths_default);
-var triggersNotification = regex.test.bind(regex);
-var groups = {};
-var createGroups = function(Bottleneck, common) {
+// @ts-expect-error
+// Workaround to allow tests to directly access the triggersNotification function.
+const regex = routeMatcher(triggersNotificationPaths);
+const triggersNotification = regex.test.bind(regex);
+const groups = {};
+// @ts-expect-error
+const createGroups = function (Bottleneck, common) {
   groups.global = new Bottleneck.Group({
     id: "octokit-global",
     maxConcurrent: 10,
@@ -9437,50 +9404,62 @@ var createGroups = function(Bottleneck, common) {
   groups.search = new Bottleneck.Group({
     id: "octokit-search",
     maxConcurrent: 1,
-    minTime: 2e3,
+    minTime: 2000,
     ...common
   });
   groups.write = new Bottleneck.Group({
     id: "octokit-write",
     maxConcurrent: 1,
-    minTime: 1e3,
+    minTime: 1000,
     ...common
   });
   groups.notifications = new Bottleneck.Group({
     id: "octokit-notifications",
     maxConcurrent: 1,
-    minTime: 3e3,
+    minTime: 3000,
     ...common
   });
 };
 function throttling(octokit, octokitOptions) {
   const {
     enabled = true,
-    Bottleneck = import_light.default,
+    Bottleneck = BottleneckLight,
     id = "no-id",
-    timeout = 1e3 * 60 * 2,
+    timeout = 1000 * 60 * 2,
     // Redis TTL: 2 minutes
     connection
   } = octokitOptions.throttle || {};
   if (!enabled) {
     return {};
   }
-  const common = { connection, timeout };
+  const common = {
+    connection,
+    timeout
+  };
   if (groups.global == null) {
     createGroups(Bottleneck, common);
   }
-  const state = Object.assign(
-    {
-      clustering: connection != null,
-      triggersNotification,
-      fallbackSecondaryRateRetryAfter: 60,
-      retryAfterBaseValue: 1e3,
-      retryLimiter: new Bottleneck(),
-      id,
-      ...groups
-    },
-    octokitOptions.throttle
-  );
+  if (octokitOptions.throttle && octokitOptions.throttle.minimalSecondaryRateRetryAfter) {
+    octokit.log.warn("[@octokit/plugin-throttling] `options.throttle.minimalSecondaryRateRetryAfter` is deprecated, please use `options.throttle.fallbackSecondaryRateRetryAfter` instead");
+    octokitOptions.throttle.fallbackSecondaryRateRetryAfter = octokitOptions.throttle.minimalSecondaryRateRetryAfter;
+    delete octokitOptions.throttle.minimalSecondaryRateRetryAfter;
+  }
+  if (octokitOptions.throttle && octokitOptions.throttle.onAbuseLimit) {
+    octokit.log.warn("[@octokit/plugin-throttling] `onAbuseLimit()` is deprecated and will be removed in a future release of `@octokit/plugin-throttling`, please use the `onSecondaryRateLimit` handler instead");
+    // @ts-ignore types don't allow for both properties to be set
+    octokitOptions.throttle.onSecondaryRateLimit = octokitOptions.throttle.onAbuseLimit;
+    // @ts-ignore
+    delete octokitOptions.throttle.onAbuseLimit;
+  }
+  const state = Object.assign({
+    clustering: connection != null,
+    triggersNotification,
+    fallbackSecondaryRateRetryAfter: 60,
+    retryAfterBaseValue: 1000,
+    retryLimiter: new Bottleneck(),
+    id,
+    ...groups
+  }, octokitOptions.throttle);
   if (typeof state.onSecondaryRateLimit !== "function" || typeof state.onRateLimit !== "function") {
     throw new Error(`octokit/plugin-throttling error:
         You must pass the onSecondaryRateLimit and onRateLimit error handlers.
@@ -9496,56 +9475,59 @@ function throttling(octokit, octokitOptions) {
   }
   const events = {};
   const emitter = new Bottleneck.Events(events);
+  // @ts-expect-error
   events.on("secondary-limit", state.onSecondaryRateLimit);
+  // @ts-expect-error
   events.on("rate-limit", state.onRateLimit);
-  events.on(
-    "error",
-    (e) => octokit.log.warn("Error in throttling-plugin limit handler", e)
-  );
-  state.retryLimiter.on("failed", async function(error, info) {
-    const [state2, request, options] = info.args;
-    const { pathname } = new URL(options.url, "http://github.test");
+  // @ts-expect-error
+  events.on("error", e => octokit.log.warn("Error in throttling-plugin limit handler", e));
+  // @ts-expect-error
+  state.retryLimiter.on("failed", async function (error, info) {
+    const [state, request, options] = info.args;
+    const {
+      pathname
+    } = new URL(options.url, "http://github.test");
     const shouldRetryGraphQL = pathname.startsWith("/graphql") && error.status !== 401;
     if (!(shouldRetryGraphQL || error.status === 403)) {
       return;
     }
     const retryCount = ~~request.retryCount;
     request.retryCount = retryCount;
+    // backward compatibility
     options.request.retryCount = retryCount;
-    const { wantRetry, retryAfter = 0 } = await async function() {
+    const {
+      wantRetry,
+      retryAfter = 0
+    } = await async function () {
       if (/\bsecondary rate\b/i.test(error.message)) {
-        const retryAfter2 = Number(error.response.headers["retry-after"]) || state2.fallbackSecondaryRateRetryAfter;
-        const wantRetry2 = await emitter.trigger(
-          "secondary-limit",
-          retryAfter2,
-          options,
-          octokit,
-          retryCount
-        );
-        return { wantRetry: wantRetry2, retryAfter: retryAfter2 };
+        // The user has hit the secondary rate limit. (REST and GraphQL)
+        // https://docs.github.com/en/rest/overview/resources-in-the-rest-api#secondary-rate-limits
+        // The Retry-After header can sometimes be blank when hitting a secondary rate limit,
+        // but is always present after 2-3s, so make sure to set `retryAfter` to at least 5s by default.
+        const retryAfter = Number(error.response.headers["retry-after"]) || state.fallbackSecondaryRateRetryAfter;
+        const wantRetry = await emitter.trigger("secondary-limit", retryAfter, options, octokit, retryCount);
+        return {
+          wantRetry,
+          retryAfter
+        };
       }
       if (error.response.headers != null && error.response.headers["x-ratelimit-remaining"] === "0") {
-        const rateLimitReset = new Date(
-          ~~error.response.headers["x-ratelimit-reset"] * 1e3
-        ).getTime();
-        const retryAfter2 = Math.max(
-          Math.ceil((rateLimitReset - Date.now()) / 1e3),
-          0
-        );
-        const wantRetry2 = await emitter.trigger(
-          "rate-limit",
-          retryAfter2,
-          options,
-          octokit,
-          retryCount
-        );
-        return { wantRetry: wantRetry2, retryAfter: retryAfter2 };
+        // The user has used all their allowed calls for the current time period (REST and GraphQL)
+        // https://docs.github.com/en/rest/reference/rate-limit (REST)
+        // https://docs.github.com/en/graphql/overview/resource-limitations#rate-limit (GraphQL)
+        const rateLimitReset = new Date(~~error.response.headers["x-ratelimit-reset"] * 1000).getTime();
+        const retryAfter = Math.max(Math.ceil((rateLimitReset - Date.now()) / 1000), 0);
+        const wantRetry = await emitter.trigger("rate-limit", retryAfter, options, octokit, retryCount);
+        return {
+          wantRetry,
+          retryAfter
+        };
       }
       return {};
     }();
     if (wantRetry) {
       request.retryCount++;
-      return retryAfter * state2.retryAfterBaseValue;
+      return retryAfter * state.retryAfterBaseValue;
     }
   });
   octokit.hook.wrap("request", wrapRequest.bind(null, state));
@@ -9553,13 +9535,87 @@ function throttling(octokit, octokitOptions) {
 }
 throttling.VERSION = VERSION;
 throttling.triggersNotification = triggersNotification;
-// Annotate the CommonJS export names for ESM import in node:
-0 && (0);
+
+exports.throttling = throttling;
+//# sourceMappingURL=index.js.map
 
 
 /***/ }),
 
 /***/ 297:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+
+function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex['default'] : ex; }
+
+var deprecation = __nccwpck_require__(4394);
+var once = _interopDefault(__nccwpck_require__(2792));
+
+const logOnceCode = once(deprecation => console.warn(deprecation));
+const logOnceHeaders = once(deprecation => console.warn(deprecation));
+/**
+ * Error with extra properties to help with debugging
+ */
+class RequestError extends Error {
+  constructor(message, statusCode, options) {
+    super(message);
+    // Maintains proper stack trace (only available on V8)
+    /* istanbul ignore next */
+    if (Error.captureStackTrace) {
+      Error.captureStackTrace(this, this.constructor);
+    }
+    this.name = "HttpError";
+    this.status = statusCode;
+    let headers;
+    if ("headers" in options && typeof options.headers !== "undefined") {
+      headers = options.headers;
+    }
+    if ("response" in options) {
+      this.response = options.response;
+      headers = options.response.headers;
+    }
+    // redact request credentials without mutating original request options
+    const requestCopy = Object.assign({}, options.request);
+    if (options.request.headers.authorization) {
+      requestCopy.headers = Object.assign({}, options.request.headers, {
+        authorization: options.request.headers.authorization.replace(/ .*$/, " [REDACTED]")
+      });
+    }
+    requestCopy.url = requestCopy.url
+    // client_id & client_secret can be passed as URL query parameters to increase rate limit
+    // see https://developer.github.com/v3/#increasing-the-unauthenticated-rate-limit-for-oauth-applications
+    .replace(/\bclient_secret=\w+/g, "client_secret=[REDACTED]")
+    // OAuth tokens can be passed as URL query parameters, although it is not recommended
+    // see https://developer.github.com/v3/#oauth2-token-sent-in-a-header
+    .replace(/\baccess_token=\w+/g, "access_token=[REDACTED]");
+    this.request = requestCopy;
+    // deprecations
+    Object.defineProperty(this, "code", {
+      get() {
+        logOnceCode(new deprecation.Deprecation("[@octokit/request-error] `error.code` is deprecated, use `error.status`."));
+        return statusCode;
+      }
+    });
+    Object.defineProperty(this, "headers", {
+      get() {
+        logOnceHeaders(new deprecation.Deprecation("[@octokit/request-error] `error.headers` is deprecated, use `error.response.headers`."));
+        return headers || {};
+      }
+    });
+  }
+}
+
+exports.RequestError = RequestError;
+//# sourceMappingURL=index.js.map
+
+
+/***/ }),
+
+/***/ 5625:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
 "use strict";
@@ -9595,94 +9651,6 @@ var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: tru
 // pkg/dist-src/index.js
 var dist_src_exports = {};
 __export(dist_src_exports, {
-  RequestError: () => RequestError
-});
-module.exports = __toCommonJS(dist_src_exports);
-var import_deprecation = __nccwpck_require__(4394);
-var import_once = __toESM(__nccwpck_require__(2792));
-var logOnceCode = (0, import_once.default)((deprecation) => console.warn(deprecation));
-var logOnceHeaders = (0, import_once.default)((deprecation) => console.warn(deprecation));
-var RequestError = class extends Error {
-  constructor(message, statusCode, options) {
-    super(message);
-    if (Error.captureStackTrace) {
-      Error.captureStackTrace(this, this.constructor);
-    }
-    this.name = "HttpError";
-    this.status = statusCode;
-    let headers;
-    if ("headers" in options && typeof options.headers !== "undefined") {
-      headers = options.headers;
-    }
-    if ("response" in options) {
-      this.response = options.response;
-      headers = options.response.headers;
-    }
-    const requestCopy = Object.assign({}, options.request);
-    if (options.request.headers.authorization) {
-      requestCopy.headers = Object.assign({}, options.request.headers, {
-        authorization: options.request.headers.authorization.replace(
-          / .*$/,
-          " [REDACTED]"
-        )
-      });
-    }
-    requestCopy.url = requestCopy.url.replace(/\bclient_secret=\w+/g, "client_secret=[REDACTED]").replace(/\baccess_token=\w+/g, "access_token=[REDACTED]");
-    this.request = requestCopy;
-    Object.defineProperty(this, "code", {
-      get() {
-        logOnceCode(
-          new import_deprecation.Deprecation(
-            "[@octokit/request-error] `error.code` is deprecated, use `error.status`."
-          )
-        );
-        return statusCode;
-      }
-    });
-    Object.defineProperty(this, "headers", {
-      get() {
-        logOnceHeaders(
-          new import_deprecation.Deprecation(
-            "[@octokit/request-error] `error.headers` is deprecated, use `error.response.headers`."
-          )
-        );
-        return headers || {};
-      }
-    });
-  }
-};
-// Annotate the CommonJS export names for ESM import in node:
-0 && (0);
-
-
-/***/ }),
-
-/***/ 5625:
-/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
-
-"use strict";
-
-var __defProp = Object.defineProperty;
-var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
-var __getOwnPropNames = Object.getOwnPropertyNames;
-var __hasOwnProp = Object.prototype.hasOwnProperty;
-var __export = (target, all) => {
-  for (var name in all)
-    __defProp(target, name, { get: all[name], enumerable: true });
-};
-var __copyProps = (to, from, except, desc) => {
-  if (from && typeof from === "object" || typeof from === "function") {
-    for (let key of __getOwnPropNames(from))
-      if (!__hasOwnProp.call(to, key) && key !== except)
-        __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
-  }
-  return to;
-};
-var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
-
-// pkg/dist-src/index.js
-var dist_src_exports = {};
-__export(dist_src_exports, {
   request: () => request
 });
 module.exports = __toCommonJS(dist_src_exports);
@@ -9690,10 +9658,11 @@ var import_endpoint = __nccwpck_require__(5006);
 var import_universal_user_agent = __nccwpck_require__(5115);
 
 // pkg/dist-src/version.js
-var VERSION = "8.1.1";
+var VERSION = "6.2.8";
 
 // pkg/dist-src/fetch-wrapper.js
 var import_is_plain_object = __nccwpck_require__(1014);
+var import_node_fetch = __toESM(__nccwpck_require__(5770));
 var import_request_error = __nccwpck_require__(297);
 
 // pkg/dist-src/get-buffer-response.js
@@ -9703,33 +9672,32 @@ function getBufferResponse(response) {
 
 // pkg/dist-src/fetch-wrapper.js
 function fetchWrapper(requestOptions) {
-  var _a, _b, _c;
   const log = requestOptions.request && requestOptions.request.log ? requestOptions.request.log : console;
-  const parseSuccessResponseBody = ((_a = requestOptions.request) == null ? void 0 : _a.parseSuccessResponseBody) !== false;
   if ((0, import_is_plain_object.isPlainObject)(requestOptions.body) || Array.isArray(requestOptions.body)) {
     requestOptions.body = JSON.stringify(requestOptions.body);
   }
   let headers = {};
   let status;
   let url;
-  let { fetch } = globalThis;
-  if ((_b = requestOptions.request) == null ? void 0 : _b.fetch) {
-    fetch = requestOptions.request.fetch;
-  }
-  if (!fetch) {
-    throw new Error(
-      "fetch is not set. Please pass a fetch implementation as new Octokit({ request: { fetch }}). Learn more at https://github.com/octokit/octokit.js/#fetch-missing"
-    );
-  }
-  return fetch(requestOptions.url, {
-    method: requestOptions.method,
-    body: requestOptions.body,
-    headers: requestOptions.headers,
-    signal: (_c = requestOptions.request) == null ? void 0 : _c.signal,
-    // duplex must be set if request.body is ReadableStream or Async Iterables.
-    // See https://fetch.spec.whatwg.org/#dom-requestinit-duplex.
-    ...requestOptions.body && { duplex: "half" }
-  }).then(async (response) => {
+  const fetch = requestOptions.request && requestOptions.request.fetch || globalThis.fetch || /* istanbul ignore next */
+  import_node_fetch.default;
+  return fetch(
+    requestOptions.url,
+    Object.assign(
+      {
+        method: requestOptions.method,
+        body: requestOptions.body,
+        headers: requestOptions.headers,
+        redirect: requestOptions.redirect,
+        // duplex must be set if request.body is ReadableStream or Async Iterables.
+        // See https://fetch.spec.whatwg.org/#dom-requestinit-duplex.
+        ...requestOptions.body && { duplex: "half" }
+      },
+      // `requestOptions.request.agent` type is incompatible
+      // see https://github.com/octokit/types.ts/pull/264
+      requestOptions.request
+    )
+  ).then(async (response) => {
     url = response.url;
     status = response.status;
     for (const keyAndValue of response.headers) {
@@ -9783,7 +9751,7 @@ function fetchWrapper(requestOptions) {
       });
       throw error;
     }
-    return parseSuccessResponseBody ? await getResponseData(response) : response.body;
+    return getResponseData(response);
   }).then((data) => {
     return {
       status,
@@ -9895,7 +9863,7 @@ var import_plugin_paginate_rest = __nccwpck_require__(5508);
 var import_plugin_rest_endpoint_methods = __nccwpck_require__(5601);
 
 // pkg/dist-src/version.js
-var VERSION = "20.0.2";
+var VERSION = "19.0.13";
 
 // pkg/dist-src/index.js
 var Octokit = import_core.Octokit.plugin(
@@ -9945,7 +9913,7 @@ __export(dist_src_exports, {
 module.exports = __toCommonJS(dist_src_exports);
 
 // pkg/dist-src/version.js
-var VERSION = "9.0.0";
+var VERSION = "6.1.2";
 
 // pkg/dist-src/normalize-paginated-list-response.js
 function normalizePaginatedListResponse(response) {
@@ -10052,13 +10020,9 @@ var composePaginateRest = Object.assign(paginate, {
 
 // pkg/dist-src/generated/paginating-endpoints.js
 var paginatingEndpoints = [
-  "GET /advisories",
   "GET /app/hook/deliveries",
   "GET /app/installation-requests",
   "GET /app/installations",
-  "GET /assignments/{assignment_id}/accepted_assignments",
-  "GET /classrooms",
-  "GET /classrooms/{classroom_id}/assignments",
   "GET /enterprises/{enterprise}/dependabot/alerts",
   "GET /enterprises/{enterprise}/secret-scanning/alerts",
   "GET /events",
@@ -10078,8 +10042,13 @@ var paginatingEndpoints = [
   "GET /networks/{owner}/{repo}/events",
   "GET /notifications",
   "GET /organizations",
+  "GET /organizations/{org}/personal-access-token-requests",
+  "GET /organizations/{org}/personal-access-token-requests/{pat_request_id}/repositories",
+  "GET /organizations/{org}/personal-access-tokens",
+  "GET /organizations/{org}/personal-access-tokens/{pat_id}/repositories",
   "GET /orgs/{org}/actions/cache/usage-by-repository",
   "GET /orgs/{org}/actions/permissions/repositories",
+  "GET /orgs/{org}/actions/required_workflows",
   "GET /orgs/{org}/actions/runners",
   "GET /orgs/{org}/actions/secrets",
   "GET /orgs/{org}/actions/secrets/{secret_name}/repositories",
@@ -10090,7 +10059,6 @@ var paginatingEndpoints = [
   "GET /orgs/{org}/codespaces",
   "GET /orgs/{org}/codespaces/secrets",
   "GET /orgs/{org}/codespaces/secrets/{secret_name}/repositories",
-  "GET /orgs/{org}/copilot/billing/seats",
   "GET /orgs/{org}/dependabot/alerts",
   "GET /orgs/{org}/dependabot/secrets",
   "GET /orgs/{org}/dependabot/secrets/{secret_name}/repositories",
@@ -10109,16 +10077,10 @@ var paginatingEndpoints = [
   "GET /orgs/{org}/outside_collaborators",
   "GET /orgs/{org}/packages",
   "GET /orgs/{org}/packages/{package_type}/{package_name}/versions",
-  "GET /orgs/{org}/personal-access-token-requests",
-  "GET /orgs/{org}/personal-access-token-requests/{pat_request_id}/repositories",
-  "GET /orgs/{org}/personal-access-tokens",
-  "GET /orgs/{org}/personal-access-tokens/{pat_id}/repositories",
   "GET /orgs/{org}/projects",
   "GET /orgs/{org}/public_members",
   "GET /orgs/{org}/repos",
-  "GET /orgs/{org}/rulesets",
   "GET /orgs/{org}/secret-scanning/alerts",
-  "GET /orgs/{org}/security-advisories",
   "GET /orgs/{org}/teams",
   "GET /orgs/{org}/teams/{team_slug}/discussions",
   "GET /orgs/{org}/teams/{team_slug}/discussions/{discussion_number}/comments",
@@ -10132,10 +10094,12 @@ var paginatingEndpoints = [
   "GET /projects/columns/{column_id}/cards",
   "GET /projects/{project_id}/collaborators",
   "GET /projects/{project_id}/columns",
+  "GET /repos/{org}/{repo}/actions/required_workflows",
   "GET /repos/{owner}/{repo}/actions/artifacts",
   "GET /repos/{owner}/{repo}/actions/caches",
   "GET /repos/{owner}/{repo}/actions/organization-secrets",
   "GET /repos/{owner}/{repo}/actions/organization-variables",
+  "GET /repos/{owner}/{repo}/actions/required_workflows/{required_workflow_id_for_repo}/runs",
   "GET /repos/{owner}/{repo}/actions/runners",
   "GET /repos/{owner}/{repo}/actions/runs",
   "GET /repos/{owner}/{repo}/actions/runs/{run_id}/artifacts",
@@ -10145,7 +10109,6 @@ var paginatingEndpoints = [
   "GET /repos/{owner}/{repo}/actions/variables",
   "GET /repos/{owner}/{repo}/actions/workflows",
   "GET /repos/{owner}/{repo}/actions/workflows/{workflow_id}/runs",
-  "GET /repos/{owner}/{repo}/activity",
   "GET /repos/{owner}/{repo}/assignees",
   "GET /repos/{owner}/{repo}/branches",
   "GET /repos/{owner}/{repo}/check-runs/{check_run_id}/annotations",
@@ -10206,8 +10169,6 @@ var paginatingEndpoints = [
   "GET /repos/{owner}/{repo}/releases",
   "GET /repos/{owner}/{repo}/releases/{release_id}/assets",
   "GET /repos/{owner}/{repo}/releases/{release_id}/reactions",
-  "GET /repos/{owner}/{repo}/rules/branches/{branch}",
-  "GET /repos/{owner}/{repo}/rulesets",
   "GET /repos/{owner}/{repo}/secret-scanning/alerts",
   "GET /repos/{owner}/{repo}/secret-scanning/alerts/{alert_number}/locations",
   "GET /repos/{owner}/{repo}/security-advisories",
@@ -10339,7 +10300,7 @@ __export(dist_src_exports, {
 module.exports = __toCommonJS(dist_src_exports);
 
 // pkg/dist-src/version.js
-var VERSION = "10.0.0";
+var VERSION = "7.2.3";
 
 // pkg/dist-src/generated/endpoints.js
 var Endpoints = {
@@ -10355,6 +10316,9 @@ var Endpoints = {
     ],
     addSelectedRepoToOrgVariable: [
       "PUT /orgs/{org}/actions/variables/{name}/repositories/{repository_id}"
+    ],
+    addSelectedRepoToRequiredWorkflow: [
+      "PUT /orgs/{org}/actions/required_workflows/{required_workflow_id}/repositories/{repository_id}"
     ],
     approveWorkflowRun: [
       "POST /repos/{owner}/{repo}/actions/runs/{run_id}/approve"
@@ -10384,6 +10348,7 @@ var Endpoints = {
       "POST /repos/{owner}/{repo}/actions/runners/remove-token"
     ],
     createRepoVariable: ["POST /repos/{owner}/{repo}/actions/variables"],
+    createRequiredWorkflow: ["POST /orgs/{org}/actions/required_workflows"],
     createWorkflowDispatch: [
       "POST /repos/{owner}/{repo}/actions/workflows/{workflow_id}/dispatches"
     ],
@@ -10409,6 +10374,9 @@ var Endpoints = {
     ],
     deleteRepoVariable: [
       "DELETE /repos/{owner}/{repo}/actions/variables/{name}"
+    ],
+    deleteRequiredWorkflow: [
+      "DELETE /orgs/{org}/actions/required_workflows/{required_workflow_id}"
     ],
     deleteSelfHostedRunnerFromOrg: [
       "DELETE /orgs/{org}/actions/runners/{runner_id}"
@@ -10497,8 +10465,17 @@ var Endpoints = {
       { renamed: ["actions", "getGithubActionsPermissionsRepository"] }
     ],
     getRepoPublicKey: ["GET /repos/{owner}/{repo}/actions/secrets/public-key"],
+    getRepoRequiredWorkflow: [
+      "GET /repos/{org}/{repo}/actions/required_workflows/{required_workflow_id_for_repo}"
+    ],
+    getRepoRequiredWorkflowUsage: [
+      "GET /repos/{org}/{repo}/actions/required_workflows/{required_workflow_id_for_repo}/timing"
+    ],
     getRepoSecret: ["GET /repos/{owner}/{repo}/actions/secrets/{secret_name}"],
     getRepoVariable: ["GET /repos/{owner}/{repo}/actions/variables/{name}"],
+    getRequiredWorkflow: [
+      "GET /orgs/{org}/actions/required_workflows/{required_workflow_id}"
+    ],
     getReviewsForRun: [
       "GET /repos/{owner}/{repo}/actions/runs/{run_id}/approvals"
     ],
@@ -10547,9 +10524,16 @@ var Endpoints = {
     listRepoOrganizationVariables: [
       "GET /repos/{owner}/{repo}/actions/organization-variables"
     ],
+    listRepoRequiredWorkflows: [
+      "GET /repos/{org}/{repo}/actions/required_workflows"
+    ],
     listRepoSecrets: ["GET /repos/{owner}/{repo}/actions/secrets"],
     listRepoVariables: ["GET /repos/{owner}/{repo}/actions/variables"],
     listRepoWorkflows: ["GET /repos/{owner}/{repo}/actions/workflows"],
+    listRequiredWorkflowRuns: [
+      "GET /repos/{owner}/{repo}/actions/required_workflows/{required_workflow_id_for_repo}/runs"
+    ],
+    listRequiredWorkflows: ["GET /orgs/{org}/actions/required_workflows"],
     listRunnerApplicationsForOrg: ["GET /orgs/{org}/actions/runners/downloads"],
     listRunnerApplicationsForRepo: [
       "GET /repos/{owner}/{repo}/actions/runners/downloads"
@@ -10562,6 +10546,9 @@ var Endpoints = {
     ],
     listSelectedRepositoriesEnabledGithubActionsOrganization: [
       "GET /orgs/{org}/actions/permissions/repositories"
+    ],
+    listSelectedRepositoriesRequiredWorkflow: [
+      "GET /orgs/{org}/actions/required_workflows/{required_workflow_id}/repositories"
     ],
     listSelfHostedRunnersForOrg: ["GET /orgs/{org}/actions/runners"],
     listSelfHostedRunnersForRepo: ["GET /repos/{owner}/{repo}/actions/runners"],
@@ -10596,6 +10583,9 @@ var Endpoints = {
     ],
     removeSelectedRepoFromOrgVariable: [
       "DELETE /orgs/{org}/actions/variables/{name}/repositories/{repository_id}"
+    ],
+    removeSelectedRepoFromRequiredWorkflow: [
+      "DELETE /orgs/{org}/actions/required_workflows/{required_workflow_id}/repositories/{repository_id}"
     ],
     reviewCustomGatesForRun: [
       "POST /repos/{owner}/{repo}/actions/runs/{run_id}/deployment_protection_rule"
@@ -10633,6 +10623,9 @@ var Endpoints = {
     setSelectedReposForOrgVariable: [
       "PUT /orgs/{org}/actions/variables/{name}/repositories"
     ],
+    setSelectedReposToRequiredWorkflow: [
+      "PUT /orgs/{org}/actions/required_workflows/{required_workflow_id}/repositories"
+    ],
     setSelectedRepositoriesEnabledGithubActionsOrganization: [
       "PUT /orgs/{org}/actions/permissions/repositories"
     ],
@@ -10645,6 +10638,9 @@ var Endpoints = {
     updateOrgVariable: ["PATCH /orgs/{org}/actions/variables/{name}"],
     updateRepoVariable: [
       "PATCH /repos/{owner}/{repo}/actions/variables/{name}"
+    ],
+    updateRequiredWorkflow: [
+      "PATCH /orgs/{org}/actions/required_workflows/{required_workflow_id}"
     ]
   },
   activity: {
@@ -10872,6 +10868,9 @@ var Endpoints = {
     createWithRepoForAuthenticatedUser: [
       "POST /repos/{owner}/{repo}/codespaces"
     ],
+    deleteCodespacesBillingUsers: [
+      "DELETE /orgs/{org}/codespaces/billing/selected_users"
+    ],
     deleteForAuthenticatedUser: ["DELETE /user/codespaces/{codespace_name}"],
     deleteFromOrganization: [
       "DELETE /orgs/{org}/members/{username}/codespaces/{codespace_name}"
@@ -10943,6 +10942,10 @@ var Endpoints = {
     repoMachinesForAuthenticatedUser: [
       "GET /repos/{owner}/{repo}/codespaces/machines"
     ],
+    setCodespacesBilling: ["PUT /orgs/{org}/codespaces/billing"],
+    setCodespacesBillingUsers: [
+      "POST /orgs/{org}/codespaces/billing/selected_users"
+    ],
     setRepositoriesForSecretForAuthenticatedUser: [
       "PUT /user/codespaces/secrets/{secret_name}/repositories"
     ],
@@ -10955,25 +10958,6 @@ var Endpoints = {
       "POST /orgs/{org}/members/{username}/codespaces/{codespace_name}/stop"
     ],
     updateForAuthenticatedUser: ["PATCH /user/codespaces/{codespace_name}"]
-  },
-  copilot: {
-    addCopilotForBusinessSeatsForTeams: [
-      "POST /orgs/{org}/copilot/billing/selected_teams"
-    ],
-    addCopilotForBusinessSeatsForUsers: [
-      "POST /orgs/{org}/copilot/billing/selected_users"
-    ],
-    cancelCopilotSeatAssignmentForTeams: [
-      "DELETE /orgs/{org}/copilot/billing/selected_teams"
-    ],
-    cancelCopilotSeatAssignmentForUsers: [
-      "DELETE /orgs/{org}/copilot/billing/selected_users"
-    ],
-    getCopilotOrganizationDetails: ["GET /orgs/{org}/copilot/billing"],
-    getCopilotSeatAssignmentDetailsForUser: [
-      "GET /orgs/{org}/members/{username}/copilot"
-    ],
-    listCopilotSeats: ["GET /orgs/{org}/copilot/billing/seats"]
   },
   dependabot: {
     addSelectedRepoToOrgSecret: [
@@ -11263,13 +11247,15 @@ var Endpoints = {
     listMembershipsForAuthenticatedUser: ["GET /user/memberships/orgs"],
     listOutsideCollaborators: ["GET /orgs/{org}/outside_collaborators"],
     listPatGrantRepositories: [
-      "GET /orgs/{org}/personal-access-tokens/{pat_id}/repositories"
+      "GET /organizations/{org}/personal-access-tokens/{pat_id}/repositories"
     ],
     listPatGrantRequestRepositories: [
-      "GET /orgs/{org}/personal-access-token-requests/{pat_request_id}/repositories"
+      "GET /organizations/{org}/personal-access-token-requests/{pat_request_id}/repositories"
     ],
-    listPatGrantRequests: ["GET /orgs/{org}/personal-access-token-requests"],
-    listPatGrants: ["GET /orgs/{org}/personal-access-tokens"],
+    listPatGrantRequests: [
+      "GET /organizations/{org}/personal-access-token-requests"
+    ],
+    listPatGrants: ["GET /organizations/{org}/personal-access-tokens"],
     listPendingInvitations: ["GET /orgs/{org}/invitations"],
     listPublicMembers: ["GET /orgs/{org}/public_members"],
     listSecurityManagerTeams: ["GET /orgs/{org}/security-managers"],
@@ -11291,10 +11277,10 @@ var Endpoints = {
       "DELETE /orgs/{org}/security-managers/teams/{team_slug}"
     ],
     reviewPatGrantRequest: [
-      "POST /orgs/{org}/personal-access-token-requests/{pat_request_id}"
+      "POST /organizations/{org}/personal-access-token-requests/{pat_request_id}"
     ],
     reviewPatGrantRequestsInBulk: [
-      "POST /orgs/{org}/personal-access-token-requests"
+      "POST /organizations/{org}/personal-access-token-requests"
     ],
     setMembershipForUser: ["PUT /orgs/{org}/memberships/{username}"],
     setPublicMembershipForAuthenticatedUser: [
@@ -11305,8 +11291,10 @@ var Endpoints = {
     updateMembershipForAuthenticatedUser: [
       "PATCH /user/memberships/orgs/{org}"
     ],
-    updatePatAccess: ["POST /orgs/{org}/personal-access-tokens/{pat_id}"],
-    updatePatAccesses: ["POST /orgs/{org}/personal-access-tokens"],
+    updatePatAccess: [
+      "POST /organizations/{org}/personal-access-tokens/{pat_id}"
+    ],
+    updatePatAccesses: ["POST /organizations/{org}/personal-access-tokens"],
     updateWebhook: ["PATCH /orgs/{org}/hooks/{hook_id}"],
     updateWebhookConfigForOrg: ["PATCH /orgs/{org}/hooks/{hook_id}/config"]
   },
@@ -11586,9 +11574,6 @@ var Endpoints = {
       {},
       { mapToData: "users" }
     ],
-    checkAutomatedSecurityFixes: [
-      "GET /repos/{owner}/{repo}/automated-security-fixes"
-    ],
     checkCollaborator: ["GET /repos/{owner}/{repo}/collaborators/{username}"],
     checkVulnerabilityAlerts: [
       "GET /repos/{owner}/{repo}/vulnerability-alerts"
@@ -11692,9 +11677,7 @@ var Endpoints = {
     disableDeploymentProtectionRule: [
       "DELETE /repos/{owner}/{repo}/environments/{environment_name}/deployment_protection_rules/{protection_rule_id}"
     ],
-    disablePrivateVulnerabilityReporting: [
-      "DELETE /repos/{owner}/{repo}/private-vulnerability-reporting"
-    ],
+    disableLfsForRepo: ["DELETE /repos/{owner}/{repo}/lfs"],
     disableVulnerabilityAlerts: [
       "DELETE /repos/{owner}/{repo}/vulnerability-alerts"
     ],
@@ -11708,9 +11691,7 @@ var Endpoints = {
     enableAutomatedSecurityFixes: [
       "PUT /repos/{owner}/{repo}/automated-security-fixes"
     ],
-    enablePrivateVulnerabilityReporting: [
-      "PUT /repos/{owner}/{repo}/private-vulnerability-reporting"
-    ],
+    enableLfsForRepo: ["PUT /repos/{owner}/{repo}/lfs"],
     enableVulnerabilityAlerts: [
       "PUT /repos/{owner}/{repo}/vulnerability-alerts"
     ],
@@ -11808,7 +11789,6 @@ var Endpoints = {
     getWebhookDelivery: [
       "GET /repos/{owner}/{repo}/hooks/{hook_id}/deliveries/{delivery_id}"
     ],
-    listActivities: ["GET /repos/{owner}/{repo}/activity"],
     listAutolinks: ["GET /repos/{owner}/{repo}/autolinks"],
     listBranches: ["GET /repos/{owner}/{repo}/branches"],
     listBranchesForHeadCommit: [
@@ -11988,15 +11968,9 @@ var Endpoints = {
     createRepositoryAdvisory: [
       "POST /repos/{owner}/{repo}/security-advisories"
     ],
-    createRepositoryAdvisoryCveRequest: [
-      "POST /repos/{owner}/{repo}/security-advisories/{ghsa_id}/cve"
-    ],
-    getGlobalAdvisory: ["GET /advisories/{ghsa_id}"],
     getRepositoryAdvisory: [
       "GET /repos/{owner}/{repo}/security-advisories/{ghsa_id}"
     ],
-    listGlobalAdvisories: ["GET /advisories"],
-    listOrgRepositoryAdvisories: ["GET /orgs/{org}/security-advisories"],
     listRepositoryAdvisories: ["GET /repos/{owner}/{repo}/security-advisories"],
     updateRepositoryAdvisory: [
       "PATCH /repos/{owner}/{repo}/security-advisories/{ghsa_id}"
@@ -12355,7 +12329,7 @@ var Algorithm = /* @__PURE__ */ ((Algorithm2) => {
 })(Algorithm || {});
 
 // pkg/dist-src/version.js
-var VERSION = "4.0.0";
+var VERSION = "3.0.3";
 
 // pkg/dist-src/node/sign.js
 async function sign(options, payload) {
@@ -12518,8 +12492,6 @@ var emitterEventNames = [
   "deploy_key.deleted",
   "deployment",
   "deployment.created",
-  "deployment_protection_rule",
-  "deployment_protection_rule.requested",
   "deployment_status",
   "deployment_status.created",
   "discussion",
@@ -12652,11 +12624,11 @@ var emitterEventNames = [
   "pull_request.demilestoned",
   "pull_request.dequeued",
   "pull_request.edited",
-  "pull_request.enqueued",
   "pull_request.labeled",
   "pull_request.locked",
   "pull_request.milestoned",
   "pull_request.opened",
+  "pull_request.queued",
   "pull_request.ready_for_review",
   "pull_request.reopened",
   "pull_request.review_request_removed",
@@ -12709,9 +12681,6 @@ var emitterEventNames = [
   "secret_scanning_alert.created",
   "secret_scanning_alert.reopened",
   "secret_scanning_alert.resolved",
-  "secret_scanning_alert.revoked",
-  "secret_scanning_alert_location",
-  "secret_scanning_alert_location.created",
   "security_advisory",
   "security_advisory.performed",
   "security_advisory.published",
@@ -12742,7 +12711,6 @@ var emitterEventNames = [
   "workflow_job.completed",
   "workflow_job.in_progress",
   "workflow_job.queued",
-  "workflow_job.waiting",
   "workflow_run",
   "workflow_run.completed",
   "workflow_run.in_progress",
@@ -12895,15 +12863,41 @@ function createEventHandler(options) {
   };
 }
 
-// pkg/dist-src/index.js
+// pkg/dist-src/sign.js
+var import_webhooks_methods = __nccwpck_require__(3454);
+
+// pkg/dist-src/to-normalized-json-string.js
+function toNormalizedJsonString(payload) {
+  const payloadString = JSON.stringify(payload);
+  return payloadString.replace(/[^\\]\\u[\da-f]{4}/g, (s) => {
+    return s.substr(0, 3) + s.substr(3).toUpperCase();
+  });
+}
+
+// pkg/dist-src/sign.js
+async function sign(secret, payload) {
+  return (0, import_webhooks_methods.sign)(
+    secret,
+    typeof payload === "string" ? payload : toNormalizedJsonString(payload)
+  );
+}
+
+// pkg/dist-src/verify.js
 var import_webhooks_methods2 = __nccwpck_require__(3454);
+async function verify(secret, payload, signature) {
+  return (0, import_webhooks_methods2.verify)(
+    secret,
+    typeof payload === "string" ? payload : toNormalizedJsonString(payload),
+    signature
+  );
+}
 
 // pkg/dist-src/verify-and-receive.js
-var import_webhooks_methods = __nccwpck_require__(3454);
+var import_webhooks_methods3 = __nccwpck_require__(3454);
 async function verifyAndReceive(state, event) {
-  const matchesSignature = await (0, import_webhooks_methods.verify)(
+  const matchesSignature = await (0, import_webhooks_methods3.verify)(
     state.secret,
-    event.payload,
+    typeof event.payload === "object" ? toNormalizedJsonString(event.payload) : event.payload,
     event.signature
   );
   if (!matchesSignature) {
@@ -12917,7 +12911,7 @@ async function verifyAndReceive(state, event) {
   return state.eventHandler.receive({
     id: event.id,
     name: event.name,
-    payload: JSON.parse(event.payload)
+    payload: typeof event.payload === "string" ? JSON.parse(event.payload) : event.payload
   });
 }
 
@@ -12934,8 +12928,14 @@ function getMissingHeaders(request) {
 // pkg/dist-src/middleware/node/get-payload.js
 var import_aggregate_error2 = __toESM(__nccwpck_require__(8386));
 function getPayload(request) {
-  if (request.body)
+  if (request.body) {
+    if (typeof request.body !== "string") {
+      console.warn(
+        "[@octokit/webhooks] Passing the payload as a JSON object in `request.body` is deprecated and will be removed in a future release of `@octokit/webhooks`, please pass it as a a `string` instead."
+      );
+    }
     return Promise.resolve(request.body);
+  }
   return new Promise((resolve, reject) => {
     let data = "";
     request.setEncoding("utf8");
@@ -12954,18 +12954,6 @@ function getPayload(request) {
   });
 }
 
-// pkg/dist-src/middleware/node/on-unhandled-request-default.js
-function onUnhandledRequestDefault(request, response) {
-  response.writeHead(404, {
-    "content-type": "application/json"
-  });
-  response.end(
-    JSON.stringify({
-      error: `Unknown route: ${request.method} ${request.url}`
-    })
-  );
-}
-
 // pkg/dist-src/middleware/node/middleware.js
 async function middleware(webhooks, options, request, response, next) {
   let pathname;
@@ -12980,14 +12968,16 @@ async function middleware(webhooks, options, request, response, next) {
         error: `Request URL could not be parsed: ${request.url}`
       })
     );
-    return true;
+    return;
   }
-  if (pathname !== options.path) {
-    next?.();
-    return false;
-  } else if (request.method !== "POST") {
-    onUnhandledRequestDefault(request, response);
-    return true;
+  const isUnknownRoute = request.method !== "POST" || pathname !== options.path;
+  const isExpressMiddleware = typeof next === "function";
+  if (isUnknownRoute) {
+    if (isExpressMiddleware) {
+      return next();
+    } else {
+      return options.onUnhandledRequest(request, response);
+    }
   }
   if (!request.headers["content-type"] || !request.headers["content-type"].startsWith("application/json")) {
     response.writeHead(415, {
@@ -12999,7 +12989,7 @@ async function middleware(webhooks, options, request, response, next) {
         error: `Unsupported "Content-Type" header value. Must be "application/json"`
       })
     );
-    return true;
+    return;
   }
   const missingHeaders = getMissingHeaders(request).join(", ");
   if (missingHeaders) {
@@ -13011,7 +13001,7 @@ async function middleware(webhooks, options, request, response, next) {
         error: `Required headers missing: ${missingHeaders}`
       })
     );
-    return true;
+    return;
   }
   const eventName = request.headers["x-github-event"];
   const signatureSHA256 = request.headers["x-hub-signature-256"];
@@ -13033,13 +13023,12 @@ async function middleware(webhooks, options, request, response, next) {
     });
     clearTimeout(timeout);
     if (didTimeout)
-      return true;
+      return;
     response.end("ok\n");
-    return true;
   } catch (error) {
     clearTimeout(timeout);
     if (didTimeout)
-      return true;
+      return;
     const err = Array.from(error)[0];
     const errorMessage = err.message ? `${err.name}: ${err.message}` : "Error: An Unspecified error occurred";
     response.statusCode = typeof err.status !== "undefined" ? err.status : 500;
@@ -13049,17 +13038,36 @@ async function middleware(webhooks, options, request, response, next) {
         error: errorMessage
       })
     );
-    return true;
   }
+}
+
+// pkg/dist-src/middleware/node/on-unhandled-request-default.js
+function onUnhandledRequestDefault(request, response) {
+  response.writeHead(404, {
+    "content-type": "application/json"
+  });
+  response.end(
+    JSON.stringify({
+      error: `Unknown route: ${request.method} ${request.url}`
+    })
+  );
 }
 
 // pkg/dist-src/middleware/node/index.js
 function createNodeMiddleware(webhooks, {
   path = "/api/github/webhooks",
+  onUnhandledRequest = onUnhandledRequestDefault,
   log = createLogger()
 } = {}) {
+  const deprecateOnUnhandledRequest = (request, response) => {
+    console.warn(
+      "[@octokit/webhooks] `onUnhandledRequest()` is deprecated and will be removed in a future release of `@octokit/webhooks`"
+    );
+    return onUnhandledRequest(request, response);
+  };
   return middleware.bind(null, webhooks, {
     path,
+    onUnhandledRequest: deprecateOnUnhandledRequest,
     log
   });
 }
@@ -13076,14 +13084,28 @@ var Webhooks = class {
       hooks: {},
       log: createLogger(options.log)
     };
-    this.sign = import_webhooks_methods2.sign.bind(null, options.secret);
-    this.verify = import_webhooks_methods2.verify.bind(null, options.secret);
+    this.sign = sign.bind(null, options.secret);
+    this.verify = (eventPayload, signature) => {
+      if (typeof eventPayload === "object") {
+        console.warn(
+          "[@octokit/webhooks] Passing a JSON payload object to `verify()` is deprecated and the functionality will be removed in a future release of `@octokit/webhooks`"
+        );
+      }
+      return verify(options.secret, eventPayload, signature);
+    };
     this.on = state.eventHandler.on;
     this.onAny = state.eventHandler.onAny;
     this.onError = state.eventHandler.onError;
     this.removeListener = state.eventHandler.removeListener;
     this.receive = state.eventHandler.receive;
-    this.verifyAndReceive = verifyAndReceive.bind(null, state);
+    this.verifyAndReceive = (options2) => {
+      if (typeof options2.payload === "object") {
+        console.warn(
+          "[@octokit/webhooks] Passing a JSON payload object to `verifyAndReceive()` is deprecated and the functionality will be removed in a future release of `@octokit/webhooks`"
+        );
+      }
+      return verifyAndReceive(state, options2);
+    };
   }
 };
 // Annotate the CommonJS export names for ESM import in node:
@@ -15215,6 +15237,20 @@ function getParamBytesForAlg(alg) {
 }
 
 module.exports = getParamBytesForAlg;
+
+
+/***/ }),
+
+/***/ 6381:
+/***/ ((module) => {
+
+/*! fromentries. MIT License. Feross Aboukhadijeh <https://feross.org/opensource> */
+module.exports = function fromEntries (iterable) {
+  return [...iterable].reduce((obj, [key, val]) => {
+    obj[key] = val
+    return obj
+  }, {})
+}
 
 
 /***/ }),
@@ -32037,15 +32073,6 @@ class LRUCache {
             if (v !== oldVal) {
                 if (this.#hasFetchMethod && this.#isBackgroundFetch(oldVal)) {
                     oldVal.__abortController.abort(new Error('replaced'));
-                    const { __staleWhileFetching: s } = oldVal;
-                    if (s !== undefined && !noDisposeOnSet) {
-                        if (this.#hasDispose) {
-                            this.#dispose?.(s, k, 'set');
-                        }
-                        if (this.#hasDisposeAfter) {
-                            this.#disposed?.push([s, k, 'set']);
-                        }
-                    }
                 }
                 else if (!noDisposeOnSet) {
                     if (this.#hasDispose) {
@@ -32299,7 +32326,7 @@ class LRUCache {
         const pcall = (res, rej) => {
             const fmp = this.#fetchMethod?.(k, v, fetchOpts);
             if (fmp && fmp instanceof Promise) {
-                fmp.then(v => res(v === undefined ? undefined : v), rej);
+                fmp.then(v => res(v), rej);
             }
             // ignored, we go until we finish, regardless.
             // defer check until we are actually aborting,
@@ -32307,7 +32334,7 @@ class LRUCache {
             ac.signal.addEventListener('abort', () => {
                 if (!options.ignoreFetchAbort ||
                     options.allowStaleOnFetchAbort) {
-                    res(undefined);
+                    res();
                     // when it eventually resolves, update the cache.
                     if (options.allowStaleOnFetchAbort) {
                         res = v => cb(v, true);
