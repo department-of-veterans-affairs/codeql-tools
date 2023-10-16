@@ -35,7 +35,7 @@ jobs:
 
   analyze-rhel:
     name: Analyze RHEL
-    runs-on: rhel
+    runs-on: rhel-7
     permissions:
       actions: read
       contents: read
@@ -46,4 +46,4 @@ jobs:
       - name: Run Code Scanning
         uses: ./codeql-analysis
         with:
-          language: go
+          language: javascript
