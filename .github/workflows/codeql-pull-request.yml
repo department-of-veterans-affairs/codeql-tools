@@ -32,9 +32,10 @@ jobs:
         with:
           language: ${{ matrix.language }}
           config-file: ${{ matrix.config-file }}
+
   analyze-rhel:
     name: Analyze RHEL
-    runs-on: rhel-runner
+    runs-on: rhel
     permissions:
       actions: read
       contents: read
