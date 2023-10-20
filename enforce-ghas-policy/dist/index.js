@@ -12725,7 +12725,7 @@ const main = async () => {
     }
 
     try {
-        core.info('Retrieving CodeQL Code Scanning alerts')
+        core.info(`Retrieving high severity CodeQL Code Scanning alerts for ${org}/${repo}/${ref}`)
         const highAlerts = await client.paginate(client.codeScanning.listAlertsForRepo, {
             owner: org,
             repo: repo,
@@ -12734,6 +12734,8 @@ const main = async () => {
             state: 'open',
             tool_name: 'CodeQL',
         })
+
+        core.info(`Retrieving critical severity CodeQL Code Scanning alerts for ${org}/${repo}/${ref}`)
         const criticalAlerts = await client.paginate(client.codeScanning.listAlertsForRepo, {
             owner: org,
             repo: repo,
@@ -12742,6 +12744,8 @@ const main = async () => {
             state: 'open',
             tool_name: 'CodeQL',
         })
+        core.info(`Found ${highAlerts.length} high and ${criticalAlerts.length} critical alerts`)
+
         if (highAlerts.length > 0 || criticalAlerts.length > 0) {
             core.info(`Found ${highAlerts.length} high and ${criticalAlerts.length} critical alerts`)
             const message = messageViolation.replace('{highAlerts}', String(highAlerts.length)).replace('{criticalAlerts}', String(criticalAlerts.length))
