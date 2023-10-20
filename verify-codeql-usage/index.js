@@ -52,27 +52,31 @@ const main = async () => {
         })
 
         if (analyses.length === 0) {
-            core.setFailed(`No CodeQL analyses found, please refer to OIS guidance for configuring CodeQL.`)
+            core.setFailed(`No CodeQL analyses found, please refer to OIS guidance for configuring CodeQL: https://department-of-veterans-affairs.github.io/ois-swa-wiki/docs/ghas/codeql-usage`)
             process.exit(1)
         }
+        core.info(`Found CodeQL analysis: ${analyses[0].html_url}`)
 
         if (!analyses[0].category.startsWith('ois')) {
-            core.setFailed(`CodeQL analysis found, but not using OIS approved code-scanning libraries. Please refer to OIS guidance for configuring CodeQL using the OIS approved libraries.`)
+            core.setFailed(`CodeQL analysis found, but not using OIS approved code-scanning libraries. Please refer to OIS guidance for configuring CodeQL using the OIS approved libraries: https://department-of-veterans-affairs.github.io/ois-swa-wiki/docs/ghas/codeql-usage`)
             process.exit(1)
         }
+        core.info(`Repository is using OIS approved libraries: ${analyses[0].category}`)
 
         const analysisDate = new Date(analyses[0].created_at)
         const today = new Date()
         const diffTime = Math.abs(today - analysisDate)
         const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
         if (diffDays > 7) {
-            core.setFailed(`CodeQL analysis found, but it is older than 7 days. Please refer to OIS guidance for configuring CodeQL to run on a weekly basis.`)
+            core.setFailed(`CodeQL analysis found, but it is older than 7 days. Please update your automation to run CodeQL analysis at least once weekly.`)
             process.exit(1)
         }
+        core.info(`Recent, valid CodeQL analysis found: ${diffDays} days`)
     } catch (e) {
-        core.setFailed(`Error checking for CodeQL usage, please open a ticket in github-user-requests repository for additional help: ${e.message}`)
+        core.setFailed(`Error checking for CodeQL usage, please open a ticket here https://github.com/department-of-veterans-affairs/github-user-requests/issues/new/choose for additional help: ${e.message}`)
         process.exit(1)
     }
+    core.info(`CodeQL usage checks successful, repository is in compliance.`)
 }
 
 main()
