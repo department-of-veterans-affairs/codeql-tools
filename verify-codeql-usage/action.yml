@@ -6,6 +6,15 @@ inputs:
     description: The slug of the organization
     required: true
     default: ${{ github.repository_owner }}
+  message_codeql_missing:
+    description: The message to use when CodeQL is missing
+    required: true
+  message_old_analysis:
+    description: The message to use when the analysis is old
+    required: true
+  message_unapproved_libraries:
+    description: The message to use when unapproved libraries are used
+    required: true
   pull_request_number:
     description: The ID of the pull request
     required: true
