@@ -86,7 +86,7 @@ const main = async () => {
             core.info(`Found ${highAlerts.length} high and ${criticalAlerts.length} critical alerts`)
             const message = messageViolation.replace('{highAlerts}', String(highAlerts.length)).replace('{criticalAlerts}', String(criticalAlerts.length))
             await comment(org, repo, pullRequestNumber, message)
-            core.setFailed(`GHAS security policy violation found, please open a ticket here https://github.com/department-of-veterans-affairs/github-user-requests/issues/new/choose for additional help.`)
+            core.setFailed(`GHAS security policy violation found. For additional information about OIS policy, please refer to the OIS SWA Wiki: https://department-of-veterans-affairs.github.io/ois-swa-wiki/docs/ghas/codeql-usage.`)
             process.exit(1)
         }
     } catch (e) {
