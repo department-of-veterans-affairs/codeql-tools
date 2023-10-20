@@ -3,7 +3,7 @@ on:
   pull_request: {}
 permissions:
   contents: read
-  pull-requests: read
+  pull-requests: write
   security-events: read
 jobs:
   verify:
