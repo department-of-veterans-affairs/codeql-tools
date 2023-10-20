@@ -56,8 +56,6 @@ const main = async () => {
             core.setFailed(`Error checking if repository is ignored: ${e.message}`)
             process.exit(0)
         }
-        core.setFailed(`Error checking for CodeQL usage, please open a ticket here https://github.com/department-of-veterans-affairs/github-user-requests/issues/new/choose for additional help: ${e.message}`)
-        process.exit(0)
     }
 
     let analyses
@@ -71,7 +69,6 @@ const main = async () => {
         })
         analyses = response.data
     } catch (e) {
-        core.info(`Status: ${e.status}`)
         if (e.status === 404) {
             const message = `Your repository is not in compliance with OIS requirements for CodeQL usage.
             
