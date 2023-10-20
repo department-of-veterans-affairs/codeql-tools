@@ -71,6 +71,7 @@ const main = async () => {
         })
         analyses = response.data
     } catch (e) {
+        core.info(`Status: ${e.status}`)
         if (e.status === 404) {
             const message = `Your repository is not in compliance with OIS requirements for CodeQL usage.
             
