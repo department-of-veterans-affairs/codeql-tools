@@ -1,0 +1,30 @@
+name: Enforce GHAS Policy
+description: Validates that repository is remediating GHAS vulnerability alerts
+author: GitHub Expert Services
+inputs:
+  org:
+    description: The slug of the organization
+    required: true
+    default: ${{ github.repository_owner }}
+  message_violation:
+    description: The message to use when CodeQL is missing
+    required: true
+  pull_request_number:
+    description: The ID of the pull request
+    required: true
+    default: ${{ github.event.pull_request.number }}
+  ref:
+    description: The ref to use for the pull request
+    required: true
+    default: ${{ github.ref }}
+  repo:
+    description: The slug of the repository
+    required: true
+    default: ${{ github.event.repository.name }}
+  token:
+    description: The token to use for authentication
+    required: true
+    default: ${{ github.token }}
+runs:
+  using: node16
+  main: dist/index.js
