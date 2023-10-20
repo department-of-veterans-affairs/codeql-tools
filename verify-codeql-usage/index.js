@@ -52,25 +52,31 @@ const main = async () => {
         core.info(`Repository is ignored, skipping CodeQL usage check`)
         process.exit(0)
     } catch (e) {
-        if(e.status !== 404) {
+        if (e.status !== 404) {
             core.setFailed(`Error checking if repository is ignored: ${e.message}`)
             process.exit(0)
         }
+        core.setFailed(`Error checking for CodeQL usage, please open a ticket here https://github.com/department-of-veterans-affairs/github-user-requests/issues/new/choose for additional help: ${e.message}`)
+        process.exit(0)
     }
 
+    let analyses
     try {
         core.info(`Checking for CodeQL usage in ${org}/${repo}`)
-        const {data: analyses} = await client.codeScanning.listRecentAnalyses({
+        const response = await client.codeScanning.listRecentAnalyses({
             owner: org,
             repo: repo,
             tool_name: 'CodeQL',
             per_page: 1
         })
-
-        if (analyses.length === 0) {
+        analyses = response.data
+    } catch (e) {
+        if (e.status === 404) {
             const message = `Your repository is not in compliance with OIS requirements for CodeQL usage.
             
 Your repository is not using CodeQL but has been identified as a repository required to perform code-scanning using CodeQL. Please refer to OIS guidance for configuring CodeQL: https://department-of-veterans-affairs.github.io/ois-swa-wiki/docs/ghas/codeql-usage
+
+If this pull request adds CodeQL to your repository, please ignore this message.
 
 Please refer to OIS guidance for configuring CodeQL using the OIS approved libraries: https://department-of-veterans-affairs.github.io/ois-swa-wiki/docs/ghas/codeql-usage
 
@@ -79,8 +85,12 @@ If you have additional questions about this comment, please open a ticket here: 
             core.setFailed(`No CodeQL analyses found, please refer to OIS guidance for configuring CodeQL: https://department-of-veterans-affairs.github.io/ois-swa-wiki/docs/ghas/codeql-usage`)
             process.exit(0)
         }
-        core.info(`Found CodeQL analysis: ${analyses[0].url}`)
+        core.setFailed(`Error checking for CodeQL usage, please open a ticket here https://github.com/department-of-veterans-affairs/github-user-requests/issues/new/choose for additional help: ${e.message}`)
+        process.exit(0)
+    }
+    core.info(`Found CodeQL analysis: ${analyses[0].url}`)
 
+    try {
         if (!analyses[0].category.startsWith('ois')) {
             const message = `Your repository is not in compliance with OIS requirements for CodeQL usage.
 
