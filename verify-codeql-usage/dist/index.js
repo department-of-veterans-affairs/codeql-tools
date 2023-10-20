@@ -12669,6 +12669,9 @@ const {throttling} = __nccwpck_require__(6348)
 
 const org = core.getInput('ORG', {required: true, trimWhitespace: true})
 const repo = core.getInput('REPO', {required: true, trimWhitespace: true})
+const messageCodeQLMissing = core.getInput('MESSAGE_CODEQL_MISSING', {required: true, trimWhitespace: true})
+const messageUnapprovedLibraries = core.getInput('MESSAGE_UNAPPROVED_LIBRARIES', {required: true, trimWhitespace: true})
+const messageOldAnalysis = core.getInput('MESSAGE_OLD_ANALYSIS', {required: true, trimWhitespace: true})
 const pullRequestNumber = core.getInput('PULL_REQUEST_NUMBER', {required: true, trimWhitespace: true})
 const token = core.getInput('TOKEN', {required: true, trimWhitespace: true})
 
@@ -12734,14 +12737,7 @@ const main = async () => {
         analyses = response.data
     } catch (e) {
         if (e.status === 404) {
-            const message = `Your repository is not in compliance with OIS requirements for CodeQL usage.
-            
-Your repository is not using CodeQL but has been identified as a repository required to perform code-scanning using CodeQL. If this pull request adds CodeQL to your repository, please ignore this message.
-
-Please refer to OIS guidance for configuring CodeQL using the OIS approved libraries: https://department-of-veterans-affairs.github.io/ois-swa-wiki/docs/ghas/codeql-usage
-
-If you have additional questions about this comment, please open a ticket here: https://github.com/department-of-veterans-affairs/github-user-requests/issues/new/choose`
-            await comment(org, repo, pullRequestNumber, message)
+            await comment(org, repo, pullRequestNumber, messageCodeQLMissing)
             core.setFailed(`No CodeQL analyses found, please refer to OIS guidance for configuring CodeQL: https://department-of-veterans-affairs.github.io/ois-swa-wiki/docs/ghas/codeql-usage`)
             process.exit(0)
         }
@@ -12752,14 +12748,7 @@ If you have additional questions about this comment, please open a ticket here: 
 
     try {
         if (!analyses[0].category.startsWith('ois')) {
-            const message = `Your repository is not in compliance with OIS requirements for CodeQL usage.
-
-Your repository is using CodeQL, but not using OIS approved code-scanning libraries.
-
-Please refer to OIS guidance for configuring CodeQL using the OIS approved libraries: https://department-of-veterans-affairs.github.io/ois-swa-wiki/docs/ghas/codeql-usage
-
-If you have additional questions about this comment, please open a ticket here: https://github.com/department-of-veterans-affairs/github-user-requests/issues/new/choose`
-            await comment(org, repo, pullRequestNumber, message)
+            await comment(org, repo, pullRequestNumber, messageUnapprovedLibraries)
             core.setFailed(`CodeQL analysis found, but not using OIS approved code-scanning libraries. Please refer to OIS guidance for configuring CodeQL using the OIS approved libraries: https://department-of-veterans-affairs.github.io/ois-swa-wiki/docs/ghas/codeql-usage`)
             process.exit(0)
         }
@@ -12770,12 +12759,7 @@ If you have additional questions about this comment, please open a ticket here: 
         const diffTime = Math.abs(today - analysisDate)
         const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
         if (diffDays > 7) {
-            const message = `Your repository is not in compliance with OIS requirements for CodeQL usage. 
-            
-Your repository has not been scanned in the last 7 days. Please update your automation to run CodeQL analysis at least once weekly.
-
-Please refer to OIS guidance for configuring CodeQL: https://department-of-veterans-affairs.github.io/ois-swa-wiki/docs/ghas/codeql-usage`
-            await comment(org, repo, pullRequestNumber, message)
+            await comment(org, repo, pullRequestNumber, messageOldAnalysis)
             core.setFailed(`CodeQL analysis found, but it is older than 7 days. Please update your automation to run CodeQL analysis at least once weekly.`)
             process.exit(0)
         }
