@@ -3,7 +3,7 @@ on:
   pull_request: {}
 permissions:
   contents: read
-  security_events: read
+  security-events: read
 jobs:
   verify:
     name: Verify CodeQL Usage
