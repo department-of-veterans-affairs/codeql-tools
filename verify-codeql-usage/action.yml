@@ -6,6 +6,10 @@ inputs:
     description: The slug of the organization
     required: true
     default: ${{ github.repository_owner }}
+  pull_request_number:
+    description: The ID of the pull request
+    required: true
+    default: ${{ github.event.pull_request.number }}
   repo:
     description: The slug of the repository
     required: true
