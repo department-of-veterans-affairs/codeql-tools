@@ -72,9 +72,7 @@ const main = async () => {
         if (e.status === 404) {
             const message = `Your repository is not in compliance with OIS requirements for CodeQL usage.
             
-Your repository is not using CodeQL but has been identified as a repository required to perform code-scanning using CodeQL. Please refer to OIS guidance for configuring CodeQL: https://department-of-veterans-affairs.github.io/ois-swa-wiki/docs/ghas/codeql-usage
-
-If this pull request adds CodeQL to your repository, please ignore this message.
+Your repository is not using CodeQL but has been identified as a repository required to perform code-scanning using CodeQL. If this pull request adds CodeQL to your repository, please ignore this message.
 
 Please refer to OIS guidance for configuring CodeQL using the OIS approved libraries: https://department-of-veterans-affairs.github.io/ois-swa-wiki/docs/ghas/codeql-usage
 
