@@ -5,7 +5,7 @@ inputs:
   org:
     description: The slug of the organization
     required: true
-    default: ${{ github.organization }}
+    default: ${{ github.repository_owner }}
   repo:
     description: The slug of the repository
     required: true
