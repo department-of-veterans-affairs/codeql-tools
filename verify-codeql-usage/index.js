@@ -55,7 +55,7 @@ const main = async () => {
             core.setFailed(`No CodeQL analyses found, please refer to OIS guidance for configuring CodeQL: https://department-of-veterans-affairs.github.io/ois-swa-wiki/docs/ghas/codeql-usage`)
             process.exit(1)
         }
-        core.info(`Found CodeQL analysis: ${analyses[0].html_url}`)
+        core.info(`Found CodeQL analysis: ${analyses[0].url}`)
 
         if (!analyses[0].category.startsWith('ois')) {
             core.setFailed(`CodeQL analysis found, but not using OIS approved code-scanning libraries. Please refer to OIS guidance for configuring CodeQL using the OIS approved libraries: https://department-of-veterans-affairs.github.io/ois-swa-wiki/docs/ghas/codeql-usage`)
