@@ -77,8 +77,8 @@ const parseTotalPages = (link) => {
 
 const main = async () => {
     try {
-        if (!thresholds[threshold]) {
-            return core.setFailed(`Invalid threshold [${threshold}], must be one of: ${Object.keys(thresholds).join(', ')}`)
+        if (thresholds.some(t => t.name === threshold)) {
+            return core.setFailed(`Invalid threshold [${threshold}], must be one of: ${thresholds.map(t => t.name).join(', ')}`)
         }
 
         const findings = {}
