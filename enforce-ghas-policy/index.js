@@ -110,7 +110,7 @@ const main = async () => {
 
         if (violation) {
             core.info(`Creating pull request comment for pull request #${pullRequestNumber}`)
-            const message = `### CodeQL Code Scanning Alerts\n\nYour pull request and repository violates the configured code scanning severity threshold(s) for the following severity(s):\n\n| Severity | Count |\n| --- | --- |\n${Object.keys(findings).map(key => `| [https://${org}/${repo}/security](${key}) | ${findings[key]} |`).join('\n')}\n\nPlease fix the issues and re-run the workflow.`
+            const message = `### CodeQL Code Scanning Alerts\n\nYour pull request violates the configured code scanning severity threshold(s) for the following severity(s):\n\n| Severity | Count |\n| --- | --- |\n${Object.keys(findings).map(key => `| [${key}](https://github.com/${org}/${repo}/security/code-scanning?query=is%3Aopen+pr%3A${pullRequestNumber}+severity%3A${key}) | ${findings[key]} |`).join('\n')}\n\nPlease fix the issues and re-run the workflow.`
             return await comment(org, repo, pullRequestNumber, message)
         }
         core.info('No violations found')
