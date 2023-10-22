@@ -11,13 +11,13 @@ const threshold = core.getInput('THRESHOLD', {required: true, trimWhitespace: tr
 const token = core.getInput('TOKEN', {required: true, trimWhitespace: true})
 
 const thresholds = [
-    [{name: 'error'}],
-    [{name: 'note'}],
-    [{name: 'warning'}],
-    [{name: 'low'}],
-    [{name: 'medium'}],
-    [{name: 'high'}],
-    [{name: 'critical'}]
+    {name: 'error'},
+    {name: 'note'},
+    {name: 'warning'},
+    {name: 'low'},
+    {name: 'medium'},
+    {name: 'high'},
+    {name: 'critical'}
 ]
 
 const _Octokit = Octokit.plugin(retry, throttling)
@@ -77,7 +77,7 @@ const parseTotalPages = (link) => {
 
 const main = async () => {
     try {
-        if (thresholds.some(t => t.name === threshold)) {
+        if (!thresholds.some(t => t.name === threshold)) {
             return core.setFailed(`Invalid threshold [${threshold}], must be one of: ${thresholds.map(t => t.name).join(', ')}`)
         }
 
@@ -87,12 +87,13 @@ const main = async () => {
         const validThresholds = calculateThresholds(threshold)
         core.info(`Validating the following thresholds: ${validThresholds.map(t => t.name).join(', ')}`)
         for (const threshold of validThresholds) {
-            core.info(`Retrieving high severity CodeQL Code Scanning alerts for ${org}/${repo}/${ref}`)
+            const severity = threshold.name
+            core.info(`Retrieving ${severity} severity CodeQL Code Scanning alerts for ${org}/${repo}/${ref}`)
             const response = await client.codeScanning.listAlertsForRepo({
                 owner: org,
                 repo: repo,
                 ref: ref,
-                severity: threshold.name,
+                severity: severity,
                 state: 'open',
                 tool_name: 'CodeQL',
                 per_page: 1
@@ -100,17 +101,16 @@ const main = async () => {
             const totalPages = parseTotalPages(response.headers.link)
             if (totalPages === 0 && response.data.length === 1 || totalPages > 0) {
                 if (!violation) violation = true
-                findings[threshold.name] = totalPages === 0 ? 1 : totalPages
-                core.setFailed(`Found CodeQL Code Scanning alert of severity for ref ${ref} that exceed the ${threshold.name} threshold`)
+                findings[severity] = totalPages === 0 ? 1 : totalPages
+                core.setFailed(`Found CodeQL Code Scanning alert of severity for ref ${ref} that exceed the ${severity} threshold`)
             } else {
-                findings[threshold.name] = 0
-                core.info(`No CodeQL Code Scanning alerts of severity ${threshold.name} for ref ${ref}`)
+                core.info(`No CodeQL Code Scanning alerts of severity ${severity} for ref ${ref}`)
             }
         }
 
         if (violation) {
             core.info(`Creating pull request comment for pull request #${pullRequestNumber}`)
-            const message = `### CodeQL Code Scanning Alerts\n\nYour pull request and repository violates the configured code scanning severity threshold(s) for the following severity(s):\n\n| Severity | Count |\n| --- | --- |\n${Object.keys(findings).map(key => `| ${key} | ${findings[key]} |`).join('\n')}\n\nPlease fix the issues and re-run the workflow.`
+            const message = `### CodeQL Code Scanning Alerts\n\nYour pull request and repository violates the configured code scanning severity threshold(s) for the following severity(s):\n\n| Severity | Count |\n| --- | --- |\n${Object.keys(findings).map(key => `| [https://${org}/${repo}/security](${key}) | ${findings[key]} |`).join('\n')}\n\nPlease fix the issues and re-run the workflow.`
             return await comment(org, repo, pullRequestNumber, message)
         }
         core.info('No violations found')
