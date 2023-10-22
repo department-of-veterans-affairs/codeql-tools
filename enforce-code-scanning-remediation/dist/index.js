@@ -12742,11 +12742,10 @@ const main = async () => {
                 ref: ref,
                 severity: severity,
                 state: 'open',
-                // tool_name: 'CodeQL',
                 per_page: 1
             })
             const totalPages = parseTotalPages(response.headers.link)
-            if (totalPages === 0 && response.data.length === 1 || totalPages > 0) {
+            if ((totalPages === 0 && response.data.length === 1) || totalPages > 0) {
                 if (!violation) violation = true
                 findings[severity] = totalPages === 0 ? 1 : totalPages
                 core.setFailed(`Found ${findings[severity]} Code Scanning alerts of ${severity} severity for ref ${ref}`)
