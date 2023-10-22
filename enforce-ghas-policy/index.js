@@ -82,7 +82,10 @@ const main = async () => {
         }
 
         const findings = {}
+        let violation = false
+        core.info(`Calculating threshold using baseline: ${threshold}`)
         const validThresholds = calculateThresholds(threshold)
+        core.info(`Validating the following thresholds: ${validThresholds.map(t => t.name).join(', ')}`)
         for (const threshold of validThresholds) {
             core.info(`Retrieving high severity CodeQL Code Scanning alerts for ${org}/${repo}/${ref}`)
             const response = await client.codeScanning.listAlertsForRepo({
@@ -96,6 +99,7 @@ const main = async () => {
             })
             const totalPages = parseTotalPages(response.headers.link)
             if (totalPages === 0 && response.data.length === 1 || totalPages > 0) {
+                if (!violation) violation = true
                 findings[threshold.name] = totalPages === 0 ? 1 : totalPages
                 core.setFailed(`Found CodeQL Code Scanning alert of severity for ref ${ref} that exceed the ${threshold.name} threshold`)
             } else {
@@ -104,9 +108,12 @@ const main = async () => {
             }
         }
 
-        core.info(`Creating pull request comment for pull request #${pullRequestNumber}`)
-        const message = `### CodeQL Code Scanning Alerts\n\nYour pull request and repository violates the configured code scanning severity threshold(s) for the following severity(s):\n\n| Severity | Count |\n| --- | --- |\n${Object.keys(findings).map(key => `| ${key} | ${findings[key]} |`).join('\n')}\n\nPlease fix the issues and re-run the workflow.`
-        await comment(org, repo, pullRequestNumber, message)
+        if (violation) {
+            core.info(`Creating pull request comment for pull request #${pullRequestNumber}`)
+            const message = `### CodeQL Code Scanning Alerts\n\nYour pull request and repository violates the configured code scanning severity threshold(s) for the following severity(s):\n\n| Severity | Count |\n| --- | --- |\n${Object.keys(findings).map(key => `| ${key} | ${findings[key]} |`).join('\n')}\n\nPlease fix the issues and re-run the workflow.`
+            return await comment(org, repo, pullRequestNumber, message)
+        }
+        core.info('No violations found')
     } catch (e) {
         return core.setFailed(`Error validating CodeQL usage: ${e.message}`)
     }
