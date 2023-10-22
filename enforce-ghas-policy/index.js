@@ -6,9 +6,19 @@ const {throttling} = require('@octokit/plugin-throttling')
 const org = core.getInput('ORG', {required: true, trimWhitespace: true})
 const repo = core.getInput('REPO', {required: true, trimWhitespace: true})
 const ref = core.getInput('REF', {required: true, trimWhitespace: true})
-const messageViolation = core.getInput('MESSAGE_VIOLATION', {required: true, trimWhitespace: true})
 const pullRequestNumber = core.getInput('PULL_REQUEST_NUMBER', {required: true, trimWhitespace: true})
+const threshold = core.getInput('THRESHOLD', {required: true, trimWhitespace: true}).toLowerCase()
 const token = core.getInput('TOKEN', {required: true, trimWhitespace: true})
+
+const thresholds = [
+    [{name: 'error'}],
+    [{name: 'note'}],
+    [{name: 'warning'}],
+    [{name: 'low'}],
+    [{name: 'medium'}],
+    [{name: 'high'}],
+    [{name: 'critical'}]
+]
 
 const _Octokit = Octokit.plugin(retry, throttling)
 const client = new _Octokit({
@@ -28,9 +38,23 @@ const client = new _Octokit({
 
 })
 
+const calculateThresholds = (threshold) => {
+    let found = false
+    const validThresholds = []
+    for (const i in thresholds) {
+        if (found || thresholds[i].name === threshold) {
+            found = true
+        } else {
+            continue
+        }
+        validThresholds.push(thresholds[i])
+    }
+
+    return validThresholds
+}
+
 const comment = async (org, repo, number, message) => {
     try {
-        core.info(`Commenting on PR #${number}`)
         await client.issues.createComment({
             owner: org,
             repo: repo,
@@ -38,65 +62,54 @@ const comment = async (org, repo, number, message) => {
             body: message
         })
     } catch (e) {
-        core.setFailed(`Error commenting on PR #${number}: ${e.message}`)
-        process.exit(0)
+        throw new Error(`Error commenting on PR #${number}: ${e.message}`)
     }
+}
+
+const parseTotalPages = (link) => {
+    const regex = /page=(\d+)>; rel="last"/
+    const match = regex.exec(link)
+    if (match) {
+        return parseInt(match[1], 10)
+    }
+    return 0
 }
 
 const main = async () => {
     try {
-        core.info('Checking if repository ignored')
-        await client.repos.getContent({
-            owner: org,
-            repo: repo,
-            path: '.github/.emass-repo-ignore'
-        })
-        core.info(`Repository is ignored, skipping CodeQL usage check`)
-        process.exit(0)
-    } catch (e) {
-        if (e.status !== 404) {
-            core.setFailed(`Error checking if repository is ignored: ${e.message}`)
-            process.exit(0)
+        if (!thresholds[threshold]) {
+            return core.setFailed(`Invalid threshold [${threshold}], must be one of: ${Object.keys(thresholds).join(', ')}`)
         }
-    }
 
-    try {
-        core.info(`Retrieving high severity CodeQL Code Scanning alerts for ${org}/${repo}/${ref}`)
-        const highAlerts = await client.paginate(client.codeScanning.listAlertsForRepo, {
-            owner: org,
-            repo: repo,
-            ref: ref,
-            severity: 'high',
-            state: 'open',
-            tool_name: 'CodeQL',
-        })
-
-        core.info(`Retrieving critical severity CodeQL Code Scanning alerts for ${org}/${repo}/${ref}`)
-        const criticalAlerts = await client.paginate(client.codeScanning.listAlertsForRepo, {
-            owner: org,
-            repo: repo,
-            ref: ref,
-            severity: 'high',
-            state: 'open',
-            tool_name: 'CodeQL',
-        })
-        core.info(`Found ${highAlerts.length} high and ${criticalAlerts.length} critical alerts`)
-
-        if (highAlerts.length > 0 || criticalAlerts.length > 0) {
-            core.info(`Found ${highAlerts.length} high and ${criticalAlerts.length} critical alerts`)
-            const message = messageViolation.replace('{highAlerts}', String(highAlerts.length)).replace('{criticalAlerts}', String(criticalAlerts.length))
-            await comment(org, repo, pullRequestNumber, message)
-            core.setFailed(`GHAS security policy violation found. For additional information about OIS policy, please refer to the OIS SWA Wiki: https://department-of-veterans-affairs.github.io/ois-swa-wiki/docs/ghas/codeql-usage.`)
-            process.exit(1)
+        const findings = {}
+        const validThresholds = calculateThresholds(threshold)
+        for (const threshold of validThresholds) {
+            core.info(`Retrieving high severity CodeQL Code Scanning alerts for ${org}/${repo}/${ref}`)
+            const response = await client.codeScanning.listAlertsForRepo({
+                owner: org,
+                repo: repo,
+                ref: ref,
+                severity: threshold.name,
+                state: 'open',
+                tool_name: 'CodeQL',
+                per_page: 1
+            })
+            const totalPages = parseTotalPages(response.headers.link)
+            if (totalPages === 0 && response.data.length === 1 || totalPages > 0) {
+                findings[threshold.name] = totalPages === 0 ? 1 : totalPages
+                core.setFailed(`Found CodeQL Code Scanning alert of severity for ref ${ref} that exceed the ${threshold.name} threshold`)
+            } else {
+                findings[threshold.name] = 0
+                core.info(`No CodeQL Code Scanning alerts of severity ${threshold.name} for ref ${ref}`)
+            }
         }
+
+        core.info(`Creating pull request comment for pull request #${pullRequestNumber}`)
+        const message = `### CodeQL Code Scanning Alerts\n\nYour pull request and repository violates the configured code scanning severity threshold(s) for the following severity(s):\n\n| Severity | Count |\n| --- | --- |\n${Object.keys(findings).map(key => `| ${key} | ${findings[key]} |`).join('\n')}\n\nPlease fix the issues and re-run the workflow.`
+        await comment(org, repo, pullRequestNumber, message)
     } catch (e) {
-        core.setFailed(`Error checking for GHAS usage, please open a ticket here https://github.com/department-of-veterans-affairs/github-user-requests/issues/new/choose for additional help: ${e.message}`)
-        process.exit(0)
+        return core.setFailed(`Error validating CodeQL usage: ${e.message}`)
     }
-    core.info(`GHAS security policy check complete`)
 }
 
-main().catch(e => {
-    core.setFailed(e.message)
-    process.exit(0)
-})
+main()

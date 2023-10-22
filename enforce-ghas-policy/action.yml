@@ -6,9 +6,6 @@ inputs:
     description: The slug of the organization
     required: true
     default: ${{ github.repository_owner }}
-  message_violation:
-    description: The message to use when CodeQL is missing
-    required: true
   pull_request_number:
     description: The ID of the pull request
     required: true
@@ -21,6 +18,10 @@ inputs:
     description: The slug of the repository
     required: true
     default: ${{ github.event.repository.name }}
+  threshold:
+    description: The minimum severity to fail the check
+    required: true
+    default: high
   token:
     description: The token to use for authentication
     required: true
