@@ -1,5 +1,5 @@
-name: Enforce GHAS Policy
-description: Validates that repository is remediating GHAS vulnerability alerts
+name: Enforce Code Scanning Remediation
+description: Validates pull requests to ensure vulnerabilities do not exist in source code
 author: GitHub Expert Services
 inputs:
   org:

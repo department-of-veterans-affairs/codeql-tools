@@ -10,19 +10,20 @@ const pullRequestNumber = core.getInput('PULL_REQUEST_NUMBER', {required: true, 
 const threshold = core.getInput('THRESHOLD', {required: true, trimWhitespace: true}).toLowerCase()
 const token = core.getInput('TOKEN', {required: true, trimWhitespace: true})
 
-const thresholds = [
-    {name: 'error'},
-    {name: 'note'},
-    {name: 'warning'},
-    {name: 'low'},
-    {name: 'medium'},
-    {name: 'high'},
-    {name: 'critical'}
-]
+const thresholds = {
+    error: ['error', 'note', 'warning', 'low', 'medium', 'high', 'critical'],
+    note: ['note', 'warning', 'low', 'medium', 'high', 'critical'],
+    warning: ['warning', 'low', 'medium', 'high', 'critical'],
+    low: ['low', 'medium', 'high', 'critical'],
+    medium: ['medium', 'high', 'critical'],
+    high: ['high', 'critical'],
+    critical: ['critical']
+}
 
 const _Octokit = Octokit.plugin(retry, throttling)
 const client = new _Octokit({
     auth: token,
+    baseUrl: process.env.GITHUB_API_URL || 'https://api.github.com',
     throttle: {
         onRateLimit: (retryAfter, options, octokit) => {
             octokit.log.warn(`Request quota exhausted for request ${options.method} ${options.url}`);
@@ -35,23 +36,7 @@ const client = new _Octokit({
             octokit.log.warn(`Abuse detected for request ${options.method} ${options.url}`);
         },
     }
-
 })
-
-const calculateThresholds = (threshold) => {
-    let found = false
-    const validThresholds = []
-    for (const i in thresholds) {
-        if (found || thresholds[i].name === threshold) {
-            found = true
-        } else {
-            continue
-        }
-        validThresholds.push(thresholds[i])
-    }
-
-    return validThresholds
-}
 
 const comment = async (org, repo, number, message) => {
     try {
@@ -77,17 +62,15 @@ const parseTotalPages = (link) => {
 
 const main = async () => {
     try {
-        if (!thresholds.some(t => t.name === threshold)) {
-            return core.setFailed(`Invalid threshold [${threshold}], must be one of: ${thresholds.map(t => t.name).join(', ')}`)
+        if (!thresholds[threshold]) {
+            return core.setFailed(`Invalid threshold [${threshold}], must be one of: ${Object.keys(thresholds).join(', ')}`)
         }
 
         const findings = {}
         let violation = false
-        core.info(`Calculating threshold using baseline: ${threshold}`)
-        const validThresholds = calculateThresholds(threshold)
-        core.info(`Validating the following thresholds: ${validThresholds.map(t => t.name).join(', ')}`)
-        for (const threshold of validThresholds) {
-            const severity = threshold.name
+        const severities = thresholds[threshold]
+        core.info(`Validating the following thresholds: ${severities.join(', ')}`)
+        for (const severity of severities) {
             core.info(`Retrieving ${severity} severity CodeQL Code Scanning alerts for ${org}/${repo}/${ref}`)
             const response = await client.codeScanning.listAlertsForRepo({
                 owner: org,
@@ -95,16 +78,16 @@ const main = async () => {
                 ref: ref,
                 severity: severity,
                 state: 'open',
-                tool_name: 'CodeQL',
+                // tool_name: 'CodeQL',
                 per_page: 1
             })
             const totalPages = parseTotalPages(response.headers.link)
             if (totalPages === 0 && response.data.length === 1 || totalPages > 0) {
                 if (!violation) violation = true
                 findings[severity] = totalPages === 0 ? 1 : totalPages
-                core.setFailed(`Found CodeQL Code Scanning alert of severity for ref ${ref} that exceed the ${severity} threshold`)
+                core.setFailed(`Found ${findings[severity]} Code Scanning alerts of ${severity} severity for ref ${ref}`)
             } else {
-                core.info(`No CodeQL Code Scanning alerts of severity ${severity} for ref ${ref}`)
+                core.info(`Found 0 Code Scanning alerts of ${severity} severity for ref ${ref}`)
             }
         }
 
