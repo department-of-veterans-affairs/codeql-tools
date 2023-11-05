@@ -39,8 +39,7 @@ const comment = async (org, repo, number, message) => {
             body: message
         })
     } catch (e) {
-        core.setFailed(`Error commenting on PR #${number}: ${e.message}`)
-        process.exit(0)
+        return core.setFailed(`Error commenting on PR #${number}: ${e.message}`)
     }
 }
 
@@ -52,12 +51,10 @@ const main = async () => {
             repo: repo,
             path: '.github/.emass-repo-ignore'
         })
-        core.info(`Repository is ignored, skipping CodeQL usage check`)
-        process.exit(0)
+        return core.info(`Repository is ignored, skipping CodeQL usage check`)
     } catch (e) {
         if (e.status !== 404) {
-            core.setFailed(`Error checking if repository is ignored: ${e.message}`)
-            process.exit(0)
+            return core.setFailed(`Error checking if repository is ignored: ${e.message}`)
         }
     }
 
@@ -74,19 +71,16 @@ const main = async () => {
     } catch (e) {
         if (e.status === 404) {
             await comment(org, repo, pullRequestNumber, messageCodeQLMissing)
-            core.setFailed(`No CodeQL analyses found, please refer to OIS guidance for configuring CodeQL: https://department-of-veterans-affairs.github.io/ois-swa-wiki/docs/ghas/codeql-usage`)
-            process.exit(0)
+            return core.setFailed(`No CodeQL analyses found, please refer to OIS guidance for configuring CodeQL: https://department-of-veterans-affairs.github.io/ois-swa-wiki/docs/ghas/codeql-usage`)
         }
-        core.setFailed(`Error checking for CodeQL usage, please open a ticket here https://github.com/department-of-veterans-affairs/github-user-requests/issues/new/choose for additional help: ${e.message}`)
-        process.exit(0)
+        return core.setFailed(`Error checking for CodeQL usage, please open a ticket here https://github.com/department-of-veterans-affairs/github-user-requests/issues/new/choose for additional help: ${e.message}`)
     }
     core.info(`Found CodeQL analysis: ${analyses[0].url}`)
 
     try {
         if (!analyses[0].category.startsWith('ois')) {
             await comment(org, repo, pullRequestNumber, messageUnapprovedLibraries)
-            core.setFailed(`CodeQL analysis found, but not using OIS approved code-scanning libraries. Please refer to OIS guidance for configuring CodeQL using the OIS approved libraries: https://department-of-veterans-affairs.github.io/ois-swa-wiki/docs/ghas/codeql-usage`)
-            process.exit(0)
+            return core.setFailed(`CodeQL analysis found, but not using OIS approved code-scanning libraries. Please refer to OIS guidance for configuring CodeQL using the OIS approved libraries: https://department-of-veterans-affairs.github.io/ois-swa-wiki/docs/ghas/codeql-usage`)
         }
         core.info(`Repository is using OIS approved libraries: ${analyses[0].category}`)
 
@@ -96,18 +90,15 @@ const main = async () => {
         const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
         if (diffDays > 7) {
             await comment(org, repo, pullRequestNumber, messageOldAnalysis)
-            core.setFailed(`CodeQL analysis found, but it is older than 7 days. Please update your automation to run CodeQL analysis at least once weekly.`)
-            process.exit(0)
+            return core.setFailed(`CodeQL analysis found, but it is older than 7 days. Please update your automation to run CodeQL analysis at least once weekly.`)
         }
         core.info(`Recent, valid CodeQL analysis found: ${diffDays} days`)
     } catch (e) {
-        core.setFailed(`Error checking for CodeQL usage, please open a ticket here https://github.com/department-of-veterans-affairs/github-user-requests/issues/new/choose for additional help: ${e.message}`)
-        process.exit(0)
+        return core.setFailed(`Error checking for CodeQL usage, please open a ticket here https://github.com/department-of-veterans-affairs/github-user-requests/issues/new/choose for additional help: ${e.message}`)
     }
     core.info(`CodeQL usage checks successful, repository is in compliance.`)
 }
 
 main().catch(e => {
     core.setFailed(e.message)
-    process.exit(0)
 })
