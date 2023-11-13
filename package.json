@@ -31,7 +31,7 @@
     "@octokit/app": "^13.1.8",
     "@octokit/plugin-retry": "^4.1.6",
     "@octokit/plugin-throttling": "^5.2.3",
-    "@octokit/rest": "^19.0.13",
+    "@octokit/rest": "^20.0.2",
     "archiver": "^6.0.1",
     "axios": "^1.6.1",
     "axios-retry": "^3.8.0",
