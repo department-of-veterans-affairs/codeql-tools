@@ -40,6 +40,6 @@
     "nodemailer": "^6.9.5"
   },
   "devDependencies": {
-    "eslint": "^8.50.0"
+    "eslint": "^8.53.0"
   }
 }
