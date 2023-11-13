@@ -7,4 +7,4 @@ paths-ignore:
   - validate-monorepo-access/dist
   - verify-scans/dist
   - dist
-  - **/dist
+  - '**/dist'
