@@ -131,7 +131,7 @@ runs:
         set -x
         database_path="$temp/codeql-scan-results-$language.csv"
         echo "Generating CodeQL Results CSV at $database_path"
-        if [ ! -v codeql ]; then
+        if type codeql &> /dev/null; then
           $(realpath $RUNNER_TOOL_CACHE/CodeQL/*/x64/codeql/codeql | head -n 1) database interpret-results $database --format=csv --output="$database_path"
         else
           codeql database interpret-results $database --format=csv --output="$database_path"
