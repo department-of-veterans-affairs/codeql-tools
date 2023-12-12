@@ -54,6 +54,7 @@ runs:
       uses: department-of-veterans-affairs/codeql-tools/validate-emass-json@main
 
     - name: Initialize CodeQL
+      id: init
       uses: github/codeql-action/init@v2
       with:
         config: ${{ inputs.config }}
@@ -130,7 +131,7 @@ runs:
       run: |
         database_path="$temp/codeql-scan-results-$language.csv"
         echo "Generating CodeQL Results CSV at $database_path"
-        $(realpath $RUNNER_TOOL_CACHE/CodeQL/*/x64/codeql/codeql | head -n 1) database interpret-results $database --format=csv --output="$database_path"
+        ${{ steps.init.outputs.codeql-path }} database interpret-results $database --format=csv --output="$database_path"
       env:
         language: ${{ inputs.language }}
         database: ${{ runner.temp }}/codeql_databases/${{ inputs.language }}
