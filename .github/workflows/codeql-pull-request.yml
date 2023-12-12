@@ -19,6 +19,7 @@ jobs:
           - go
           - javascript
         runner:
+          - macos-latest-xlarge
           - ubuntu-8-cores-latest
           - windows-8-cores-latest
         config-file:
