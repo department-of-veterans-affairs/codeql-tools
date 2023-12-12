@@ -126,8 +126,10 @@ runs:
 
     - name: Generate CodeQL Results CSV
       if: runner.os == 'macOS'
-      shell: sh
+      shell: bash
       run: |
+        #!/bin/zsh
+        
         database_path="$temp/codeql-scan-results-$language.csv"
         echo "Generating CodeQL Results CSV at $database_path"
         if [[ ! -v codeql ]]; then
