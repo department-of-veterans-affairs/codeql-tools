@@ -133,3 +133,44 @@ exports.getSupportedCodeQLLanguages = async (octokit, owner, repo) => {
         throw new Error(`Failed to retrieve supported CodeQL languages: ${e.message}`)
     }
 }
+
+/**
+ * Retrieves a pull requests associated with a specific branch in the repository
+ * @param octokit - An authenticated octokit client
+ * @param owner - The owner of the repository
+ * @param repo - The name of the repository
+ * @param branch - The name of the branch
+ * @returns {Promise<boolean>} - A promise which resolves to true if a pull request exists, or false if it does not
+ */
+exports.pullRequestExists = async (octokit, owner, repo, branch) => {
+    try {
+        return await octokit.paginate('GET /repos/{owner}/{repo}/pulls', {
+            owner: owner,
+            repo: repo,
+            head: `${owner}:${branch}`
+        })
+    } catch (e) {
+        throw new Error(`Failed to retrieve pull requests: ${e.message}`)
+    }
+}
+
+/**
+ * Opens an existing a pull request for a branch in a repository
+ * @param octokit - An authenticated octokit client
+ * @param owner - The owner of the repository
+ * @param repo - The name of the repository
+ * @param pull_number - The number of the pull request
+ * @returns {Promise<void>} - A promise which resolves when the pull request is opened
+ */
+exports.reopenPullRequest = async (octokit, owner, repo, pull_number) => {
+    try {
+        await octokit.request('PATCH /repos/{owner}/{repo}/pulls/{pull_number}', {
+            owner: owner,
+            repo: repo,
+            pull_number: pull_number,
+            state: 'open'
+        })
+    } catch (e) {
+        throw new Error(`Failed to reopen pull request: ${e.message}`)
+    }
+}

@@ -10,7 +10,14 @@ const {
     fileExistsOnBranch,
     generatePullRequestBody
 } = require('./utils')
-const {getCodeQLStatus, getSupportedCodeQLLanguages, getDefaultRefSHA, getFileRefSHA} = require('./github-get')
+const {
+    getCodeQLStatus,
+    getSupportedCodeQLLanguages,
+    getDefaultRefSHA,
+    getFileRefSHA,
+    pullRequestExists,
+    reopenPullRequest
+} = require('./github-get')
 const {createRef, createFile, createPullRequest} = require('./github-create')
 const {updateFile} = require('./github-update')
 
@@ -125,8 +132,15 @@ class Manager {
             core.info(`[${repository.name}]: Generating pull request body with supported languages: [${languages.join(', ')}]`)
             const pullRequestBody = generatePullRequestBody(languages, this.config.pull_request_body, repository.owner.login, repository.name, SOURCE_BRANCH_NAME)
 
-            core.info(`[${repository.name}]: Creating CodeQL pull request: ${repository.html_url}/pulls`)
-            await createPullRequest(this.adminClient, repository.owner.login, repository.name, PULL_REQUEST_TITLE, SOURCE_BRANCH_NAME, repository.default_branch, pullRequestBody)
+            core.info(`[${repository.name}]: Checking if pull request already exists`)
+            const pullRequests = await pullRequestExists(octokit, repository.owner.login, repository.name, SOURCE_BRANCH_NAME)
+            if (pullRequests.length === 0) {
+                core.info(`[${repository.name}]: Reopening pull request: ${pullRequests[0].html_url}`)
+                await reopenPullRequest(this.adminClient, repository.owner.login, repository.name, pullRequests[0].number)
+            } else {
+                core.info(`[${repository.name}]: Creating CodeQL pull request: ${repository.html_url}/pulls`)
+                await createPullRequest(this.adminClient, repository.owner.login, repository.name, PULL_REQUEST_TITLE, SOURCE_BRANCH_NAME, repository.default_branch, pullRequestBody)
+            }
 
             core.info(`[${repository.name}]: Installing 'verify-scans' GitHub App`)
             await installVerifyScansApp(this.adminClient, this.config.verify_scans_installationID, repository.id)
