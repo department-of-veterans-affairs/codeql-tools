@@ -134,7 +134,7 @@ class Manager {
 
             core.info(`[${repository.name}]: Checking if pull request already exists`)
             const pullRequests = await pullRequestExists(octokit, repository.owner.login, repository.name, SOURCE_BRANCH_NAME)
-            if (pullRequests.length === 0) {
+            if (pullRequests.length > 0) {
                 core.info(`[${repository.name}]: Reopening pull request: ${pullRequests[0].html_url}`)
                 await reopenPullRequest(this.adminClient, repository.owner.login, repository.name, pullRequests[0].number)
             } else {
