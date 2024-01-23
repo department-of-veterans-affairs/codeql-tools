@@ -43,6 +43,11 @@ def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
     }
     env.SARIF_FILE = sprintf("%s-%s.sarif", repo, language)
     env.QL_PACKS = sprintf("codeql/%s-queries:codeql-suites/%s-code-scanning.qls", language, language)
+    if(env.ENABLED_EXTENDED_QUERIES) {
+        env.QL_PACKS = sprintf("codeql/%s-queries:codeql-suites/%s-security-extended.qls", language, language)
+    } else if(env.ENABLED_EXTENDED_QUERIES &&  env.ENABLED_EXTENDED_QUERIES == "true") {
+        env.QL_PACKS = sprintf("codeql/%s-queries:codeql-suites/%s-security-extended.qls", language, language)
+    }
     if(!env.UPLOAD_RESULTS) {
         env.UPLOAD_RESULTS = true
     } else if(env.UPLOAD_RESULTS && env.UPLOAD_RESULTS == "true") {
