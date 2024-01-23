@@ -41,6 +41,11 @@ def call(Org, Repo, Branch, Language, BuildCommand, Token, InstallCodeQL) {
     env.SARIF_FILE = sprintf("%s-%s.sarif", Repo, Language)
     env.UPLOAD_URL = sprintf("https://uploads.github.com/repos/%s/%s/code-scanning/codeql/databases/%s?name=%s", Org, Repo, Language, env.DATABASE_BUNDLE)
     env.QL_PACKS = sprintf("codeql/%s-queries:codeql-suites/%s-code-scanning.qls", language, language)
+    if(env.ENABLED_EXTENDED_QUERIES) {
+        env.QL_PACKS = sprintf("codeql/%s-queries:codeql-suites/%s-security-extended.qls", language, language)
+    } else if(env.ENABLED_EXTENDED_QUERIES &&  env.ENABLED_EXTENDED_QUERIES == "true") {
+        env.QL_PACKS = sprintf("codeql/%s-queries:codeql-suites/%s-security-extended.qls", language, language)
+    }
     if(!env.UPLOAD_RESULTS) {
         env.UPLOAD_RESULTS = true
     } else if(env.UPLOAD_RESULTS && env.UPLOAD_RESULTS == "true") {
