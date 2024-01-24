@@ -16,7 +16,7 @@ def call(repo, language, buildCommand) {
         env.ENABLE_DEBUG = false
     }
     env.LANGUAGE = language
-    if(env.LANGUAGE != "javascript" && env.LANGUAGE != "python" && env.LANGUAGE != "ruby") {
+    if(env.LANGUAGE != "javascript" && env.LANGUAGE != "python" && env.LANGUAGE != "ruby" && env.LANGUAGE != "go") {
         env.COMPILED_LANGUAGE = true
     } else {
         env.COMPILED_LANGUAGE = false
