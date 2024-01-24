@@ -18,7 +18,7 @@ def call(repo, language) {
         env.ENABLE_CODEQL_DEBUG = false
     }
     env.LANGUAGE = language.toLowerCase()
-    if(["javascript" , "python", "ruby"].contains(env.LANGUAGE)) {
+    if(["javascript" , "python", "ruby", "go"].contains(env.LANGUAGE)) {
         env.COMPILED_LANGUAGE = false
     } else {
         env.COMPILED_LANGUAGE = true
