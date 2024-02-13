@@ -230,21 +230,9 @@ def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
             echo "Uploading Database Bundle"
             sizeInBytes=`stat --printf="%s" ${DATABASE_BUNDLE}`
             if [ "${ENABLE_TLS_NO_VERIFY}" = true ]; then
-                wget --no-check-certificate --quiet --tries=3 --method=POST \
-                --header="Content-Type: application/zip" \
-                --header="Content-Length: $sizeInBytes" \
-                --header="${AUTHORIZATION_HEADER}" \
-                --body-file="${DATABASE_BUNDLE}" \
-                -O- \
-                "https://uploads.github.com/repos/$ORG/$REPO/code-scanning/codeql/databases/${LANGUAGE}?name=${DATABASE_BUNDLE}"
+                wget --no-check-certificate --quiet --tries=3 --method=POST --header="Content-Type: application/zip" --header="Content-Length: \$sizeInBytes" --header="${AUTHORIZATION_HEADER}" --body-file="${DATABASE_BUNDLE}" -O- "https://uploads.github.com/repos/$ORG/$REPO/code-scanning/codeql/databases/${LANGUAGE}?name=${DATABASE_BUNDLE}"
             else
-                wget --quiet --tries=3 --method=POST \
-                --header="Content-Type: application/zip" \
-                --header="Content-Length: $sizeInBytes" \
-                --header="${AUTHORIZATION_HEADER}" \
-                --body-file="${DATABASE_BUNDLE}" \
-                -O- \
-                "https://uploads.github.com/repos/$ORG/$REPO/code-scanning/codeql/databases/${LANGUAGE}?name=${DATABASE_BUNDLE}"
+                wget --quiet --tries=3 --method=POST --header="Content-Type: application/zip" --header="Content-Length: \$sizeInBytes" --header="${AUTHORIZATION_HEADER}" --body-file="${DATABASE_BUNDLE}" -O- "https://uploads.github.com/repos/$ORG/$REPO/code-scanning/codeql/databases/${LANGUAGE}?name=${DATABASE_BUNDLE}"
             fi
             echo "Database Bundle uploaded"
         fi
