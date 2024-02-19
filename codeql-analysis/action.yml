@@ -48,14 +48,14 @@ runs:
         repo: ${{ github.event.repository.name }}
 
     - name: Checkout repository
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
 
     - name: Validate emass.json
       uses: department-of-veterans-affairs/codeql-tools/validate-emass-json@main
 
     - name: Initialize CodeQL
       id: init
-      uses: github/codeql-action/init@v2
+      uses: github/codeql-action/init@v3
       with:
         config: ${{ inputs.config }}
         config-file: ${{ inputs.config-file }}
@@ -91,19 +91,19 @@ runs:
 
     - name: Auto-Build Source
       if: steps.build-steps.outputs.result == ''
-      uses: github/codeql-action/autobuild@v2
+      uses: github/codeql-action/autobuild@v3
       with:
         working-directory: ${{ inputs.path }}
 
     - name: Perform CodeQL Analysis
       if: inputs.path == '.'
-      uses: github/codeql-action/analyze@v2
+      uses: github/codeql-action/analyze@v3
       with:
         category: ois-${{ inputs.language }}
 
     - name: Perform CodeQL Analysis
       if: inputs.path != '.'
-      uses: github/codeql-action/analyze@v2
+      uses: github/codeql-action/analyze@v3
       with:
         category: ois-${{ inputs.language }}-${{ inputs.path }}
 
@@ -158,14 +158,14 @@ runs:
 
     - name: Upload Artifact
       if: runner.os != 'Windows'
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: codeql-scan-results-${{ inputs.language }}
         path: ${{ runner.temp }}/codeql-scan-results-${{ inputs.language }}.csv
 
     - name: Upload Artifact
       if: runner.os == 'Windows'
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: codeql-scan-results-${{ inputs.language }}
         path: ${{ runner.temp }}\codeql-scan-results-${{ inputs.language }}.csv
