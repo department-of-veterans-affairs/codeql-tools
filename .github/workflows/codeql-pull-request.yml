@@ -27,7 +27,7 @@ jobs:
           - ''
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Run Code Scanning
         uses: ./codeql-analysis
         with:
@@ -43,7 +43,7 @@ jobs:
       security-events: write
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Run Code Scanning
         uses: ./codeql-analysis
         with:
