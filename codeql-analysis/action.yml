@@ -160,14 +160,14 @@ runs:
       if: runner.os != 'Windows'
       uses: actions/upload-artifact@v3
       with:
-        name: codeql-scan-results-${{ inputs.language }}
+        name: codeql-scan-results-${{ inputs.language }}-${{ github.run_id }}
         path: ${{ runner.temp }}/codeql-scan-results-${{ inputs.language }}.csv
 
     - name: Upload Artifact
       if: runner.os == 'Windows'
       uses: actions/upload-artifact@v4
       with:
-        name: codeql-scan-results-${{ inputs.language }}
+        name: codeql-scan-results-${{ inputs.language }}-${{ github.run_id }}
         path: ${{ runner.temp }}\codeql-scan-results-${{ inputs.language }}.csv
 
     - name: Upload CodeQL Database
