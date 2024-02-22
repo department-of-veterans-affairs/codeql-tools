@@ -65,5 +65,5 @@ inputs:
     description: The installation ID of the GitHub Verify Scans app
     required: true
 runs:
-  using: node16
+  using: node20
   main: dist/index.js
