@@ -1,7 +1,7 @@
 # GitHub Actions SDK (Go)
 
 [![GoDoc](https://img.shields.io/badge/go-documentation-blue.svg?style=flat-square)](https://pkg.go.dev/github.com/sethvargo/go-githubactions)
-[![GitHub Actions](https://img.shields.io/github/workflow/status/sethvargo/go-githubactions/Test?style=flat-square)](https://github.com/sethvargo/go-githubactions/actions?query=workflow%3ATest)
+[![GitHub Actions](https://img.shields.io/github/actions/workflow/status/sethvargo/go-githubactions/unit.yml?branch=main&style=flat-square)](https://github.com/sethvargo/go-githubactions/actions?query=workflow%3ATest)
 
 This library provides an SDK for authoring [GitHub Actions][gh-actions] in Go. It has no external dependencies and provides a Go-like interface for interacting with GitHub Actions' build system.
 
@@ -69,6 +69,8 @@ By default, GitHub Actions expects actions to be written in Node.js. For other l
 ```dockerfile
 # your-repo/Dockerfile
 FROM golang:1.18
+WORKDIR /src
+COPY . . 
 RUN go build -o /bin/app .
 ENTRYPOINT ["/bin/app"]
 ```
