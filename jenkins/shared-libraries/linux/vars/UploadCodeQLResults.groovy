@@ -11,11 +11,11 @@ def call(org, repo, branch, language, token) {
     }
     env.GITHUB_TOKEN = token
     env.LANGUAGE = language
-    env.ORG = org
-    env.REPO = repo
-    env.REF = sprintf("refs/heads/%s", env.BRANCH)
+    env.CT_TOOLS = org
+    env.CT_REPO = repo
+    env.CT_REF = sprintf("refs/heads/%s", env.BRANCH)
     if(env.CHANGE_ID) {
-        env.REF = sprintf("refs/pull/%s/head", env.CHANGE_ID)
+        env.CT_REF = sprintf("refs/pull/%s/head", env.CHANGE_ID)
     }
 
     sh '''
@@ -39,8 +39,8 @@ def call(org, repo, branch, language, token) {
         echo "Uploading SARIF file"
         commit=\$(git rev-parse HEAD)
         "\$command" github upload-results \
-        --repository="${ORG}/${REPO}" \
-        --ref="${REF}" \
+        --repository="${CT_TOOLS}/${CT_REPO}" \
+        --ref="${CT_REF}" \
         --commit="\$commit" \
         --sarif="${SARIF_FILE}"
         echo "SARIF file uploaded"
@@ -52,13 +52,13 @@ def call(org, repo, branch, language, token) {
             -H "Content-Length: \$sizeInBytes" \
             -H "${AUTHORIZATION_HEADER}" \
             -T "${DATABASE_BUNDLE}" \
-            "https://uploads.github.com/repos/$ORG/$REPO/code-scanning/codeql/databases/${LANGUAGE}?name=${DATABASE_BUNDLE}"
+            "https://uploads.github.com/repos/$CT_TOOLS/$CT_REPO/code-scanning/codeql/databases/${LANGUAGE}?name=${DATABASE_BUNDLE}"
         else
             curl --http1.0 --silent --retry 3 -X POST -H "Content-Type: application/zip" \
             -H "Content-Length: \$sizeInBytes" \
             -H "${AUTHORIZATION_HEADER}" \
             -T "${DATABASE_BUNDLE}" \
-            "https://uploads.github.com/repos/$ORG/$REPO/code-scanning/codeql/databases/${LANGUAGE}?name=${DATABASE_BUNDLE}"
+            "https://uploads.github.com/repos/$CT_TOOLS/$CT_REPO/code-scanning/codeql/databases/${LANGUAGE}?name=${DATABASE_BUNDLE}"
         fi
         echo "Database Bundle uploaded"
     '''

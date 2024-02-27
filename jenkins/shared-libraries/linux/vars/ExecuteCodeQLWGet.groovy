@@ -35,11 +35,11 @@ def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
     if(env.LANGUAGE == "swift") {
         env.CODEQL_ENABLE_EXPERIMENTAL_FEATURES_SWIFT = true
     }
-    env.ORG = org
-    env.REPO = repo
-    env.REF = sprintf("refs/heads/%s", env.BRANCH)
+    env.CT_ORG = org
+    env.CT_REPO = repo
+    env.CT_REF = sprintf("refs/heads/%s", env.BRANCH)
     if(env.CHANGE_ID) {
-        env.REF = sprintf("refs/pull/%s/head", env.CHANGE_ID)
+        env.CT_REF = sprintf("refs/pull/%s/head", env.CHANGE_ID)
     }
     env.SARIF_FILE = sprintf("%s-%s.sarif", repo, language)
     env.QL_PACKS = sprintf("codeql/%s-queries:codeql-suites/%s-code-scanning.qls", language, language)
@@ -207,8 +207,8 @@ def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
             echo "Uploading SARIF file"
             commit=\$(git rev-parse HEAD)
             "\$command" github upload-results \
-            --repository="${ORG}/${REPO}" \
-            --ref="${REF}" \
+            --repository="${CT_ORG}/${CT_REPO}" \
+            --ref="${CT_REF}" \
             --commit="\$commit" \
             --sarif="${SARIF_FILE}"
             echo "SARIF file uploaded"
@@ -230,9 +230,9 @@ def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
             echo "Uploading Database Bundle"
             sizeInBytes=`stat --printf="%s" ${DATABASE_BUNDLE}`
             if [ "${ENABLE_TLS_NO_VERIFY}" = true ]; then
-                wget --no-check-certificate --quiet --tries=3 --method=POST --header="Content-Type: application/zip" --header="Content-Length: \$sizeInBytes" --header="${AUTHORIZATION_HEADER}" --body-file="${DATABASE_BUNDLE}" -O- "https://uploads.github.com/repos/$ORG/$REPO/code-scanning/codeql/databases/${LANGUAGE}?name=${DATABASE_BUNDLE}"
+                wget --no-check-certificate --quiet --tries=3 --method=POST --header="Content-Type: application/zip" --header="Content-Length: \$sizeInBytes" --header="${AUTHORIZATION_HEADER}" --body-file="${DATABASE_BUNDLE}" -O- "https://uploads.github.com/repos/$CT_ORG/$CT_REPO/code-scanning/codeql/databases/${LANGUAGE}?name=${DATABASE_BUNDLE}"
             else
-                wget --quiet --tries=3 --method=POST --header="Content-Type: application/zip" --header="Content-Length: \$sizeInBytes" --header="${AUTHORIZATION_HEADER}" --body-file="${DATABASE_BUNDLE}" -O- "https://uploads.github.com/repos/$ORG/$REPO/code-scanning/codeql/databases/${LANGUAGE}?name=${DATABASE_BUNDLE}"
+                wget --quiet --tries=3 --method=POST --header="Content-Type: application/zip" --header="Content-Length: \$sizeInBytes" --header="${AUTHORIZATION_HEADER}" --body-file="${DATABASE_BUNDLE}" -O- "https://uploads.github.com/repos/$CT_ORG/$CT_REPO/code-scanning/codeql/databases/${LANGUAGE}?name=${DATABASE_BUNDLE}"
             fi
             echo "Database Bundle uploaded"
         fi
