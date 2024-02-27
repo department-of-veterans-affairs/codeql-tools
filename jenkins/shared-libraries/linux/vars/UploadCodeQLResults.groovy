@@ -1,9 +1,9 @@
 def call(org, repo, branch, language, token) {
     env.AUTHORIZATION_HEADER = sprintf("Authorization: token %s", token)
     if(branch == "") {
-        env.BRANCH = env.GIT_BRANCH
+        env.CT_BRANCH = env.GIT_CT_BRANCH
     } else {
-        env.BRANCH = branch
+        env.CT_BRANCH = branch
     }
     env.DATABASE_BUNDLE = sprintf("%s-database.zip", language)
     if(!env.ENABLE_DEBUG) {
@@ -13,7 +13,7 @@ def call(org, repo, branch, language, token) {
     env.LANGUAGE = language
     env.CT_ORG = org
     env.CT_REPO = repo
-    env.CT_REF = sprintf("refs/heads/%s", env.BRANCH)
+    env.CT_REF = sprintf("refs/heads/%s", env.CT_BRANCH)
     if(env.CHANGE_ID) {
         env.CT_REF = sprintf("refs/pull/%s/head", env.CHANGE_ID)
     }
