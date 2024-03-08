@@ -1,11 +1,9 @@
 const fs = require('fs')
-const path = require('path')
 const core = require('@actions/core')
 
 const main = async () => {
-    const databaseName = core.getInput('database_name', {required: true, trimWhitespace: true})
+    const sarifPath = core.getInput('sarif', {required: true, trimWhitespace: true})
     const outputPath = core.getInput('output_path', {required: true, trimWhitespace: true})
-    const sarifPath = path.join('..', 'results', `${databaseName}.sarif`)
 
     core.info(`Reading SARIF file from ${sarifPath}`)
     const results = JSON.parse(fs.readFileSync(sarifPath, 'utf8'))

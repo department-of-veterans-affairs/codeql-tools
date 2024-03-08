@@ -2,7 +2,7 @@ name: Generate CSV
 description: Generates a CSV of SARIF results
 author: GitHub Expert Services
 inputs:
-  database_name:
+  sarif:
     description: The name of the database to generate the CSV for, usually the language
     required: true
   output_path:
