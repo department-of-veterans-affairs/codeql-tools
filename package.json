@@ -38,7 +38,7 @@
     "axios-retry": "^4.0.0",
     "js-yaml": "^4.1.0",
     "node-gzip": "^1.1.2",
-    "nodemailer": "^6.9.10"
+    "nodemailer": "^6.9.13"
   },
   "devDependencies": {
     "eslint": "^8.57.0"
