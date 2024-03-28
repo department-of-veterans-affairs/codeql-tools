@@ -1,5 +1,5 @@
-import {supportedCodeQLLanguages} from '../lib/utils.js'
-import {mapLanguages} from './utils.js'
+const {supportedCodeQLLanguages} = require('../lib/utils')
+const {mapLanguages} = require('./utils')
 
 /**
  * Check if a repository is already configured for CodeQL
@@ -10,7 +10,7 @@ import {mapLanguages} from './utils.js'
  *
  * @throws {Error} - If the repository could not be checked
  */
-export const getCodeQLStatus = async (octokit, owner, repo) => {
+exports.getCodeQLStatus = async (octokit, owner, repo) => {
     try {
         // https://docs.github.com/en/enterprise-cloud@latest/rest/code-scanning?apiVersion=2022-11-28#list-code-scanning-analyses-for-a-repository
         const {data: analyses} = await octokit.request('GET /repos/{owner}/{repo}/code-scanning/analyses', {
@@ -45,7 +45,7 @@ export const getCodeQLStatus = async (octokit, owner, repo) => {
  *
  * @throws {Error} - If the default branch could not be retrieved
  */
-export const getDefaultRefSHA = async (octokit, owner, repo, branch) => {
+exports.getDefaultRefSHA = async (octokit, owner, repo, branch) => {
     try {
         // https://docs.github.com/en/enterprise-cloud@latest/rest/git/refs?apiVersion=2022-11-28#get-a-reference
         const {data: ref} = await octokit.request('GET /repos/{owner}/{repo}/git/ref/{ref}', {
@@ -71,7 +71,7 @@ export const getDefaultRefSHA = async (octokit, owner, repo, branch) => {
  *
  * @throws {Error} - If the file could not be retrieved
  */
-export const getFileRefSHA = async (octokit, owner, repo, branch, path) => {
+exports.getFileRefSHA = async (octokit, owner, repo, branch, path) => {
     try {
         // https://docs.github.com/en/enterprise-cloud@latest/rest/repos/contents?apiVersion=2022-11-28#get-repository-content
         const {data: content} = await octokit.request('GET /repos/{owner}/{repo}/contents/{path}', {
@@ -98,7 +98,7 @@ export const getFileRefSHA = async (octokit, owner, repo, branch, path) => {
  *
  * @throws {Error} - If the repositories could not be retrieved
  */
-export const getInstalledRepos = async (octokit) => {
+exports.getInstalledRepos = async (octokit) => {
     try {
         // https://docs.github.com/en/enterprise-cloud@latest/rest/apps/installations?apiVersion=2022-11-28#list-repositories-accessible-to-the-app-installation
         const repos = await octokit.paginate('GET /installation/repositories', {
@@ -120,7 +120,7 @@ export const getInstalledRepos = async (octokit) => {
  *
  * @throws {Error} - If the languages could not be retrieved
  */
-export const getSupportedCodeQLLanguages = async (octokit, owner, repo) => {
+exports.getSupportedCodeQLLanguages = async (octokit, owner, repo) => {
     try {
         // https://docs.github.com/en/enterprise-cloud@latest/rest/repos/repos?apiVersion=2022-11-28#list-repository-languages
         const {data: languages} = await octokit.request('GET /repos/{owner}/{repo}/languages', {
@@ -142,7 +142,7 @@ export const getSupportedCodeQLLanguages = async (octokit, owner, repo) => {
  * @param branch - The name of the branch
  * @returns {Promise<boolean>} - A promise which resolves to true if a pull request exists, or false if it does not
  */
-export const pullRequestExists = async (octokit, owner, repo, branch) => {
+exports.pullRequestExists = async (octokit, owner, repo, branch) => {
     try {
         return await octokit.paginate('GET /repos/{owner}/{repo}/pulls', {
             owner: owner,
@@ -162,7 +162,7 @@ export const pullRequestExists = async (octokit, owner, repo, branch) => {
  * @param pull_number - The number of the pull request
  * @returns {Promise<void>} - A promise which resolves when the pull request is opened
  */
-export const reopenPullRequest = async (octokit, owner, repo, pull_number) => {
+exports.reopenPullRequest = async (octokit, owner, repo, pull_number) => {
     try {
         await octokit.request('PATCH /repos/{owner}/{repo}/pulls/{pull_number}', {
             owner: owner,

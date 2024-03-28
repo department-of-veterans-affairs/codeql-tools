@@ -9,5 +9,5 @@ inputs:
     description: The path to write the CSV file to
     required: true
 runs:
-  using: node20
+  using: node16
   main: dist/index.js

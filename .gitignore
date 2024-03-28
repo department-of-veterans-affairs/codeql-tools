@@ -12,4 +12,3 @@ test.sh
 **/.envrc
 *.csv
 *.pem
-*.key

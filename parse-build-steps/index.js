@@ -1,6 +1,6 @@
-import fs from 'fs'
-import core from '@actions/core'
-import yaml from 'js-yaml'
+const fs = require('fs')
+const core = require('@actions/core')
+const yaml = require('js-yaml')
 
 const main = async () => {
     try {

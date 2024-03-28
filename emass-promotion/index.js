@@ -2,22 +2,21 @@
 // TODO: Add robust error handling
 // TODO: Add function documentation
 // TODO: Add retry logic
-import fs from 'fs'
-import axios from 'axios'
-import yaml from 'js-yaml'
-import {gzip} from 'node-gzip'
-import core from '@actions/core'
-import axiosRetry from 'axios-retry'
-import {createCodeQLGitHubClient, createGitHubAppClient, createGitHubClient} from '../lib/utils.js'
-
-
-const DRY_RUN = process.env.DRY_RUN && process.env.DRY_RUN.toLowerCase() === 'true'
-const ENABLE_DEBUG = process.env.ACTIONS_STEP_DEBUG && process.env.ACTIONS_STEP_DEBUG.toLowerCase() === 'true'
+const fs = require('fs')
+const axios = require('axios')
+const yaml = require('js-yaml')
+const {gzip} = require('node-gzip')
+const core = require('@actions/core')
+const axiosRetry = require('axios-retry')
 
 axiosRetry(axios, {
     retries: 3
 })
 
+const {createCodeQLGitHubClient, createGitHubAppClient, createGitHubClient} = require('../lib/utils')
+
+const DRY_RUN = process.env.DRY_RUN && process.env.DRY_RUN.toLowerCase() === 'true'
+const ENABLE_DEBUG = process.env.ACTIONS_STEP_DEBUG && process.env.ACTIONS_STEP_DEBUG.toLowerCase() === 'true'
 const main = async () => {
     core.info('Parsing Actions input')
     const config = parseInput()

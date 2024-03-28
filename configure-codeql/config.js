@@ -1,4 +1,4 @@
-import core from '@actions/core'
+const core = require('@actions/core')
 
 /**
  * Parse the input from the workflow file
@@ -6,7 +6,7 @@ import core from '@actions/core'
  *
  * @throws {Error} - Throws an error if the input is invalid
  */
-export const parseInput = () => {
+exports.parseInput = () => {
     try {
         const admin_token = core.getInput('admin_token', {
             required: true, trimWhitespace: true

@@ -1,5 +1,5 @@
-import core from '@actions/core'
-import fs from 'fs'
+const core = require('@actions/core')
+const fs = require('fs')
 
 const main = async () => {
     try {
@@ -15,13 +15,13 @@ const main = async () => {
 
         core.info('Validating eMASS System ID')
         const systemID = Number(emass.systemID)
-        if (!isInteger(data) || (systemID <= 0 && systemID !== -1)) {
+        if(!isInteger(data) || (systemID <= 0 && systemID !== -1)) {
             core.setFailed(`eMASS System ID in .github/emass.json is not valid`)
             process.exit(1)
         }
 
         core.info('Validating eMASS System Owner Email')
-        if (!emass.systemOwnerEmail.includes('@')) {
+        if(!emass.systemOwnerEmail.includes('@')) {
             core.setFailed(`eMASS System Owner Email '${emass.systemOwnerEmail}' is not valid`)
             process.exit(1)
         }

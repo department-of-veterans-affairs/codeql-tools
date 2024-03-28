@@ -4,12 +4,12 @@
 // TODO: Add retry logic
 // TODO: Add email templates
 // TODO: add error arrays for all error types for reporting
-import yaml from 'js-yaml'
-import core from '@actions/core'
-import axios from 'axios'
-import axiosRetry from 'axios-retry'
-import nodemailer from 'nodemailer'
-import {createGitHubAppClient, createGitHubClient, supportedCodeQLLanguages} from '../lib/utils.js'
+const yaml = require('js-yaml')
+const core = require('@actions/core')
+const axios = require('axios')
+const axiosRetry = require('axios-retry')
+const nodemailer = require('nodemailer')
+const {createGitHubAppClient, supportedCodeQLLanguages, createGitHubClient} = require('../lib/utils')
 
 axiosRetry(axios, {
     retries: 3
@@ -106,7 +106,7 @@ const processRepository = async (octokit, mailer, config, repository, codeQLVers
                 ignoredLanguages = codeqlConfig.excluded_languages.map(language => language.name.toLowerCase())
             }
 
-            if (codeqlConfig.default_branch) {
+            if(codeqlConfig.default_branch) {
                 core.info(`[${repository.name}]: CodeQL configuration file contains default branch: ${codeqlConfig.default_branch}`)
                 defaultBranch = codeqlConfig.default_branch
             }
@@ -416,7 +416,7 @@ const listLanguages = async (octokit, owner, repo, ignoredLanguages) => {
             repo: repo
         })
 
-        const mappedLanguages = Object.keys(languages).map(language => language.toLowerCase())
+        const mappedLanguages =  Object.keys(languages).map(language => language.toLowerCase())
             .map(language => {
                 switch (language) {
                     case 'c':
@@ -506,7 +506,7 @@ const listCodeQLAnalyses = async (octokit, owner, repo, branch, range, requiredL
                 continue
             }
             let language = analysis.category.split('-')[1].split('-')[0].trim().toLowerCase()
-            if (!requiredLanguages.includes(language)) {
+            if(!requiredLanguages.includes(language)) {
                 continue
             }
             if (language === 'kotlin') {

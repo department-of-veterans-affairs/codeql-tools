@@ -11,7 +11,7 @@ const DRY_RUN = process.env.DRY_RUN && process.env.DRY_RUN.toLowerCase() === 'tr
  *
  * @throws {Error} - If the branch could not be created
  */
-export const createRef = async (octokit, owner, repo, sha, branch) => {
+exports.createRef = async (octokit, owner, repo, sha, branch) => {
     try {
         if (!DRY_RUN) {
             console.log(`Creating branch ${branch} in ${owner}/${repo} with sha ${sha}...`)
@@ -41,7 +41,7 @@ export const createRef = async (octokit, owner, repo, sha, branch) => {
  *
  * @throws {Error} - If the file could not be created
  */
-export const createFile = async (octokit, owner, repo, branch, path, message, content) => {
+exports.createFile = async (octokit, owner, repo, branch, path, message, content) => {
     try {
         if (!DRY_RUN) {
             // https://docs.github.com/en/enterprise-cloud@latest/rest/repos/contents?apiVersion=2022-11-28#create-or-update-file-contents
@@ -74,11 +74,11 @@ export const createFile = async (octokit, owner, repo, branch, path, message, co
  *
  * @throws {Error} - If the pull request could not be created
  */
-export const createPullRequest = async (octokit, owner, repo, title, head, base, body) => {
+exports.createPullRequest = async (octokit, owner, repo, title, head, base, body) => {
     try {
         if (!DRY_RUN) {
             // https://docs.github.com/en/enterprise-cloud@latest/rest/pulls/pulls?apiVersion=2022-11-28#create-a-pull-request
-            await octokit.request('POST /repos/{owner}/{repo}/pulls', {
+            await octokit.request('POST /repos/{owner}/{repo}/pulls',{
                 owner: owner,
                 repo: repo,
                 title: title,
