@@ -1,5 +1,5 @@
-const yaml = require('js-yaml')
-const core = require('@actions/core')
+import yaml from 'js-yaml'
+import core from '@actions/core'
 
 const DRY_RUN = process.env.DRY_RUN && process.env.DRY_RUN.toLowerCase() === 'true'
 const ENABLE_DEBUG = process.env.ACTIONS_STEP_DEBUG && process.env.ACTIONS_STEP_DEBUG.toLowerCase() === 'true'
@@ -59,7 +59,7 @@ const analysisTemplate = {
  *
  * @throws {Error} - If the default code scanning configuration could not be retrieved
  */
-exports.defaultCodeScanningEnabled = async (octokit, owner, repo) => {
+export const defaultCodeScanningEnabled = async (octokit, owner, repo) => {
     try {
         // https://docs.github.com/en/enterprise-cloud@latest/rest/code-scanning?apiVersion=2022-11-28#get-a-code-scanning-default-setup-configuration
         const {data: codeScanning} = await octokit.request('GET /repos/{org}/{repo}/code-scanning/default-setup', {
@@ -83,7 +83,7 @@ exports.defaultCodeScanningEnabled = async (octokit, owner, repo) => {
  *
  * @throws {Error} - If the file could not be checked
  */
-exports.fileExistsOnDefaultBranch = async (octokit, owner, repo, path) => {
+export const fileExistsOnDefaultBranch = async (octokit, owner, repo, path) => {
     try {
         // https://docs.github.com/en/enterprise-cloud@latest/rest/repos/contents?apiVersion=2022-11-28#get-repository-content
         await octokit.request('GET /repos/{owner}/{repo}/contents/{path}', {
@@ -113,7 +113,7 @@ exports.fileExistsOnDefaultBranch = async (octokit, owner, repo, path) => {
  *
  * @throws {Error} - If the file could not be checked
  */
-exports.fileExistsOnBranch = async (octokit, owner, repo, branch, path) => {
+export const fileExistsOnBranch = async (octokit, owner, repo, branch, path) => {
     try {
         // https://docs.github.com/en/enterprise-cloud@latest/rest/repos/contents?apiVersion=2022-11-28#get-repository-content
         await octokit.repos.getContent({
@@ -140,7 +140,7 @@ exports.fileExistsOnBranch = async (octokit, owner, repo, branch, path) => {
  *
  * @throws {Error} - If the workflow file could not be generated
  */
-exports.generateCodeQLWorkflow = (languages, defaultBranch) => {
+export const generateCodeQLWorkflow = (languages, defaultBranch) => {
     try {
         const workflow = analysisTemplate
         const minute = Math.floor(Math.random() * 60)
@@ -161,7 +161,7 @@ exports.generateCodeQLWorkflow = (languages, defaultBranch) => {
  * Creates a string representation of the EMASS JSON file
  * @returns {string} - String representation of the EMASS JSON file
  */
-exports.generateEMASSJson = () => {
+export const generateEMASSJson = () => {
     return JSON.stringify({
         systemID: 0,
         systemName: '<system_name>',
@@ -179,7 +179,7 @@ exports.generateEMASSJson = () => {
  * @param branch - Branch name
  * @returns {string} - String representation of a pull request body
  */
-exports.generatePullRequestBody = (languages, template, org, repo, branch) => {
+export const generatePullRequestBody = (languages, template, org, repo, branch) => {
     const languageList = languages.map(language => `- \`${language}\``).join('\n')
     return template.replaceAll('<LANGUAGES_PLACEHOLDER>', languageList)
         .replaceAll('<CODEQL_WORKFLOW_URL_PLACEHOLDER>', `https://github.com/${org}/${repo}/blob/${branch}/.github/workflows/codeql-analysis.yml`)
@@ -195,7 +195,7 @@ exports.generatePullRequestBody = (languages, template, org, repo, branch) => {
  *
  * @throws {Error} - If the GitHub App could not be installed
  */
-exports.installVerifyScansApp = async (octokit, installationID, repositoryID) => {
+export const installVerifyScansApp = async (octokit, installationID, repositoryID) => {
     try {
         if (!DRY_RUN) {
             // https://docs.github.com/en/enterprise-cloud@latest/rest/apps/installations?apiVersion=2022-11-28#add-a-repository-to-an-app-installation
@@ -214,7 +214,7 @@ exports.installVerifyScansApp = async (octokit, installationID, repositoryID) =>
  * @param languages - List of languages to analyze
  * @returns {string[]} - Array of languages mapped to their corresponding query pack
  */
-exports.mapLanguages = (languages) => {
+export const mapLanguages = (languages) => {
     const mappedLanguages = languages.map(language => {
         switch (language) {
             case 'c':
@@ -245,7 +245,7 @@ exports.mapLanguages = (languages) => {
  *
  * @throws {Error} - If the branch could not be checked
  */
-exports.refExists = async (octokit, owner, repo, branch) => {
+export const refExists = async (octokit, owner, repo, branch) => {
     try {
         // https://docs.github.com/en/enterprise-cloud@latest/rest/git/refs?apiVersion=2022-11-28#get-a-reference
         await octokit.request('GET /repos/{owner}/{repo}/git/ref/{ref}', {
@@ -274,7 +274,7 @@ exports.refExists = async (octokit, owner, repo, branch) => {
  *
  * @throws {Error} - If the workflow could not be checked
  */
-exports.reusableWorkflowInUse = async (octokit, owner, repo, branch, path) => {
+export const reusableWorkflowInUse = async (octokit, owner, repo, branch, path) => {
     try {
         // https://docs.github.com/en/enterprise-cloud@latest/rest/repos/contents?apiVersion=2022-11-28#get-repository-content
         const {data: workflow} = await octokit.request('GET /repos/{owner}/{repo}/contents/{path}', {

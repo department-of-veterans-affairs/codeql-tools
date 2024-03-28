@@ -1,7 +1,7 @@
-const core = require('@actions/core')
-const {Octokit} = require('@octokit/rest')
-const {retry} = require('@octokit/plugin-retry')
-const {throttling} = require('@octokit/plugin-throttling')
+import core from '@actions/core'
+import {Octokit} from '@octokit/rest'
+import {retry} from '@octokit/plugin-retry'
+import {throttling} from '@octokit/plugin-throttling'
 
 const org = core.getInput('ORG', {required: true, trimWhitespace: true})
 const repo = core.getInput('REPO', {required: true, trimWhitespace: true})

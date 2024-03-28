@@ -1,25 +1,25 @@
-const core = require('@actions/core')
-const {
-    fileExistsOnDefaultBranch,
+import core from '@actions/core'
+import {
     defaultCodeScanningEnabled,
-    reusableWorkflowInUse,
-    installVerifyScansApp,
+    fileExistsOnBranch,
+    fileExistsOnDefaultBranch,
     generateCodeQLWorkflow,
     generateEMASSJson,
+    generatePullRequestBody,
+    installVerifyScansApp,
     refExists,
-    fileExistsOnBranch,
-    generatePullRequestBody
-} = require('./utils')
-const {
+    reusableWorkflowInUse
+} from './utils'
+import {
     getCodeQLStatus,
-    getSupportedCodeQLLanguages,
     getDefaultRefSHA,
     getFileRefSHA,
+    getSupportedCodeQLLanguages,
     pullRequestExists,
     reopenPullRequest
-} = require('./github-get')
-const {createRef, createFile, createPullRequest} = require('./github-create')
-const {updateFile} = require('./github-update')
+} from './github-get.js'
+import {createFile, createPullRequest, createRef} from './github-create.js'
+import {updateFile} from './github-update.js'
 
 const PULL_REQUEST_TITLE = 'Action Required: Configure CodeQL'
 const SOURCE_BRANCH_NAME = 'ghas-enforcement-codeql'
@@ -27,7 +27,7 @@ const SOURCE_BRANCH_NAME = 'ghas-enforcement-codeql'
 /**
  * Manages the configuration of CodeQL for a repository
  */
-class Manager {
+export class Manager {
     constructor(adminClient, config, verifyScansInstalledRepositories) {
         this.adminClient = adminClient
         this.config = config
@@ -152,5 +152,3 @@ class Manager {
         }
     }
 }
-
-exports.Manager = Manager
