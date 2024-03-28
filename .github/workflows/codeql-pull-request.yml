@@ -26,6 +26,11 @@ jobs:
           - .github/codeql-config.yml
           - ''
     steps:
+      - name: Install Go
+        if: matrix.language == 'go'
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.22'
       - name: Checkout Code
         uses: actions/checkout@v4
       - name: Run Code Scanning

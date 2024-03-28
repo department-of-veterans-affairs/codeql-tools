@@ -158,14 +158,14 @@ runs:
 
     - name: Upload Artifact
       if: runner.os != 'Windows'
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v3-node20
       with:
         name: codeql-scan-results-${{ inputs.language }}
         path: ${{ runner.temp }}/codeql-scan-results-${{ inputs.language }}.csv
 
     - name: Upload Artifact
       if: runner.os == 'Windows'
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v3-node20
       with:
         name: codeql-scan-results-${{ inputs.language }}
         path: ${{ runner.temp }}\codeql-scan-results-${{ inputs.language }}.csv

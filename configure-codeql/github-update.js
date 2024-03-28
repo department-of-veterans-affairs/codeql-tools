@@ -14,11 +14,11 @@ const DRY_RUN = process.env.DRY_RUN && process.env.DRY_RUN.toLowerCase() === 'tr
  *
  * @throws {Error} - If the file could not be updated
  */
-exports.updateFile = async (octokit, owner, repo, branch, path, message, content, sha) => {
+export const updateFile = async (octokit, owner, repo, branch, path, message, content, sha) => {
     try {
         if (!DRY_RUN) {
             // https://docs.github.com/en/enterprise-cloud@latest/rest/repos/contents?apiVersion=2022-11-28#create-or-update-file-contents
-            await octokit.request('PUT /repos/{owner}/{repo}/contents/{path}',{
+            await octokit.request('PUT /repos/{owner}/{repo}/contents/{path}', {
                 owner: owner,
                 repo: repo,
                 path: path,

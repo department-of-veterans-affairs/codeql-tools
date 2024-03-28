@@ -1,7 +1,7 @@
+import core from '@actions/core'
+import yaml from 'js-yaml'
+import {createGitHubAppClient} from '../lib/utils.js'
 
-const core = require('@actions/core')
-const yaml = require('js-yaml')
-const {createGitHubAppClient} = require("../lib/utils")
 const main = async () => {
     try {
         const config = parseInput()

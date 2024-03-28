@@ -1,10 +1,9 @@
 // TODO: Add tests
-const core = require('@actions/core')
-
-const {parseInput} = require('./config')
-const {getInstalledRepos} = require('./github-get')
-const {Manager} = require('./manager')
-const {createGitHubClient, createGitHubAppClient} = require('../lib/utils')
+import core from '@actions/core'
+import {parseInput} from './config.js'
+import {getInstalledRepos} from './github-get.js'
+import {Manager} from './manager.js'
+import {createGitHubAppClient, createGitHubClient} from '../lib/utils.js'
 
 /**
  * Main function

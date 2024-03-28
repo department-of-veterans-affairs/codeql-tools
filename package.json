@@ -3,6 +3,7 @@
   "version": "2.0.0",
   "description": "A collection of tools for managing the enablement of GitHub Advanced Security CodeQL",
   "main": "index.js",
+  "type": "module",
   "scripts": {
     "build": "npm run build:configure-codeql && npm run build:emass-promotion && npm run build:enforce-code-scanning-remediation && npm run build:parse-build-steps && npm run build:upload-database && npm run build:validate-emass-json && npm run build:validate-monorepo-access && npm run build:verify-codeql-usage && npm run build:verify-scans",
     "build:configure-codeql": "npx rimraf configure-codeql/dist && npx @vercel/ncc build configure-codeql/index.js -o configure-codeql/dist",
@@ -30,17 +31,14 @@
     "@actions/core": "^1.10.1",
     "@actions/github": "^6.0.0",
     "@octokit/app": "^14.0.2",
-    "@octokit/plugin-retry": "^6.0.1",
-    "@octokit/plugin-throttling": "^8.1.3",
+    "@octokit/plugin-retry": "^7.0.3",
+    "@octokit/plugin-throttling": "^9.0.3",
     "@octokit/rest": "^20.0.2",
-    "archiver": "^6.0.1",
-    "axios": "^1.6.7",
-    "axios-retry": "^4.0.0",
+    "archiver": "^7.0.1",
+    "axios": "^1.6.8",
+    "axios-retry": "^4.1.0",
     "js-yaml": "^4.1.0",
     "node-gzip": "^1.1.2",
-    "nodemailer": "^6.9.10"
-  },
-  "devDependencies": {
-    "eslint": "^8.57.0"
+    "nodemailer": "^6.9.13"
   }
 }

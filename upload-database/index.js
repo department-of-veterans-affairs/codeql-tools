@@ -1,7 +1,8 @@
-const fs = require('fs')
-const archiver = require('archiver')
-const core = require('@actions/core')
-const {createCodeQLGitHubClient} = require("../lib/utils")
+import fs from 'fs'
+import archiver from 'archiver'
+import core from '@actions/core'
+import {createCodeQLGitHubClient} from '../lib/utils.js'
+
 const main = async () => {
     try {
         const config = parseInput()

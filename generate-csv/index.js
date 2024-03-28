@@ -1,5 +1,5 @@
-const fs = require('fs')
-const core = require('@actions/core')
+import fs from 'fs'
+import core from '@actions/core'
 
 const main = async () => {
     const sarifPath = core.getInput('sarif', {required: true, trimWhitespace: true})
