@@ -191,7 +191,7 @@ def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
         echo "The SARIF category has been configured to ois-${LANGUAGE}\${SEP}\${SUBDIR}"
 
         echo "Analyzing database"
-        "\$command" database analyze "${DATABASE_PATH}" ${CODEQL_THREADS_FLAG} ${CODEQL_RAM_FLAG} --no-download --sarif-category "ois-${LANGUAGE}\${SEP}\${SUBDIR}" --format sarif-latest --output "${SARIF_FILE}" "${QL_PACKS}"
+        "\$command" database analyze "${DATABASE_PATH}" ${CODEQL_THREADS_FLAG} ${CODEQL_RAM_FLAG} --no-download --sarif-category "ois-${LANGUAGE}\${SEP}\${SUBDIR}" --format "sarifv2.1.0" --output "${SARIF_FILE}" "${QL_PACKS}"
         echo "Database analyzed"
 
         if [ "${ENABLE_CODEQL_DEBUG}" = true ]; then
