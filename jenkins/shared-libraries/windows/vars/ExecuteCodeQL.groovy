@@ -170,9 +170,9 @@ def call(Org, Repo, Branch, Language, BuildCommand, Token, InstallCodeQL) {
 
         Write-Output "Analyzing database"
         if("\$Env:INSTALL_CODEQL" -eq "true") {
-            Invoke-Expression ".\\codeql\\codeql database analyze --no-download '\$Env:DATABASE_PATH' \$Env:CODEQL_THREADS_FLAG \$Env:CODEQL_RAM_FLAG --sarif-category 'ois-\$Env:LANGUAGE\$Env:SEP\$Env:CWD' --format sarif-latest --output '\$Env:SARIF_FILE' '\$Env:QL_PACKS'"
+            Invoke-Expression ".\\codeql\\codeql database analyze --no-download '\$Env:DATABASE_PATH' \$Env:CODEQL_THREADS_FLAG \$Env:CODEQL_RAM_FLAG --sarif-category 'ois-\$Env:LANGUAGE\$Env:SEP\$Env:CWD' --format "sarifv2.1.0" --output '\$Env:SARIF_FILE' '\$Env:QL_PACKS'"
         } else {
-            Invoke-Expression "codeql database analyze --no-download '\$Env:DATABASE_PATH' \$Env:CODEQL_THREADS_FLAG \$Env:CODEQL_RAM_FLAG --sarif-category 'ois-\$Env:LANGUAGE' --format sarif-latest --output '\$Env:SARIF_FILE' '\$Env:QL_PACKS'"
+            Invoke-Expression "codeql database analyze --no-download '\$Env:DATABASE_PATH' \$Env:CODEQL_THREADS_FLAG \$Env:CODEQL_RAM_FLAG --sarif-category 'ois-\$Env:LANGUAGE' --format "sarifv2.1.0" --output '\$Env:SARIF_FILE' '\$Env:QL_PACKS'"
         }
         Write-Output "Database analyzed"
         Write-Output "Generating CSV of results"
