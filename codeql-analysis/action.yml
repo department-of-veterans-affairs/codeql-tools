@@ -48,7 +48,7 @@ runs:
         config-file: ${{ inputs.config-file }}
         debug: ${{ inputs.debug }}
         languages: ${{ inputs.language }}
-        tools: latest
+        tools: linked
 
     - name: Parse Build Steps
       id: build-steps
