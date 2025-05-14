@@ -69,31 +69,6 @@ def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
         echo “CodeQL database path: ${DATABASE_PATH}”
         echo “CodeQL database bundle file name: ${DATABASE_BUNDLE}”
 
-        echo "Validating emass.json"
-        json_file="${WORKSPACE}/.github/emass.json"
-        if [ ! -f "$json_file" ]; then
-            echo "Error: emass.json not found, please refer to the OIS documentation on creating the emass.json file"
-            exit 1
-        fi
-
-        output=\$(jq '.' "$json_file" 2> /dev/null)
-        if [ $? -ne 0 ]; then
-            echo "Error: malformed emass.json file, please refer to the OIS documentation on creating the emass.json file"
-            exit 4
-        fi
-
-        systemID=\$(jq -r '.systemID' "$json_file")
-        if [ \$systemID -le 0 ] && [ \$systemID -ne -1 ]; then
-            echo "Error: systemID '\$systemID' is invalid"
-            exit 5
-        fi
-
-        systemOwnerEmail=\$(jq -r '.systemOwnerEmail' "$json_file")
-        case "\$systemOwnerEmail" in
-            *"@"*) echo "Valid eMASS SystemOwnerEmail";;
-            *)     echo "Error: systemOwnerEmail '\$systemOwnerEmail' is invalid"; exit 6 ;;
-        esac
-
         if [ "${INSTALL_CODEQL}" = false ]; then
             echo "Skipping installation of CodeQL"
         else
