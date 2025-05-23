@@ -25,6 +25,9 @@ def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
     if(!env.ENABLE_CODEQL_DEBUG) {
         env.ENABLE_CODEQL_DEBUG = false
     }
+    if(!env.GIT_COMMIT) {
+        env.GIT_COMMIT = ""
+    }
     env.GITHUB_TOKEN = token
     if(installCodeQL == true || installCodeQL == "true") {
         env.INSTALL_CODEQL = true
@@ -168,13 +171,19 @@ def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
         "\$command" database interpret-results "${DATABASE_PATH}" ${CODEQL_THREADS_FLAG} --format=csv --output="codeql-scan-results-${LANGUAGE}.csv" "${QL_PACKS}"
         echo "CSV of results generated"
 
-        if [ "${UPLOAD_RESULTS}" = true ]; then
+        if [ "\${UPLOAD_RESULTS}" = true ]; then
             echo "Uploading SARIF file"
-            commit=\$(git rev-parse HEAD)
+            if [ "\${GIT_COMMIT}" = "" ]; then
+                commit=$(git rev-parse HEAD)
+                echo "Determined commit using git rev-parse: $commit"
+            else
+                commit="\${GIT_COMMIT}"
+                echo "Using GIT_COMMIT environment variable: $commit"
+            fi
             "\$command" github upload-results \
             --repository="${CT_ORG}/${CT_REPO}" \
             --ref="${CT_REF}" \
-            --commit="\$commit" \
+            --commit="$commit" \
             --sarif="${SARIF_FILE}"
             echo "SARIF file uploaded"
         fi
