@@ -171,7 +171,7 @@ def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
         "\$command" database interpret-results "${DATABASE_PATH}" ${CODEQL_THREADS_FLAG} --format=csv --output="codeql-scan-results-${LANGUAGE}.csv" "${QL_PACKS}"
         echo "CSV of results generated"
 
-        if [ "${UPLOAD_RESULTS}" = true ]; then
+        if [ "\${UPLOAD_RESULTS}" = true ]; then
             echo "Uploading SARIF file"
             if [ "\${GIT_COMMIT}" = "" ]; then
                 commit=$(git rev-parse HEAD)
