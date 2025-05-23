@@ -25,6 +25,9 @@ def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
     if(!env.ENABLE_CODEQL_DEBUG) {
         env.ENABLE_CODEQL_DEBUG = false
     }
+    if(!env.GIT_COMMIT) {
+        env.GIT_COMMIT = ""
+    }
     env.GITHUB_TOKEN = token
     if(installCodeQL == true || installCodeQL == "true") {
         env.INSTALL_CODEQL = true
@@ -170,9 +173,9 @@ def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
 
         if [ "${UPLOAD_RESULTS}" = true ]; then
             echo "Uploading SARIF file"
-            commit=\$(git rev-parse HEAD)
-            if [ -n "${GIT_COMMIT}" ]; then
-                commit="${GIT_COMMIT}"
+            commit="${GIT_COMMIT}"
+            if [ "${GIT_COMMIT}" = "" ]; then
+                commit=\$(git rev-parse HEAD
                 echo "Using GIT_COMMIT environment variable: ${commit}"
             else
                 echo "Determined commit using git rev-parse: ${commit}"
