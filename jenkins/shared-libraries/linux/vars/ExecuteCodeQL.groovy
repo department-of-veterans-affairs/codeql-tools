@@ -173,11 +173,11 @@ def call(org, repo, branch, language, buildCommand, token, installCodeQL) {
 
         if [ "${UPLOAD_RESULTS}" = true ]; then
             echo "Uploading SARIF file"
-            if [ "${GIT_COMMIT}" = "" ]; then
+            if [ "\${GIT_COMMIT}" = "" ]; then
                 commit=$(git rev-parse HEAD)
                 echo "Determined commit using git rev-parse: $commit"
             else
-                commit="${GIT_COMMIT}"
+                commit="\${GIT_COMMIT}"
                 echo "Using GIT_COMMIT environment variable: $commit"
             fi
             "\$command" github upload-results \
